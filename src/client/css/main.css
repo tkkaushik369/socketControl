@@ -1,0 +1,31 @@
+:root {
+	--top: 54px;
+}
+
+body {
+	overflow: hidden;
+	margin: 0px;
+	color: rgba(200, 200, 200, 0.6);
+	background-color: rgba(1, 1, 1, 1);
+}
+
+.bodyTransparent {
+	background-color: rgba(1, 1, 1, 0.01);
+}
+
+#pingStats {
+	position: absolute;
+	top: var(--top);
+	left: 4px;
+	width: 200px;
+	height: calc(100% - var(--top) - 4px);
+	font-family: monospace;
+	border: 1px solid rgba(120, 120, 120, 0.3);
+	box-sizing: border-box;
+	user-select: none;
+}
+
+
+.lil-gui {
+	opacity: 0.8;
+}
