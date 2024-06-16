@@ -25,6 +25,10 @@ body {
 	user-select: none;
 }
 
+#pingStats .noBorder {
+	border: none;
+}
+
 
 .lil-gui {
 	opacity: 0.8;

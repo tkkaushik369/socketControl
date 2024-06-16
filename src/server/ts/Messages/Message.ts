@@ -1,1 +1,1 @@
-export { PlayerData, PlayerDataData } from "./PlayerData"
+export { Message } from "./MessageData"

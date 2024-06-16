@@ -13,8 +13,10 @@ import path from 'path'
 import http from 'http'
 import { Server, Socket } from 'socket.io'
 import WorldServer from './ts/WorldServer'
+import WorldObject from './ts/WorldObjects/WorldObjects'
 import { Player } from './ts/Player'
-import { PlayerData } from './ts/Messages/Message'
+import { Message } from './ts/Messages/Message'
+import * as THREE from 'three'
 
 const port: number = 3000
 const privateHost: boolean = false
@@ -35,6 +37,8 @@ class AppServer {
 		this.OnConnect = this.OnConnect.bind(this)
 		this.OnDisConnect = this.OnDisConnect.bind(this)
 		this.OnUpdate = this.OnUpdate.bind(this)
+		this.OnChangeScenario = this.OnChangeScenario.bind(this)
+		this.OnShoot = this.OnShoot.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 
 		// Init
@@ -55,7 +59,9 @@ class AppServer {
 		this.io.on("connection", (socket: Socket) => {
 			this.OnConnect(socket)
 			socket.on("disconnect", () => this.OnDisConnect(socket))
-			socket.on("update", (message: PlayerData) => this.OnUpdate(socket, message))
+			socket.on("changeScenario", (inx: number) => this.OnChangeScenario(inx))
+			socket.on("shoot", (data: any) => this.OnShoot(data))
+			socket.on("update", (message: Message) => this.OnUpdate(socket, message))
 		})
 		setInterval(this.ForSocketLoop, this.fixedTimeStep * 1000)
 	}
@@ -64,6 +70,7 @@ class AppServer {
 		console.log("Connected: " + socket.id)
 		this.clients[socket.id] = new Player(socket.id)
 		this.clients[socket.id].data.count = (++this.clientInx)
+		this.clients[socket.id].data.currentScenarioIndex = this.worldServer.currentScenarioIndex
 
 		socket.emit("setid", this.clients[socket.id].Out(), (username: string) => {
 			this.clients[socket.id].userName = username
@@ -80,7 +87,21 @@ class AppServer {
 		}
 	}
 
-	private OnUpdate(socket: Socket, message: PlayerData) {
+	private OnChangeScenario(inx: number) {
+		this.worldServer.currentScenarioIndex = inx
+		console.log("Scenario Change: " + inx)
+		this.worldServer.buildScene(inx)
+		this.io.emit("changeScenario", inx)
+	}
+
+	private OnShoot(data: any) {
+		let position = new THREE.Vector3(data.position.x, data.position.y, data.position.z)
+		let quaternion = new THREE.Quaternion(data.quaternion.x, data.quaternion.y, data.quaternion.z, data.quaternion.w)
+		let dirVec = new THREE.Vector3(data.dirVec.x, data.dirVec.y, data.dirVec.z)
+		this.worldServer.shootBall(position, quaternion, dirVec)
+	}
+
+	private OnUpdate(socket: Socket, message: Message) {
 		this.clients[socket.id].ping = Date.now() - this.clients[socket.id].timeStamp
 		this.clients[socket.id].data.count = message.data.count
 	}
@@ -92,11 +113,26 @@ class AppServer {
 	}
 
 	private ForSocketLoop() {
-		let data: { [id: string]: PlayerData } = {}
+		let data: { [id: string]: Message } = {}
+
+		// Player Data
 		Object.keys(this.clients).forEach((id) => {
 			this.clients[id].timeStamp = Date.now()
 			data[id] = this.clients[id].Out()
 		})
+
+		// Ball Data
+		this.worldServer.allBalls.forEach((ball: WorldObject) => {
+			ball.timeStamp = Date.now()
+			data[ball.name] = ball.Out()
+		})
+
+		// World Data
+		Object.keys(this.worldServer.allWorldObjects).forEach((id) => {
+			this.worldServer.allWorldObjects[id].timeStamp = Date.now()
+			data[id] = this.worldServer.allWorldObjects[id].Out()
+		})
+
 		this.io.emit("players", data)
 	};
 }
