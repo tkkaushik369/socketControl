@@ -35,6 +35,7 @@ export default class WorldClient extends World {
 
 	public changeSceneCallBack: Function | undefined
 	public shootCallBack: Function | undefined
+	public changeTimeScaleCallBack: Function | undefined
 
 	public constructor(clients: { [id: string]: Player }, parentDom?: HTMLElement) {
 		super(clients)
@@ -50,11 +51,12 @@ export default class WorldClient extends World {
 		this.allHelper = this.allHelper.bind(this)
 		this.animate = this.animate.bind(this)
 		this.onWindowResize = this.onWindowResize.bind(this)
-		
+
 		this.toggleStats = this.toggleStats.bind(this)
 		this.pointLockFunc = this.pointLockFunc.bind(this)
 		this.debugFunc = this.debugFunc.bind(this)
 		this.mouseSensitivityFunc = this.mouseSensitivityFunc.bind(this)
+		this.timeScaleFunc = this.timeScaleFunc.bind(this)
 
 		this.allHelpersCallBack = this.allHelper
 		this.addMeshCallBack = this.addMesh
@@ -149,6 +151,7 @@ export default class WorldClient extends World {
 		let inputFolder = this.gui.addFolder('Input')
 		inputFolder.add(this.settings, 'PointerLock').onChange(this.pointLockFunc);
 		inputFolder.add(this.settings, 'MouseSensitivity', 0.01, 0.5, 0.01).onChange(this.mouseSensitivityFunc).name("Mouse")
+		inputFolder.add(this.settings, 'TimeScale', 0, 1).listen().onChange(this.timeScaleFunc).disable(true);
 		inputFolder.close()
 
 		this.folderScenarios = this.gui.addFolder('Scenario')
@@ -251,5 +254,9 @@ export default class WorldClient extends World {
 
 	private mouseSensitivityFunc = (value: number) => {
 		this.cameraController.setSensitivity(value * 0.7, value * 0.7);
+	}
+
+	private timeScaleFunc = (value: number) => {
+		this.settings.timeScaleTarget = value;
 	}
 }

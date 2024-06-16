@@ -32,26 +32,6 @@ export class GameModeBase {
 			console.error('Calling gameMode init() without having specified gameMode\'s world first: ' + this);
 		}
 	}
-
-	scrollTheTimeScale(scrollAmount: number) {
-		if (this.worldClient != undefined) {
-			// Changing time scale with scroll wheel
-			const timeScaleBottomLimit = 0.003;
-			const timeScaleChangeSpeed = 1.3;
-
-			if (scrollAmount > 0) {
-				this.worldClient.timeScaleTarget /= timeScaleChangeSpeed;
-				if (this.worldClient.timeScaleTarget < timeScaleBottomLimit) this.worldClient.timeScaleTarget = 0;
-			}
-			else {
-				this.worldClient.timeScaleTarget *= timeScaleChangeSpeed;
-				if (this.worldClient.timeScaleTarget < timeScaleBottomLimit) this.worldClient.timeScaleTarget = timeScaleBottomLimit;
-				this.worldClient.timeScaleTarget = Math.min(this.worldClient.timeScaleTarget, 1);
-				if (this.worldClient.settings.TimeScale > 0.9) this.worldClient.settings.TimeScale *= timeScaleChangeSpeed;
-			}
-		}
-	}
-
 }
 
 export class FreeCameraControls extends GameModeBase {
@@ -129,7 +109,9 @@ export class FreeCameraControls extends GameModeBase {
 	}
 
 	handleScroll(event: MouseEvent, value: number) {
-		this.scrollTheTimeScale(value);
+		// this.scrollTheTimeScale(value);
+		if(this.worldClient != undefined && this.worldClient.changeTimeScaleCallBack !== undefined)
+			this.worldClient.changeTimeScaleCallBack(value)
 	}
 
 	handleMouseMove(event: MouseEvent, deltaX: number, deltaY: number) {

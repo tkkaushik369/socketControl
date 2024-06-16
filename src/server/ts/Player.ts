@@ -8,7 +8,9 @@ export class Player implements Message {
 	public type: messageTypes
 	public data: {
 		count: number,
-		currentScenarioIndex: number
+		currentScenarioIndex: number,
+		TimeScale: number,
+		timeScaleTarget: number
 	}
 
 	public timeStamp: number
@@ -22,6 +24,8 @@ export class Player implements Message {
 		this.data = {
 			count: -1,
 			currentScenarioIndex: 0,
+			TimeScale: 1,
+			timeScaleTarget: 1
 		}
 
 		this.timeStamp = Date.now()
@@ -37,6 +41,8 @@ export class Player implements Message {
 			data: {
 				count: this.data.count,
 				currentScenarioIndex: this.data.currentScenarioIndex,
+				TimeScale: this.data.TimeScale,
+				timeScaleTarget: this.data.timeScaleTarget,
 			},
 			timeStamp: this.timeStamp,
 			ping: this.ping,

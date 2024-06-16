@@ -9,7 +9,7 @@ import { messageTypes } from './Enums/messageTypes'
 
 export default class World {
 
-	protected worldPhysicsUpdate: boolean
+	public worldPhysicsUpdate: boolean
 
 	protected clients: { [id: string]: Player }
 	protected scenario: Function[]
@@ -49,6 +49,7 @@ export default class World {
 		this.createBalls = this.createBalls.bind(this)
 		this.addBallMesh = this.addBallMesh.bind(this)
 		this.shootBall = this.shootBall.bind(this)
+		this.changeTimeScale = this.changeTimeScale.bind(this)
 		this.updatePhysics = this.updatePhysics.bind(this)
 
 		// Init
@@ -275,8 +276,27 @@ export default class World {
 		}
 	}
 
+	public changeTimeScale(scrollAmount: number) {
+		console.log("changeTimeScale: " + scrollAmount)
+		// Changing time scale with scroll wheel
+		const timeScaleBottomLimit = 0.003;
+		const timeScaleChangeSpeed = 1.3;
+
+		if (scrollAmount > 0) {
+			this.timeScaleTarget /= timeScaleChangeSpeed;
+			if (this.timeScaleTarget < timeScaleBottomLimit) this.timeScaleTarget = 0;
+		}
+		else {
+			this.timeScaleTarget *= timeScaleChangeSpeed;
+			if (this.timeScaleTarget < timeScaleBottomLimit) this.timeScaleTarget = timeScaleBottomLimit;
+			this.timeScaleTarget = Math.min(this.timeScaleTarget, 1);
+			if (this.settings.TimeScale > 0.9) this.settings.TimeScale *= timeScaleChangeSpeed;
+		}
+	}
+
 	protected updatePhysics() {
 		if (!this.worldPhysicsUpdate) return;
+		this.settings.TimeScale = THREE.MathUtils.lerp(this.settings.TimeScale, this.timeScaleTarget, 0.2);
 
 		// Step world
 		const timeStep = 1 / this.settings.stepFrequency
@@ -294,8 +314,9 @@ export default class World {
 			timeSinceLastCall = 0
 			this.resetCallTime = false
 		}
-
-		this.world.step(timeStep, timeSinceLastCall, this.settings.maxSubSteps)
+		// Getting timeStep
+		let timeStepScale = timeSinceLastCall * this.settings.TimeScale;
+		this.world.step(timeStep, timeStepScale, this.settings.stepFrequency)
 
 		// Update all WorldObjects
 		this.allBalls.forEach((p) => { p.update(0) })

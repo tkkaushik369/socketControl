@@ -35,6 +35,8 @@ export default class AppClient {
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 		this.ForChangeScenario = this.ForChangeScenario.bind(this)
 		this.ForShoot = this.ForShoot.bind(this)
+		this.OnChangeTimeScale = this.OnChangeTimeScale.bind(this)
+		this.ForChangeTimeScale = this.ForChangeTimeScale.bind(this)
 
 		// Init
 		this.clients = {}
@@ -44,6 +46,7 @@ export default class AppClient {
 		this.worldClient = new WorldClient(this.clients, workBox)
 		this.worldClient.changeSceneCallBack = this.ForChangeScenario
 		this.worldClient.shootCallBack = this.ForShoot
+		this.worldClient.changeTimeScaleCallBack = this.ForChangeTimeScale
 		this.player = null
 
 
@@ -54,6 +57,7 @@ export default class AppClient {
 		this.io.on("removeClient", this.OnRemoveClient);
 		this.io.on("players", this.OnPlayers);
 		this.io.on("changeScenario", this.OnChangeScenario);
+		this.io.on("changeTimeScale", this.OnChangeTimeScale);
 		setInterval(this.ForSocketLoop, this.fixedTimeStep * 1000)
 	}
 
@@ -95,6 +99,14 @@ export default class AppClient {
 		})
 	}
 
+	private OnChangeTimeScale(data: any) {
+		this.worldClient.settings.TimeScale = data.TimeScale
+		this.worldClient.timeScaleTarget = data.timeScaleTarget
+	}
+	private ForChangeTimeScale(val: number) {
+		this.io.emit("changeTimeScale", val)
+	}
+
 	private OnSetID(message: Message, callBack: Function) {
 		this.player = new Player(message.id)
 		this.player.userName = "Player " + message.data.count
@@ -104,6 +116,12 @@ export default class AppClient {
 		// load server Scenario
 		if (message.data.currentScenarioIndex)
 			this.worldClient.changeScenario(message.data.currentScenarioIndex, false)
+
+		// load server TimeScale
+		if (message.data.TimeScale)
+			this.worldClient.settings.TimeScale = message.data.TimeScale
+		if (message.data.timeScaleTarget)
+			this.worldClient.timeScaleTarget = message.data.timeScaleTarget
 
 		// start socket loop
 		setInterval(this.ForSocketLoop, this.fixedTimeStep * 1000)

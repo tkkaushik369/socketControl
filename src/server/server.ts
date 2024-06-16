@@ -39,6 +39,7 @@ class AppServer {
 		this.OnUpdate = this.OnUpdate.bind(this)
 		this.OnChangeScenario = this.OnChangeScenario.bind(this)
 		this.OnShoot = this.OnShoot.bind(this)
+		this.OnChangeTimeScale = this.OnChangeTimeScale.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 
 		// Init
@@ -61,6 +62,7 @@ class AppServer {
 			socket.on("disconnect", () => this.OnDisConnect(socket))
 			socket.on("changeScenario", (inx: number) => this.OnChangeScenario(inx))
 			socket.on("shoot", (data: any) => this.OnShoot(data))
+			socket.on("changeTimeScale", (val: number) => this.OnChangeTimeScale(val))
 			socket.on("update", (message: Message) => this.OnUpdate(socket, message))
 		})
 		setInterval(this.ForSocketLoop, this.fixedTimeStep * 1000)
@@ -71,6 +73,8 @@ class AppServer {
 		this.clients[socket.id] = new Player(socket.id)
 		this.clients[socket.id].data.count = (++this.clientInx)
 		this.clients[socket.id].data.currentScenarioIndex = this.worldServer.currentScenarioIndex
+		this.clients[socket.id].data.TimeScale = this.worldServer.settings.TimeScale
+		this.clients[socket.id].data.timeScaleTarget = this.worldServer.timeScaleTarget
 
 		socket.emit("setid", this.clients[socket.id].Out(), (username: string) => {
 			this.clients[socket.id].userName = username
@@ -99,6 +103,11 @@ class AppServer {
 		let quaternion = new THREE.Quaternion(data.quaternion.x, data.quaternion.y, data.quaternion.z, data.quaternion.w)
 		let dirVec = new THREE.Vector3(data.dirVec.x, data.dirVec.y, data.dirVec.z)
 		this.worldServer.shootBall(position, quaternion, dirVec)
+	}
+
+	private OnChangeTimeScale(val: number) {
+		this.worldServer.changeTimeScale(val)
+		this.io.emit("changeTimeScale", { TimeScale: this.worldServer.settings.TimeScale, timeScaleTarget: this.worldServer.timeScaleTarget })
 	}
 
 	private OnUpdate(socket: Socket, message: Message) {
