@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import WorldClient from './WorldClient'
 import * as Controls from './Controls'
+import { Character } from '../../server/ts/Characters/Character'
 
 export class GameModeBase {
 	public worldClient: WorldClient | undefined
@@ -110,7 +111,7 @@ export class FreeCameraControls extends GameModeBase {
 
 	handleScroll(event: MouseEvent, value: number) {
 		// this.scrollTheTimeScale(value);
-		if(this.worldClient != undefined && this.worldClient.changeTimeScaleCallBack !== undefined)
+		if (this.worldClient != undefined && this.worldClient.changeTimeScaleCallBack !== undefined)
 			this.worldClient.changeTimeScaleCallBack(value)
 	}
 
@@ -146,4 +147,85 @@ export class FreeCameraControls extends GameModeBase {
 		}
 	}
 }
-// export class CharacterControls extends GameModeBase { }
+
+export class CharacterControls extends GameModeBase {
+	private character: Character
+
+	constructor(character: Character) {
+		super();
+		this.character = character
+
+		// Keymap
+		this.keymap = {
+			'w': { action: 'up' },
+			's': { action: 'down' },
+			'a': { action: 'left' },
+			'd': { action: 'right' },
+			'shift': { action: 'run' },
+			' ': { action: 'jump' },
+			'e': { action: 'use' },
+			'mouse0': { action: 'primary' },
+			'mouse2': { action: 'secondary' },
+			'mouse1': { action: 'tertiary' }
+		};
+	}
+
+	init() {
+		this.checkIfWorldIsSet();
+		if (this.worldClient != undefined) {
+			this.worldClient.cameraController.setRadius(1.8);
+			this.worldClient.cameraDistanceTarget = 1.8;
+			this.worldClient.directionalLight.target = this.character;
+		}
+	}
+
+	handleAction(event: any, key: any, value: any): void {
+		super.handleAction(event, key, value);
+		if (this.worldClient != undefined) {
+			if (key == 'v' && value == true) {
+				if (this.worldClient.cameraDistanceTarget == 1.8) {
+					this.worldClient.cameraDistanceTarget = 1.1;
+				} else if (this.worldClient.cameraDistanceTarget > 1.3) {
+					this.worldClient.cameraDistanceTarget = 2.1
+				} else if (this.worldClient.cameraDistanceTarget > 0) {
+					this.worldClient.cameraDistanceTarget = 1.6
+				}
+			} else if (key == 'f' && value == true) {
+				const dirVec = new THREE.Vector3(0, 0, 1)
+				dirVec.unproject(this.worldClient.camera)
+				if (this.worldClient.shootCallBack)
+					this.worldClient.shootCallBack(this.worldClient.camera.position, this.worldClient.camera.quaternion, dirVec)
+					this.worldClient.shootBall(this.worldClient.camera.position, this.worldClient.camera.quaternion, dirVec)
+			}
+
+			// shift modifier fix
+			key = key.toLowerCase();
+
+			// Free Cam
+			if(key == 'c' && value == true && event.shiftKey == true) {
+				// this.character.resetControls()
+				// this.worldClient.setGameMode(new FreeCameraControls(this));
+			}
+
+			// Is key bound to action
+			if(key in this.keymap) {
+				// this.character.setControls(this.keymap[key].action, value)
+			}
+		}
+	}
+
+	handleScroll(event: any, value: any): void {
+		super.handleScroll(event, value);
+		if (this.worldClient != undefined && this.worldClient.changeTimeScaleCallBack !== undefined)
+			this.worldClient.changeTimeScaleCallBack(value)
+	}
+
+	handleMouseMove(event: any, deltaX: any, deltaY: any): void {
+		if(this.worldClient != undefined) this.worldClient.cameraController.move(deltaX, deltaY);
+	}
+
+	update() {
+		if(this.worldClient != undefined) {
+		}
+	}
+}
