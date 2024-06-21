@@ -15,6 +15,11 @@ export default class WorldObject extends THREE.Object3D {
 
 	constructor(model: THREE.Mesh | undefined, physics: any = undefined) {
 		super()
+		this.update = this.update.bind(this)
+		this.setModel = this.setModel.bind(this)
+		this.setModelFromPhysicsShape = this.setModelFromPhysicsShape.bind(this)
+		this.setPhysics = this.setPhysics.bind(this)
+		this.Out = this.Out.bind(this)
 
 		this.isWorldObject = true
 

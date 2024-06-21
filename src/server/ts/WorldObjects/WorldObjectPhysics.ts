@@ -7,10 +7,14 @@ export class Physics {
 
 	public options: { [id: string]: any }
 	public physical: CANNON.Body
+	public visual: THREE.Mesh
 
 	constructor() {
+		this.getVisualModel = this.getVisualModel.bind(this)
+
 		this.options = {}
 		this.physical = new CANNON.Body()
+		this.visual = this.getVisualModel({ visible: false, wireframe: true });
 	}
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
@@ -21,6 +25,8 @@ export class Physics {
 export class Sphere extends Physics {
 	constructor(options: { [id: string]: any }) {
 		super()
+		this.getVisualModel = this.getVisualModel.bind(this)	
+
 		let defaults = {
 			mass: 0,
 			position: new CANNON.Vec3(0, 0, 0),
@@ -44,6 +50,7 @@ export class Sphere extends Physics {
 		})
 
 		this.physical = body
+		this.visual = this.getVisualModel({ visible: false, wireframe: true });
 	}
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
@@ -70,6 +77,7 @@ export class Sphere extends Physics {
 export class Box extends Physics {
 	constructor(options: { [id: string]: any }) {
 		super()
+		this.getVisualModel = this.getVisualModel.bind(this)
 
 		let defaults = {
 			mass: 0,
@@ -96,6 +104,7 @@ export class Box extends Physics {
 		})
 
 		this.physical = body
+		this.visual = this.getVisualModel({ visible: false, wireframe: true });
 	}
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
@@ -121,6 +130,8 @@ export class Box extends Physics {
 export class Capsule extends Physics {
 	constructor(options: { [id: string]: any }) {
 		super()
+		this.getVisualModel = this.getVisualModel.bind(this)
+
 		let defaults = {
 			mass: 0,
 			position: new CANNON.Vec3(0, 0, 0),
@@ -149,6 +160,7 @@ export class Capsule extends Physics {
 		body.addShape(shape, new CANNON.Vec3(0, - options.height / 2, 0))
 
 		this.physical = body
+		this.visual = this.getVisualModel({ visible: false, wireframe: true });
 	}
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
@@ -176,6 +188,8 @@ export class Convex extends Physics {
 
 	constructor(mesh: THREE.Mesh, options: { [id: string]: any }) {
 		super()
+		this.getVisualModel = this.getVisualModel.bind(this)
+
 		this.mesh = mesh
 
 		let defaults = {
@@ -200,6 +214,7 @@ export class Convex extends Physics {
 		})
 
 		this.physical = body
+		this.visual = this.getVisualModel({ visible: false, wireframe: true });
 	}
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
@@ -229,6 +244,8 @@ export class Trimesh extends Physics {
 
 	constructor(mesh: THREE.Mesh, options: { [id: string]: any }) {
 		super()
+		this.getVisualModel	= this.getVisualModel.bind(this)
+
 		this.mesh = mesh
 
 		let defaults = {
@@ -253,6 +270,7 @@ export class Trimesh extends Physics {
 		})
 
 		this.physical = body
+		this.visual = this.getVisualModel({ visible: false, wireframe: true });
 	}
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {

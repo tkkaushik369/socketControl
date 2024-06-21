@@ -1,11 +1,11 @@
 import * as THREE from 'three'
 import World from "../../server/ts/World";
 import { Player } from "../../server/ts/Player";
-import CannonDebugRenderer from '../../server/ts/utils/cannonDebugRenderer'
+import CannonDebugRenderer from '../../server/ts/Utils/cannonDebugRenderer'
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
 import { CameraController } from './CameraController';
-import * as GameModes from './GameModes';
+import * as GameModes from '../../server/ts/GameModes';
 import { InputManager } from './InputManager';
 import * as ScenarioImport from '../../server/ts/Scenarios/ScenarioImport'
 

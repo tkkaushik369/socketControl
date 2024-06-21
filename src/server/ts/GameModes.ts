@@ -1,11 +1,23 @@
 import * as THREE from 'three'
-import WorldClient from './WorldClient'
+import WorldClient from '../../client/ts/WorldClient'
 import * as Controls from './Controls'
 import { Character } from '../../server/ts/Characters/Character'
+import * as _ from 'lodash'
 
 export class GameModeBase {
 	public worldClient: WorldClient | undefined
 	public keymap: { [id: string]: any } = {}
+
+	constructor() {
+		this.init = this.init.bind(this);
+		this.update = this.update.bind(this);
+
+		this.handleAction = this.handleAction.bind(this);
+		this.handleScroll = this.handleScroll.bind(this);
+		this.handleMouseMove = this.handleMouseMove.bind(this);
+
+		this.checkIfWorldIsSet = this.checkIfWorldIsSet.bind(this);
+	}
 
 	init() { }
 	update() { }
@@ -42,6 +54,11 @@ export class FreeCameraControls extends GameModeBase {
 
 	constructor(previousGameMode: any) {
 		super();
+		this.init = this.init.bind(this);
+		this.handleAction = this.handleAction.bind(this);
+		this.handleScroll = this.handleScroll.bind(this);
+		this.handleMouseMove = this.handleMouseMove.bind(this);
+		this.update = this.update.bind(this);
 
 		// Remember previous game mode to return to when pressing shift + C
 		this.previousGameMode = previousGameMode;
@@ -153,6 +170,12 @@ export class CharacterControls extends GameModeBase {
 
 	constructor(character: Character) {
 		super();
+		this.init = this.init.bind(this);
+		this.handleAction = this.handleAction.bind(this)
+		this.handleScroll = this.handleScroll.bind(this)
+		this.handleMouseMove = this.handleMouseMove.bind(this)
+		this.update = this.update.bind(this)
+
 		this.character = character
 
 		// Keymap
@@ -183,7 +206,7 @@ export class CharacterControls extends GameModeBase {
 		super.handleAction(event, key, value);
 		if (this.worldClient != undefined) {
 			if (key == 'v' && value == true) {
-				if (this.worldClient.cameraDistanceTarget == 1.8) {
+				if (this.worldClient.cameraDistanceTarget > 1.8) {
 					this.worldClient.cameraDistanceTarget = 1.1;
 				} else if (this.worldClient.cameraDistanceTarget > 1.3) {
 					this.worldClient.cameraDistanceTarget = 2.1

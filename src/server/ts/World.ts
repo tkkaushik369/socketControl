@@ -6,6 +6,9 @@ import * as WorldObjectPhysics from './WorldObjects/WorldObjectPhysics'
 import * as _ from 'lodash'
 import Utility from './Utils/Utility'
 import { messageTypes } from './Enums/messageTypes'
+import { Character } from './Characters/Character'
+import { CharacterAI } from './Characters/CharacterAI'
+import * as CharacterStates from './Characters/CharacterStates'
 
 export default class World {
 
@@ -22,6 +25,7 @@ export default class World {
 	public ballId: number
 	public ballMax: number
 	public allBalls: WorldObject[]
+	public allCharacters: { [id: string]: Character }
 	public allWorldObjects: { [id: string]: WorldObject }
 	public settings: { [id: string]: any }
 	public timeScaleTarget: number;
@@ -49,6 +53,9 @@ export default class World {
 		this.createBalls = this.createBalls.bind(this)
 		this.addBallMesh = this.addBallMesh.bind(this)
 		this.shootBall = this.shootBall.bind(this)
+		this.addCharacter = this.addCharacter.bind(this)
+		this.removeCharacter = this.removeCharacter.bind(this)
+		this.removeAllCharacters = this.removeAllCharacters.bind(this)
 		this.changeTimeScale = this.changeTimeScale.bind(this)
 		this.updatePhysics = this.updatePhysics.bind(this)
 
@@ -79,6 +86,7 @@ export default class World {
 		this.allBalls = []
 		this.ballId = 0
 		this.ballMax = 5
+		this.allCharacters = {}
 
 		this.currentScenarioIndex = 0
 
@@ -274,6 +282,53 @@ export default class World {
 			const impulse = new CANNON.Vec3(ray.direction.x * strength, ray.direction.y * strength, ray.direction.z * strength)
 			ball.physics.physical.applyForce(impulse)
 		}
+	}
+
+	private addCharacter(character: Character, name: string) {
+		if (_.includes(this.allCharacters, character)) {
+			console.warn('Adding character to a world in which it already exists.');
+		} else {
+			character.world = this;
+
+			if (character.characterCapsule.physics !== undefined) {
+				this.world.addEventListener('preStep', () => { character.physicsPreStep(character.characterCapsule.physics!.physical) });
+				this.world.addEventListener('postStep', () => { character.physicsPostStep(character.characterCapsule.physics!.physical) });
+
+				this.allCharacters[name] = character
+				this.addBody(character.characterCapsule.physics.physical, name);
+				if (this.addMeshCallBack != undefined) {
+					this.addMeshCallBack(character, name + "_character")
+					this.addMeshCallBack(character.characterCapsule.physics.visual, name + "_visual")
+					this.addMeshCallBack(character.raycastBox, name + "_raycastBox")
+				}
+				this.addWorldObject(character.characterCapsule, name);
+			}
+			return character;
+		}
+	}
+
+	private removeCharacter(character: Character, name: string) {
+		if (!_.includes(this.allCharacters, character)) {
+			console.warn('Removing character from a world in which it isn\'t present.');
+		} else {
+			// character.world = undefined;
+			if (character.characterCapsule.physics !== undefined)
+				this.world.removeBody(character.characterCapsule.physics.physical);
+			if (this.removeMeshCallBack != undefined) {
+				this.removeMeshCallBack(name + "_character");
+				this.removeMeshCallBack(name + "_visual");
+				this.removeMeshCallBack(name + "raycastBox");
+			}
+			this.removeWorldObject(name)
+			delete this.allCharacters[name]
+			return character;
+		}
+	}
+
+	private removeAllCharacters() {
+		Object.keys(this.allCharacters).forEach((p) => {
+			this.removeCharacter(this.allCharacters[p], p)
+		});
 	}
 
 	public changeTimeScale(scrollAmount: number) {
