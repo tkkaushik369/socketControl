@@ -34,7 +34,6 @@ class AppServer {
 
 	constructor(port: number) {
 		// Bind Functions
-		this.Start = this.Start.bind(this)
 		this.OnConnect = this.OnConnect.bind(this)
 		this.OnDisConnect = this.OnDisConnect.bind(this)
 		this.OnUpdate = this.OnUpdate.bind(this)

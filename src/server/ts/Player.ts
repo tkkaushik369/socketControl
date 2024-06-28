@@ -18,8 +18,6 @@ export class Player implements Message {
 	public mesh: THREE.Object3D
 
 	constructor(id: string) {
-		this.Out = this.Out.bind(this)
-
 		this.id = id
 		this.userName = null
 		this.type = messageTypes.playerData
