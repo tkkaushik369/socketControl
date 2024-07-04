@@ -4,6 +4,7 @@ import WorldClient from './ts/WorldClient'
 import { Player } from '../server/ts/Player'
 import { Message } from '../server/ts/Messages/Message'
 import { messageTypes } from '../server/ts/Enums/messageTypes'
+import * as CharacterStates from '../server/ts/Characters/CharacterStates'
 import * as THREE from 'three'
 
 if (navigator.userAgent.includes('QtWebEngine')) {
@@ -189,6 +190,47 @@ export default class AppClient {
 						)
 					}
 					break;
+				}
+				case messageTypes.worldObjectCharacter: {
+					let character = this.worldClient.allCharacters[id]
+					character.position.set(
+						messages[id].data.characterModel_position.x,
+						messages[id].data.characterModel_position.y,
+						messages[id].data.characterModel_position.z,
+					);
+					character.quaternion.set(
+						messages[id].data.characterModel_quaternion.x,
+						messages[id].data.characterModel_quaternion.y,
+						messages[id].data.characterModel_quaternion.z,
+						messages[id].data.characterModel_quaternion.w,
+					);
+					character.characterCapsule.physics!.visual.position.copy(character.position)
+					character.raycastBox.position.set(character.position.x, character.position.y - character.rayCastLength - character.raySafeOffset, character.position.z)
+					character.position.add(character.modelOffset);
+					let state = messages[id].data.charStateRaw;
+					if (character.lastState !== state) {
+						if (state == "DefaultState") character.setState(CharacterStates.DefaultState)
+						if (state == "Idle") character.setState(CharacterStates.Idle)
+						if (state == "IdleRotateRight") character.setState(CharacterStates.IdleRotateRight)
+						if (state == "IdleRotateLeft") character.setState(CharacterStates.IdleRotateLeft)
+						if (state == "Walk") character.setState(CharacterStates.Walk)
+						if (state == "Sprint") character.setState(CharacterStates.Sprint)
+						if (state == "StartWalkForward") character.setState(CharacterStates.StartWalkForward)
+						if (state == "StartWalkLeft") character.setState(CharacterStates.StartWalkLeft)
+						if (state == "StartWalkRight") character.setState(CharacterStates.StartWalkRight)
+						if (state == "StartWalkBackLeft") character.setState(CharacterStates.StartWalkBackLeft)
+						if (state == "StartWalkRight") character.setState(CharacterStates.StartWalkRight)
+						if (state == "EndWalk") character.setState(CharacterStates.EndWalk)
+						if (state == "JumpIdle") character.setState(CharacterStates.JumpIdle)
+						if (state == "JumpRunning") character.setState(CharacterStates.JumpRunning)
+						if (state == "Falling") character.setState(CharacterStates.Falling)
+						if (state == "DropIdle") character.setState(CharacterStates.DropIdle)
+						if (state == "DropRunning") character.setState(CharacterStates.DropRunning)
+						if (state == "DropRolling") character.setState(CharacterStates.DropRolling)
+						character.charState.changeState();
+						character.lastState = state;
+					}
+					break
 				}
 			}
 		})

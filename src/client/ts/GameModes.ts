@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import WorldClient from './WorldClient'
-import * as Controls from './Controls'
-import { Character } from '../../server/ts/Characters/Character'
+import * as Controls from '../../server/ts/Controls'
+import Character from '../../server/ts/Characters/Character'
 
 export class GameModeBase {
 	public worldClient: WorldClient | undefined
@@ -195,20 +195,20 @@ export class CharacterControls extends GameModeBase {
 				dirVec.unproject(this.worldClient.camera)
 				if (this.worldClient.shootCallBack)
 					this.worldClient.shootCallBack(this.worldClient.camera.position, this.worldClient.camera.quaternion, dirVec)
-					this.worldClient.shootBall(this.worldClient.camera.position, this.worldClient.camera.quaternion, dirVec)
+				this.worldClient.shootBall(this.worldClient.camera.position, this.worldClient.camera.quaternion, dirVec)
 			}
 
 			// shift modifier fix
 			key = key.toLowerCase();
 
 			// Free Cam
-			if(key == 'c' && value == true && event.shiftKey == true) {
+			if (key == 'c' && value == true && event.shiftKey == true) {
 				// this.character.resetControls()
 				// this.worldClient.setGameMode(new FreeCameraControls(this));
 			}
 
 			// Is key bound to action
-			if(key in this.keymap) {
+			if (key in this.keymap) {
 				// this.character.setControls(this.keymap[key].action, value)
 			}
 		}
@@ -221,11 +221,11 @@ export class CharacterControls extends GameModeBase {
 	}
 
 	handleMouseMove(event: any, deltaX: any, deltaY: any): void {
-		if(this.worldClient != undefined) this.worldClient.cameraController.move(deltaX, deltaY);
+		if (this.worldClient != undefined) this.worldClient.cameraController.move(deltaX, deltaY);
 	}
 
 	update() {
-		if(this.worldClient != undefined) {
+		if (this.worldClient != undefined) {
 		}
 	}
 }

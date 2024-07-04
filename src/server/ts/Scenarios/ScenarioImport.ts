@@ -1,11 +1,17 @@
+import * as THREE from 'three';
 import World from '../World'
+import Character from '../Characters/Character'
+import { CharacterAI } from '../Characters/CharacterAI'
+
 import { BoxScenario } from './BoxScenario'
 import { CameraScenario } from './CameraScenario'
 import { SphereScenario } from './SphereScenario'
+import { PlaygroundScenario } from './PlaygroundScenario'
 
 export { BoxScenario } from './BoxScenario'
 export { CameraScenario } from './CameraScenario'
 export { SphereScenario } from './SphereScenario'
+export { PlaygroundScenario } from './PlaygroundScenario'
 
 export function loadScenarios(world: World) {
 	world.addScenario('box', () => {
@@ -23,9 +29,23 @@ export function loadScenarios(world: World) {
 		world.addScene(scene)
 	})
 
+	world.addScenario('playground', () => {
+		const scene = PlaygroundScenario()
+		world.addScene(scene)
+	})
+
 	// Build Scene
-	world.buildScene(0)
+	world.buildScene(3)
 
 	// Load Balls
 	world.createBalls()
+	
+	// Character
+	let john = new Character({ position: new THREE.Vector3(-2, 5, 2) })
+	john.setBehaviour(new CharacterAI.Random());
+	world.addWorldCharacter(john, "john")
+
+	let bob = new Character({ position: new THREE.Vector3(2, 5, 2) })
+	bob.setBehaviour(new CharacterAI.FollowCharacter(john));
+	world.addWorldCharacter(bob, "bob")
 }

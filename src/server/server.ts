@@ -142,6 +142,13 @@ class AppServer {
 			data[id] = this.worldServer.allWorldObjects[id].Out()
 		})
 
+		// World Characters
+		Object.keys(this.worldServer.allCharacters).forEach((id) => {
+			this.worldServer.allCharacters[id].ping = Date.now() - this.worldServer.allCharacters[id].timeStamp
+			this.worldServer.allCharacters[id].timeStamp = Date.now()
+			data[id] = this.worldServer.allCharacters[id].Out()
+		})
+
 		this.io.emit("players", data)
 	};
 }

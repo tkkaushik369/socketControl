@@ -40,6 +40,10 @@ module.exports = {
 				from: path.resolve(__dirname, "./client/images"),
 				to: path.resolve(__dirname, "../dist/client/images"),
 			},
+			{
+				from: path.resolve(__dirname, "./client/models"),
+				to: path.resolve(__dirname, "../dist/client/models"),
+			},
 			],
 		}),
 	],

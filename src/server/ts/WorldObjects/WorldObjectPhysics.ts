@@ -7,10 +7,13 @@ export class Physics {
 
 	public options: { [id: string]: any }
 	public physical: CANNON.Body
+	public visual: THREE.Mesh
 
-	constructor() {
-		this.options = {}
+	constructor(options: { [id: string]: any }) {
+		this.getVisualModel = this.getVisualModel.bind(this)
+		this.options = options
 		this.physical = new CANNON.Body()
+		this.visual = this.getVisualModel({ visible: false, wireframe: true });
 	}
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
@@ -20,7 +23,6 @@ export class Physics {
 
 export class Sphere extends Physics {
 	constructor(options: { [id: string]: any }) {
-		super()
 		let defaults = {
 			mass: 0,
 			position: new CANNON.Vec3(0, 0, 0),
@@ -28,7 +30,7 @@ export class Sphere extends Physics {
 			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
-		this.options = options
+		super(options)
 
 		let mat = new CANNON.Material()
 		mat.friction = options.friction
@@ -48,10 +50,11 @@ export class Sphere extends Physics {
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
 		let defaults = {
-			visible: true,
+			visible: false,
 			wireframe: true,
 		}
 		options = Utility.setDefaults(options, defaults)
+		super.getVisualModel(options)
 
 		let geometry = new THREE.SphereGeometry(this.options.radius, 32, 32)
 		let material = new THREE.MeshLambertMaterial({ color: 0x0000cc, wireframe: options.wireframe })
@@ -69,7 +72,6 @@ export class Sphere extends Physics {
 
 export class Box extends Physics {
 	constructor(options: { [id: string]: any }) {
-		super()
 
 		let defaults = {
 			mass: 0,
@@ -79,7 +81,7 @@ export class Box extends Physics {
 			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
-		this.options = options
+		super(options)
 
 		let mat = new CANNON.Material()
 		mat.friction = options.friction
@@ -100,10 +102,11 @@ export class Box extends Physics {
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
 		let defaults = {
-			visble: true,
+			visble: false,
 			wireframe: true,
 		}
 		options = Utility.setDefaults(options, defaults)
+		super.getVisualModel(options)
 
 		let geometry = new THREE.BoxGeometry(this.options.size.x * 2, this.options.size.y * 2, this.options.size.z * 2)
 		let material = new THREE.MeshLambertMaterial({ color: 0x0000cc, wireframe: options.wireframe })
@@ -120,7 +123,6 @@ export class Box extends Physics {
 
 export class Capsule extends Physics {
 	constructor(options: { [id: string]: any }) {
-		super()
 		let defaults = {
 			mass: 0,
 			position: new CANNON.Vec3(0, 0, 0),
@@ -130,7 +132,7 @@ export class Capsule extends Physics {
 			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
-		this.options = options
+		super(options)
 
 		let mat = new CANNON.Material()
 		mat.friction = options.friction
@@ -153,10 +155,11 @@ export class Capsule extends Physics {
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
 		let defaults = {
-			visible: true,
+			visible: false,
 			wireframe: true,
 		}
 		options = Utility.setDefaults(options, defaults)
+		super.getVisualModel(options)
 
 		let material = new THREE.MeshLambertMaterial({ color: 0x0000cc, wireframe: options.wireframe })
 		let geometry = Utility.createCapsuleGeometry(this.options.radius, this.options.height, this.options.swgments)
@@ -175,16 +178,14 @@ export class Convex extends Physics {
 	public mesh: THREE.Mesh
 
 	constructor(mesh: THREE.Mesh, options: { [id: string]: any }) {
-		super()
-		this.mesh = mesh
-
 		let defaults = {
 			mass: 0,
 			position: mesh.position,
 			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
-		this.options = options
+		super(options)
+		this.mesh = mesh
 
 		let mat = new CANNON.Material()
 		mat.friction = options.friction
@@ -204,10 +205,11 @@ export class Convex extends Physics {
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
 		let defaults = {
-			visible: true,
+			visible: false,
 			wireframe: true,
 		}
 		options = Utility.setDefaults(options, defaults)
+		super.getVisualModel(options)
 
 		let material = new THREE.MeshLambertMaterial({ color: 0x0000cc, wireframe: options.wireframe })
 		let mesh = this.mesh.clone()
@@ -228,16 +230,14 @@ export class Trimesh extends Physics {
 	public mesh: THREE.Mesh
 
 	constructor(mesh: THREE.Mesh, options: { [id: string]: any }) {
-		super()
-		this.mesh = mesh
-
 		let defaults = {
 			mass: 0,
 			position: mesh.position,
 			friction: 0.3,
 		}
 		options = Utility.setDefaults(options, defaults)
-		this.options = options
+		super(options)
+		this.mesh = mesh
 
 		let mat = new CANNON.Material()
 		mat.friction = options.friction
@@ -257,10 +257,11 @@ export class Trimesh extends Physics {
 
 	public getVisualModel(options: { [id: string]: any }): THREE.Mesh {
 		let defaults = {
-			visible: true,
+			visible: false,
 			wireframe: true,
 		}
 		options = Utility.setDefaults(options, defaults)
+		super.getVisualModel(options)
 
 		let material = new THREE.MeshLambertMaterial({ color: 0x0000cc, wireframe: options.wireframe })
 		let mesh = this.mesh.clone()

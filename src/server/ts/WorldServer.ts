@@ -8,8 +8,13 @@ export default class WorldServer extends World {
 		super(clients)
 		// Bind Functions
 		this.buildScene = this.buildScene.bind(this)
+		this.LoadAllScenario = this.LoadAllScenario.bind(this)
 
 		// Loading Scenarios
+		this.LoadAllScenario()
+	}
+
+	public LoadAllScenario() {
 		ScenarioImport.loadScenarios(this)
 	}
 }

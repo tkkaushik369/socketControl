@@ -1,13 +1,16 @@
 import * as THREE from 'three'
-import World from "../../server/ts/World";
-import { Player } from "../../server/ts/Player";
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import World from "../../server/ts/World"
+import { Player } from "../../server/ts/Player"
 import CannonDebugRenderer from '../../server/ts/utils/cannonDebugRenderer'
-import Stats from 'three/examples/jsm/libs/stats.module';
-import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min';
-import { CameraController } from './CameraController';
-import * as GameModes from './GameModes';
-import { InputManager } from './InputManager';
+import Stats from 'three/examples/jsm/libs/stats.module'
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min'
+import { ViewHelper } from 'three/examples/jsm/helpers/ViewHelper'
+import { CameraController } from './CameraController'
+import * as GameModes from './GameModes'
+import { InputManager } from './InputManager'
 import * as ScenarioImport from '../../server/ts/Scenarios/ScenarioImport'
+import Character from '../../server/ts/Characters/Character'
 
 export default class WorldClient extends World {
 
@@ -23,7 +26,9 @@ export default class WorldClient extends World {
 	public directionalLight: THREE.DirectionalLight
 
 	private helpers: { [id: string]: THREE.Object3D }
-	private allMeshs: { [id: string]: THREE.Mesh }
+	private viewHelper: ViewHelper
+	private allMeshs: { [id: string]: any }
+	private allBoxHelpers: { [id: string]: THREE.BoxHelper }
 	private cannonDebugRenderer: CannonDebugRenderer
 
 	public gameMode: GameModes.GameModeBase
@@ -49,8 +54,14 @@ export default class WorldClient extends World {
 		this.addScenarioToGui = this.addScenarioToGui.bind(this)
 		this.changeScenario = this.changeScenario.bind(this)
 		this.allHelper = this.allHelper.bind(this)
+		this.addBoxHelper = this.addBoxHelper.bind(this)
+		this.removeBoxHelper = this.removeBoxHelper.bind(this)
+		this.removeAllBoxHelpers = this.removeAllBoxHelpers.bind(this)
+		this.setGameMode = this.setGameMode.bind(this)
 		this.animate = this.animate.bind(this)
 		this.onWindowResize = this.onWindowResize.bind(this)
+		this.LoadAllScenario = this.LoadAllScenario.bind(this)
+		this.LoadCharacter = this.LoadCharacter.bind(this)
 
 		this.toggleStats = this.toggleStats.bind(this)
 		this.pointLockFunc = this.pointLockFunc.bind(this)
@@ -63,14 +74,20 @@ export default class WorldClient extends World {
 		this.removeMeshCallBack = this.removeMesh
 		this.removeAllMeshesCallBack = this.removeAllMeshes
 		this.addScenariosCallBack = this.addScenarioToGui
+		this.addBoxHelperCallBack = this.addBoxHelper
+		this.removeBoxHelperCallBack = this.removeBoxHelper
+		this.RemoveAllBoxHelpersCallBack = this.removeAllBoxHelpers
+		this.isClient = true
 
 		// Init
 		let fog = new THREE.Fog(0x222222, 1000, 2000)
 		this.allMeshs = {}
+		this.allBoxHelpers = {}
 
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
 		this.renderer.setSize(window.innerWidth, window.innerHeight)
+		this.renderer.autoClear = false
 		this.renderer.shadowMap.enabled = true
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
 		this.renderer.setClearColor(fog.color, 0.1)
@@ -81,14 +98,14 @@ export default class WorldClient extends World {
 		this.scene.fog = fog
 
 		// Camera
-		this.camera = new THREE.PerspectiveCamera(24, window.innerHeight / window.innerWidth, 1, 1000)
-		this.camera.position.set(0, 20, 30)
+		this.camera = new THREE.PerspectiveCamera(24, window.innerHeight / window.innerWidth, 0.1, 1000)
+		this.camera.position.set(0, 10, 15)
 
 		// Lights
 		this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
 		this.scene.add(this.ambientLight)
 
-		const lightVector = new THREE.Vector3(24, 30, 24)
+		const lightVector = new THREE.Vector3(240, 300, 240)
 		this.spotLight = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 2, 1, 2)
 		this.spotLight.position.set(lightVector.x, lightVector.y, lightVector.z)
 		this.spotLight.target.position.set(0, 0, 0)
@@ -120,6 +137,9 @@ export default class WorldClient extends World {
 
 		this.helpers['directionalLight'] = new THREE.DirectionalLightHelper(this.directionalLight, 1)
 		this.scene.add(this.helpers['directionalLight'])
+
+		// viewHelper
+		this.viewHelper = new ViewHelper(this.camera, this.renderer.domElement)
 
 		// CameraControls
 		this.cameraDistanceTarget = 1;
@@ -159,7 +179,7 @@ export default class WorldClient extends World {
 		this.gui.close()
 
 		// Loading Scenarios
-		ScenarioImport.loadScenarios(this)
+		this.LoadAllScenario()
 
 		// run settings
 		{
@@ -176,9 +196,41 @@ export default class WorldClient extends World {
 		this.animate()
 	}
 
-	public addMesh(mesh: THREE.Mesh, name: string) {
-		this.allMeshs[name] = mesh
+	public LoadAllScenario() {
+		ScenarioImport.loadScenarios(this);
+		// this.setGameMode(new GameModes.CharacterControls(this.allCharacters['ch']));
+
+		Object.keys(this.allCharacters).forEach((p) => {
+			this.LoadCharacter(this.allCharacters[p])
+		})
+	}
+
+	public LoadCharacter(character: Character) {
+		const fbxLoader = new FBXLoader();
+		fbxLoader.load('./models/game_man.fbx', (object: any) => {
+			object.traverse((child: any) => {
+				if (child.isMesh) {
+					child.castShadow = true;
+					child.receiveShadow = true;
+				}
+				if (child.name == 'game_man') {
+					child.material = new THREE.MeshLambertMaterial({
+						map: new THREE.TextureLoader().load('./models/game_man.png'),
+						// skinning: true  
+					});
+				}
+			});
+			
+			character.setModel(object)
+			character.setModelOffset(new THREE.Vector3(0, -0.1, 0));
+		}, (xhr: any) => {
+			// console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+		});
+	}
+
+	public addMesh(mesh: any, name: string) {
 		this.scene.add(mesh)
+		this.allMeshs[name] = mesh
 	}
 
 	public removeMesh(name: string) {
@@ -208,8 +260,34 @@ export default class WorldClient extends World {
 		})
 	}
 
+	public addBoxHelper(boxHelper: THREE.BoxHelper, name: string) {
+		this.allBoxHelpers[name] = boxHelper
+		this.scene.add(boxHelper)
+	}
+
+	public removeBoxHelper(name: string) {
+		if (this.allBoxHelpers[name] === undefined) return
+		this.scene.remove(this.allBoxHelpers[name])
+		delete this.allBoxHelpers[name]
+	}
+
+	public removeAllBoxHelpers() {
+		Object.keys(this.allBoxHelpers).forEach((p) => {
+			this.removeBoxHelper(p)
+		});
+	}
+
+	public setGameMode(gameMode: any) {
+		gameMode.world = this;
+		this.gameMode = gameMode;
+		gameMode.init();
+	}
+
 	private animate = () => {
 		requestAnimationFrame(this.animate)
+		this.renderer.clear()
+
+		let dt = this.clock.getDelta()
 
 		// Update Gamemode
 		this.gameMode.update();
@@ -222,7 +300,11 @@ export default class WorldClient extends World {
 		if (this.worldPhysicsUpdate)
 			this.cannonDebugRenderer.update()
 
+		Object.keys(this.allBoxHelpers).forEach((p) => { this.allBoxHelpers[p].update() })
+		Object.keys(this.allCharacters).forEach((p) => { this.allCharacters[p].mixer?.update(dt*this.settings.TimeScale); })
+
 		this.renderer.render(this.scene, this.camera)
+		this.viewHelper.render(this.renderer)
 		this.stats.update()
 	}
 
