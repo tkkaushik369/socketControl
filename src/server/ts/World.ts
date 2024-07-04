@@ -39,7 +39,7 @@ export default class World {
 	protected addBoxHelperCallBack: Function | undefined
 	protected removeBoxHelperCallBack: Function | undefined
 	protected RemoveAllBoxHelpersCallBack: Function | undefined
-	protected isClient: boolean
+	public isClient: boolean
 	protected addBoxHelperMesh: boolean = false
 
 	public constructor(clients: { [id: string]: Player }, worldPhysicsUpdate: boolean = true) {
@@ -255,8 +255,8 @@ export default class World {
 				// Set world
 				character.world = this;
 
-				this.world.addEventListener('preStep', () => { character.physicsPreStep(character.characterCapsule.physics!.physical) });
-				this.world.addEventListener('postStep', () => { character.physicsPostStep(character.characterCapsule.physics!.physical) });
+				this.world.addEventListener('preStep', character.physicsPreStep );
+				this.world.addEventListener('postStep', character.physicsPostStep );
 
 				character.name = name
 
@@ -289,11 +289,8 @@ export default class World {
 		let character = this.allCharacters[name]
 		character.world = undefined;
 
-		// Remove physics
-		this.removeBody(name);
-
-		// Remove capsule object
-		this.removeWorldObject(name)
+		this.world.removeEventListener('preStep', character.physicsPreStep );
+		this.world.removeEventListener('postStep', character.physicsPostStep );
 
 		// Remove visuals
 		if(this.removeMeshCallBack) {
@@ -307,6 +304,11 @@ export default class World {
 			this.removeMeshCallBack(character.name+"_raycast");
 		}
 
+		// Remove capsule object
+		this.removeWorldObject(name)
+
+		// Remove physics
+		this.removeBody(name);
 
 		delete this.allCharacters[name]
 	}
@@ -349,35 +351,41 @@ export default class World {
 
 	protected addCharactersMesh() {
 		Object.keys(this.allCharacters).forEach((p) => {
+			let character = this.allCharacters[p]
+			let body = character.characterCapsule.physics!.physical;
 			if(this.addMeshCallBack != undefined) {
-				this.addMeshCallBack(this.allCharacters[p], this.allCharacters[p].name)
-				this.addMeshCallBack(this.allCharacters[p].characterCapsule.physics!.visual, this.allCharacters[p].name+"_visual")
-				this.addMeshCallBack(this.allCharacters[p].raycastBox, this.allCharacters[p].name+"_raycast")
+				this.addMeshCallBack(character, character.name)
+				this.addMeshCallBack(character.characterCapsule.physics!.visual, character.name+"_visual")
+				this.addMeshCallBack(character.raycastBox, character.name+"_raycast")
 			}
-			this.addBody(this.allCharacters[p].characterCapsule.physics!.physical, this.allCharacters[p].name)
+			this.addBody(body, character.name)
+			this.zeroBody(body)
+			if (character.originalPos != null) body.position.set(character.originalPos.x, character.originalPos.y, character.originalPos.z)
 		})
 	}
 
-	public shootBall(position: THREE.Vector3, quaternion: THREE.Quaternion, dirVec: THREE.Vector3): void {
-		let forward = new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion);
+	public shootBall(position: THREE.Vector3, quaternion: THREE.Quaternion, isOffset: boolean): void {
+		let forward = new THREE.Vector3(0, 0, -1)
+		if (isOffset) forward.set(0, 0.4, -0.5)
+		forward.applyQuaternion(quaternion);
 		let ball = this.allBalls[this.ballId++]
 		if (this.ballId >= this.ballMax) this.ballId = 0
 		this.zeroBody(ball.physics!.physical)
-		ball.physics!.physical.position.set(position.x, position.y, position.z)
+		let offsetPosition = position.clone().add(forward);
+		ball.physics!.physical.position.set(offsetPosition.x, offsetPosition.y, offsetPosition.z)
 		ball.physics!.physical.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
 
 		if ((ball.model !== undefined) && (ball.physics !== undefined) && (ball.physics.physical !== undefined)) {
-			const strength = 100//300
-			const ray = new THREE.Ray(forward, dirVec.sub(forward).normalize())
-			const impulse = new CANNON.Vec3(ray.direction.x * strength, ray.direction.y * strength, ray.direction.z * strength)
+			const strength = 100
+			const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion).normalize();
+			const impulse = new CANNON.Vec3(direction.x * strength, direction.y * strength, direction.z * strength)
 			ball.physics.physical.applyForce(impulse)
 			ball.update(0, false, true)
 		}
 	}
 
 	public changeTimeScale(scrollAmount: number) {
-		console.log("changeTimeScale: " + scrollAmount)
-		// Changing time scale with scroll wheel
+		// scrollAmount = (scrollAmount > 0)? 30: -30
 		const timeScaleBottomLimit = 0.003;
 		const timeScaleChangeSpeed = 1.3;
 
@@ -410,7 +418,7 @@ export default class World {
 		Object.keys(this.allWorldObjects).forEach((p) => { this.allWorldObjects[p].update(sec, false, forceUpdate) })
 		if(!this.isClient) {
 			Object.keys(this.allCharacters).forEach((p) => {
-				this.allCharacters[p].behaviour.update(tdt);
+				this.allCharacters[p].behaviour.update(sec);
 				this.allCharacters[p].update(sec, false, forceUpdate)
 				this.allCharacters[p].updateMatrixWorld();
 			})

@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import * as CANNON from 'cannon-es'
 import Utility from '../Utils/Utility'
 import { Message } from '../Messages/Message'
@@ -13,7 +14,8 @@ import * as WorldObjectPhysics from '../WorldObjects/WorldObjectPhysics'
 
 export default class Character extends THREE.Object3D {
 
-	private height: number
+	public originalPos: THREE.Vector3 | null
+	public height: number
 	public modelOffset: THREE.Vector3
 	public visuals: THREE.Group
 	public modelContainer: THREE.Group
@@ -64,6 +66,9 @@ export default class Character extends THREE.Object3D {
 	public raycastBox: THREE.Mesh
 
 	public name: string
+	public labelDiv: HTMLElement | null
+	public label: CSS2DObject | null
+	public dirHelper: THREE.Mesh | null
 	public timeStamp: number
 	public ping: number
 
@@ -103,8 +108,17 @@ export default class Character extends THREE.Object3D {
 
 		this.messageType = messageTypes.worldObjectCharacter
 		this.name = ""
+		this.labelDiv = null
+		this.label = null
+		this.dirHelper = null
+
 		this.timeStamp = Date.now()
 		this.ping = -1
+		if (options.position.x == 0 && options.position.y == 0 && options.position.z == 0) {
+			this.originalPos = null
+		} else {
+			this.originalPos = options.position
+		}
 
 		// Geometry
 		this.height = options.height
@@ -121,7 +135,7 @@ export default class Character extends THREE.Object3D {
 
 		// Default Model
 		let capsuleGeometry = Utility.createCapsuleGeometry(this.height / 4, this.height / 2, 8)
-		let capsule = new THREE.Mesh(capsuleGeometry, new THREE.MeshBasicMaterial({ color: 0xff0000 }))
+		let capsule = new THREE.Mesh(capsuleGeometry, new THREE.MeshLambertMaterial({ color: 0xff0000 }))
 		capsule.position.set(0, this.height / 2, 0)
 		capsule.castShadow = true
 		
@@ -170,6 +184,7 @@ export default class Character extends THREE.Object3D {
 			run: new Controls.EventControl(),
 			jump: new Controls.EventControl(),
 			use: new Controls.EventControl(),
+			shoot: new Controls.EventControl(),
 			primary: new Controls.EventControl(),
 			secondary: new Controls.EventControl(),
 			tertiary: new Controls.EventControl(),
@@ -211,9 +226,9 @@ export default class Character extends THREE.Object3D {
 
 		// Ray cast debug
 		const boxGeo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-		const boxMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+		const boxMat = new THREE.MeshLambertMaterial({ color: 0xff0000 });
 		this.raycastBox = new THREE.Mesh(boxGeo, boxMat);
-		this.raycastBox.visible = false;
+		this.raycastBox.visible = true;
 	}
 
 	public setBehaviour(behaviour: any) {
@@ -226,7 +241,7 @@ export default class Character extends THREE.Object3D {
 		this.charState = new State(this);
 	}
 
-	public setControl(key: any, value: any) {
+	public setControl(key: any, value: any, full: boolean = true) {
 		// Get action and set it's parameters
 		this.ctrl['key'] = key
 		this.ctrl['val'] = value
@@ -246,7 +261,7 @@ export default class Character extends THREE.Object3D {
 			this.controls.lastControl = action;
 
 			// Tell player to handle states according to new input
-			this.charState.changeState();
+			if(full) this.charState.changeState();
 
 			// Reset the 'just' attributes
 			action.justPressed = false;
@@ -327,9 +342,9 @@ export default class Character extends THREE.Object3D {
 		return Utility.appplyVectorMatrixXZ(flatViewVector, localDirection);
 	}
 
-	public takeControl() {
+	public takeControl(CharacterControls: any) {
 		if (this.world !== undefined) {
-			// this.world.setGameMode(new GameModes.CharacterControls(this));
+			this.world.setGameMode(/* new GameModes.CharacterControls(this) */new CharacterControls(this));
 		} else {
 			console.warn('Attempting to take control of a character that doesn\'t belong to a world.');
 		}
@@ -371,11 +386,11 @@ export default class Character extends THREE.Object3D {
 		this.angularVelocity = this.rotationSimulator.velocity;
 	}
 
-	public physicsPreStep(self: CANNON.Body) {
+	public physicsPreStep() {
 		// Player ray casting
 		// Create ray
-		const start = new CANNON.Vec3(self.position.x, self.position.y, self.position.z);
-		const end = new CANNON.Vec3(self.position.x, self.position.y - this.rayCastLength - this.raySafeOffset, self.position.z);
+		const start = new CANNON.Vec3(this.characterCapsule.physics!.physical.position.x, this.characterCapsule.physics!.physical.position.y, this.characterCapsule.physics!.physical.position.z);
+		const end = new CANNON.Vec3(this.characterCapsule.physics!.physical.position.x, this.characterCapsule.physics!.physical.position.y - this.rayCastLength - this.raySafeOffset, this.characterCapsule.physics!.physical.position.z);
 		// Raycast options
 		const rayCastOptions = {
 			collisionFilterMask: ~2, // cast against everything except second collision group (player)
@@ -386,16 +401,16 @@ export default class Character extends THREE.Object3D {
 
 		if (this.rayHasHit) {
 			if (this.raycastBox.visible) this.raycastBox.position.copy(this.rayResult.hitPointWorld);
-			self.position.y = this.rayResult.hitPointWorld.y + this.rayCastLength;
+			this.characterCapsule.physics!.physical.position.y = this.rayResult.hitPointWorld.y + this.rayCastLength;
 		} else {
-			if (this.raycastBox.visible) this.raycastBox.position.set(self.position.x, self.position.y - this.rayCastLength - this.raySafeOffset, self.position.z);
+			if (this.raycastBox.visible) this.raycastBox.position.set(this.characterCapsule.physics!.physical.position.x, this.characterCapsule.physics!.physical.position.y - this.rayCastLength - this.raySafeOffset, this.characterCapsule.physics!.physical.position.z);
 		}
 	}
 
-	public physicsPostStep(self: any) {
+	public physicsPostStep() {
 		// Player ray casting
 		// Get velocities
-		let simulatedVelocity = new THREE.Vector3().copy(self.velocity);
+		let simulatedVelocity = new THREE.Vector3().copy(this.characterCapsule.physics!.physical.velocity);
 		// Take local velocity
 		let arcadeVelocity = new THREE.Vector3().copy(this.velocity).multiplyScalar(this.moveSpeed);
 		// Turn local into global
@@ -439,11 +454,11 @@ export default class Character extends THREE.Object3D {
 			newVelocity.applyMatrix4(m);
 
 			// Apply velocity
-			self.velocity.copy(newVelocity);
+			this.characterCapsule.physics!.physical.velocity.set(newVelocity.x, newVelocity.y, newVelocity.z);
 		} else {
 			// If we're in air
-			self.velocity.copy(newVelocity);
-			this.groundImpactData.velocity.copy(self.velocity);
+			this.characterCapsule.physics!.physical.velocity.set(newVelocity.x, newVelocity.y, newVelocity.z);
+			this.groundImpactData.velocity.copy(this.characterCapsule.physics!.physical.velocity);
 		}
 
 		// Jumping
@@ -453,19 +468,19 @@ export default class Character extends THREE.Object3D {
 			if (this.initJumpSpeed > -1) {
 
 				// Flatten velocity
-				self.velocity.y = 0;
+				this.characterCapsule.physics!.physical.velocity.y = 0;
 
 				// Velocity needs to be at least as much as initJumpSpeed
-				if (self.velocity.lengthSquared() < this.initJumpSpeed ** 2) {
-					self.velocity.normalize();
-					self.velocity.scale(this.initJumpSpeed, self.velocity);
+				if (this.characterCapsule.physics!.physical.velocity.lengthSquared() < this.initJumpSpeed ** 2) {
+					this.characterCapsule.physics!.physical.velocity.normalize();
+					this.characterCapsule.physics!.physical.velocity.scale(this.initJumpSpeed, this.characterCapsule.physics!.physical.velocity);
 				}
 			}
 
 			// Add positive vertical velocity 
-			self.velocity.y += 4;
+			this.characterCapsule.physics!.physical.velocity.y += 4;
 			//Move above ground by 1x safe offset value
-			self.position.y += this.raySafeOffset * 2;
+			this.characterCapsule.physics!.physical.position.y += this.raySafeOffset * 2;
 			//Reset flag
 			this.wantsToJump = false;
 		}
@@ -479,6 +494,7 @@ export default class Character extends THREE.Object3D {
 		this.setControl('run', false);
 		this.setControl('jump', false);
 		this.setControl('use', false);
+		this.setControl('shoot', false);
 		this.setControl('primary', false);
 		this.setControl('secondary', false);
 		this.setControl('tertiary', false);
@@ -525,6 +541,11 @@ export default class Character extends THREE.Object3D {
 					w: this.visuals.quaternion.w,
 				},
 				charStateRaw: this.charStateRaw,
+				raycastBox: {
+					x: this.raycastBox.position.x,
+					y: this.raycastBox.position.y,
+					z: this.raycastBox.position.z,
+				},
 			},
 			timeStamp: this.timeStamp,
 			ping: this.ping,

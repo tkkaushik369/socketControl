@@ -2,9 +2,11 @@ import './css/main.css'
 import { io, Socket } from 'socket.io-client'
 import WorldClient from './ts/WorldClient'
 import { Player } from '../server/ts/Player'
+import * as GameModes from './ts/GameModes'
 import { Message } from '../server/ts/Messages/Message'
 import { messageTypes } from '../server/ts/Enums/messageTypes'
 import * as CharacterStates from '../server/ts/Characters/CharacterStates'
+import Character from '../server/ts/Characters/Character'
 import * as THREE from 'three'
 
 if (navigator.userAgent.includes('QtWebEngine')) {
@@ -38,6 +40,7 @@ export default class AppClient {
 		this.ForShoot = this.ForShoot.bind(this)
 		this.OnChangeTimeScale = this.OnChangeTimeScale.bind(this)
 		this.ForChangeTimeScale = this.ForChangeTimeScale.bind(this)
+		this.ForCharacterControl = this.ForCharacterControl.bind(this)
 
 		// Init
 		this.clients = {}
@@ -48,6 +51,7 @@ export default class AppClient {
 		this.worldClient.changeSceneCallBack = this.ForChangeScenario
 		this.worldClient.shootCallBack = this.ForShoot
 		this.worldClient.changeTimeScaleCallBack = this.ForChangeTimeScale
+		this.worldClient.sendCharacterControlCallBack = this.ForCharacterControl
 		this.player = null
 
 
@@ -68,6 +72,10 @@ export default class AppClient {
 
 	private OnDisConnect(str: string) {
 		console.log("Disconnect " + str)
+		if((this.player !== null) && (this.player.userName !== null)) {
+			this.worldClient.allCharacters[this.player.userName].labelDiv?.remove()
+			this.worldClient.removeWorldCharacter(this.player.userName)
+		}
 	}
 
 	private OnChangeScenario(inx: number) {
@@ -79,7 +87,7 @@ export default class AppClient {
 		this.io.emit("changeScenario", inx)
 	}
 
-	private ForShoot(position: THREE.Vector3, quaternion: THREE.Quaternion, dirVec: THREE.Vector3) {
+	private ForShoot(position: THREE.Vector3, quaternion: THREE.Quaternion, isOffset: boolean) {
 		this.io.emit('shoot', {
 			position: {
 				x: position.x,
@@ -92,11 +100,7 @@ export default class AppClient {
 				z: quaternion.z,
 				w: quaternion.w,
 			},
-			dirVec: {
-				x: dirVec.x,
-				y: dirVec.y,
-				z: dirVec.z,
-			}
+			isOffset: isOffset,
 		})
 	}
 
@@ -104,15 +108,27 @@ export default class AppClient {
 		this.worldClient.settings.TimeScale = data.TimeScale
 		this.worldClient.timeScaleTarget = data.timeScaleTarget
 	}
+
 	private ForChangeTimeScale(val: number) {
 		this.io.emit("changeTimeScale", val)
+	}
+
+	private ForCharacterControl(name: string, key: string, val: boolean) {
+		this.io.emit("characterControl", { name: name, key: key, val: val })
 	}
 
 	private OnSetID(message: Message, callBack: Function) {
 		this.player = new Player(message.id)
 		this.player.userName = "Player " + message.data.count
+		this.worldClient.playerConn = this.player
 		console.log("Username: " + this.player.userName)
 		callBack(this.player.userName)
+
+		const player = new Character({ position: new THREE.Vector3(2, 5, 5) })
+		this.worldClient.addWorldCharacter(player, this.player.userName)
+		this.worldClient.LoadCharacter(player)
+		player.takeControl(GameModes.CharacterControls)
+		// this.worldClient.setGameMode(new GameModes.CharacterControls(player));
 
 		// load server Scenario
 		if (message.data.currentScenarioIndex)
@@ -130,6 +146,10 @@ export default class AppClient {
 
 	private OnRemoveClient(id: string) {
 		console.log("Removed: " + id)
+		if(this.clients[id].userName !== null) {
+			this.worldClient.allCharacters[this.clients[id].userName].labelDiv?.remove()
+			this.worldClient.removeWorldCharacter(this.clients[id].userName)
+		}
 		if (this.clients[id]) delete this.clients[id]
 	}
 
@@ -140,7 +160,14 @@ export default class AppClient {
 				case messageTypes.playerData: {
 					if (this.clients[id] === undefined) {
 						this.clients[id] = new Player(id)
+						console.log(JSON.stringify(messages[id]))
 						this.clients[id].userName = messages[id].userName
+
+						if((this.clients[id].userName != null) && (this.clients[id].userName != this.player?.userName)) {
+							const player = new Character({ position: new THREE.Vector3(2, 5, 5) })
+							this.worldClient.addWorldCharacter(player, this.clients[id].userName)
+							this.worldClient.LoadCharacter(player)
+						}
 					}
 
 					this.clients[id].userName = messages[id].userName
@@ -193,6 +220,10 @@ export default class AppClient {
 				}
 				case messageTypes.worldObjectCharacter: {
 					let character = this.worldClient.allCharacters[id]
+					if (character === undefined) {
+						// console.log(messages[id])
+						break;
+					}
 					character.position.set(
 						messages[id].data.characterModel_position.x,
 						messages[id].data.characterModel_position.y,
@@ -205,7 +236,11 @@ export default class AppClient {
 						messages[id].data.characterModel_quaternion.w,
 					);
 					character.characterCapsule.physics!.visual.position.copy(character.position)
-					character.raycastBox.position.set(character.position.x, character.position.y - character.rayCastLength - character.raySafeOffset, character.position.z)
+					character.raycastBox.position.set(
+						messages[id].data.raycastBox.x,
+						messages[id].data.raycastBox.y,
+						messages[id].data.raycastBox.z,
+						)
 					character.position.add(character.modelOffset);
 					let state = messages[id].data.charStateRaw;
 					if (character.lastState !== state) {
@@ -227,8 +262,10 @@ export default class AppClient {
 						if (state == "DropIdle") character.setState(CharacterStates.DropIdle)
 						if (state == "DropRunning") character.setState(CharacterStates.DropRunning)
 						if (state == "DropRolling") character.setState(CharacterStates.DropRolling)
-						character.charState.changeState();
 						character.lastState = state;
+						if(character.name == 'player') {
+							console.log(state)
+						}
 					}
 					break
 				}

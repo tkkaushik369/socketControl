@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import World from "../../server/ts/World"
 import { Player } from "../../server/ts/Player"
 import CannonDebugRenderer from '../../server/ts/utils/cannonDebugRenderer'
@@ -16,6 +17,7 @@ export default class WorldClient extends World {
 
 	private parentDom: HTMLElement
 	private renderer: THREE.WebGLRenderer
+	private labelRenderer: CSS2DRenderer
 	public scene: THREE.Scene
 	public camera: THREE.Camera
 	public cameraDistanceTarget: number
@@ -41,6 +43,8 @@ export default class WorldClient extends World {
 	public changeSceneCallBack: Function | undefined
 	public shootCallBack: Function | undefined
 	public changeTimeScaleCallBack: Function | undefined
+	public sendCharacterControlCallBack: Function | undefined
+	public playerConn: Player | undefined
 
 	public constructor(clients: { [id: string]: Player }, parentDom?: HTMLElement) {
 		super(clients)
@@ -93,35 +97,50 @@ export default class WorldClient extends World {
 		this.renderer.setClearColor(fog.color, 0.1)
 		this.parentDom.appendChild(this.renderer.domElement)
 
+		this.labelRenderer = new CSS2DRenderer();
+		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+		this.labelRenderer.domElement.style.position = 'absolute';
+		this.labelRenderer.domElement.style.top = '0px';
+		this.parentDom.appendChild( this.labelRenderer.domElement );
+
 		// Scene
 		this.scene = new THREE.Scene()
 		this.scene.fog = fog
 
 		// Camera
-		this.camera = new THREE.PerspectiveCamera(24, window.innerHeight / window.innerWidth, 0.1, 1000)
+		this.camera = new THREE.PerspectiveCamera(75, window.innerHeight / window.innerWidth, 0.03, 100)
 		this.camera.position.set(0, 10, 15)
 
 		// Lights
 		this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1)
 		this.scene.add(this.ambientLight)
 
-		const lightVector = new THREE.Vector3(240, 300, 240)
+		const lightVector = new THREE.Vector3(24, 30, 24)
 		this.spotLight = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 2, 1, 2)
-		this.spotLight.position.set(lightVector.x, lightVector.y, lightVector.z)
-		this.spotLight.target.position.set(0, 0, 0)
-		this.spotLight.castShadow = true
-		this.spotLight.shadow.camera.fov = 30
-		this.spotLight.shadow.camera.near = 500
-		this.spotLight.shadow.camera.far = 4000
-		this.spotLight.shadow.bias = -0.0001
-		this.spotLight.shadow.mapSize.width = 2048
-		this.spotLight.shadow.mapSize.height = 2048
-		this.scene.add(this.spotLight)
+		// this.spotLight.position.set(lightVector.x, lightVector.y, lightVector.z)
+		// this.spotLight.target.position.set(0, 0, 0)
+		// this.spotLight.castShadow = true
+		// this.spotLight.shadow.camera.fov = 30
+		// this.spotLight.shadow.camera.near = 500
+		// this.spotLight.shadow.camera.far = 4000
+		// this.spotLight.shadow.bias = -0.0001
+		// this.spotLight.shadow.mapSize.width = 2048
+		// this.spotLight.shadow.mapSize.height = 2048
+		// this.scene.add(this.spotLight)
 
-		this.directionalLight = new THREE.DirectionalLight(0xffffff, 2)
+		this.directionalLight = new THREE.DirectionalLight(0xffffff, 1)
 		this.directionalLight.position.set(lightVector.x, lightVector.y, lightVector.z)
 		this.directionalLight.target.position.set(0, 0, 0)
 		this.directionalLight.castShadow = true
+		this.directionalLight.shadow.mapSize.width = 6048;
+		this.directionalLight.shadow.mapSize.height = 6048;
+		this.directionalLight.shadow.camera.near = 1;
+		this.directionalLight.shadow.camera.far = 100;
+
+		this.directionalLight.shadow.camera.top = 120;
+		this.directionalLight.shadow.camera.right = 120;
+		this.directionalLight.shadow.camera.bottom = -120;
+		this.directionalLight.shadow.camera.left = -120;
 		this.scene.add(this.directionalLight)
 
 		// helpers
@@ -198,7 +217,6 @@ export default class WorldClient extends World {
 
 	public LoadAllScenario() {
 		ScenarioImport.loadScenarios(this);
-		// this.setGameMode(new GameModes.CharacterControls(this.allCharacters['ch']));
 
 		Object.keys(this.allCharacters).forEach((p) => {
 			this.LoadCharacter(this.allCharacters[p])
@@ -220,6 +238,29 @@ export default class WorldClient extends World {
 					});
 				}
 			});
+			
+			{
+				const labelDiv = document.createElement( 'div' );
+				labelDiv.className = 'label';
+				labelDiv.textContent = character.name;
+
+				const label = new CSS2DObject( labelDiv );
+				label.position.set( 0, 1.3, 0 );
+				// label.center.set( 0, 1 );
+				character.labelDiv = labelDiv
+				character.label = label
+				object.add( label );
+
+				character.dirHelper = new THREE.Mesh(new THREE.SphereGeometry(0.01), new THREE.MeshLambertMaterial({ wireframe: false, color: 0x00ffff }))
+				character.dirHelper.position.set(0, 1.2, 0)
+				character.dirHelper.lookAt(0, 0, 0)
+
+				const arr = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.1, 32), new THREE.MeshLambertMaterial({ wireframe: false, color: 0x00ffff }));
+				arr.position.set(0, 0, 0.08)
+				arr.rotation.x = Math.PI/2
+				character.dirHelper.add(arr)
+				object.add(character.dirHelper)
+			}
 			
 			character.setModel(object)
 			character.setModelOffset(new THREE.Vector3(0, -0.1, 0));
@@ -278,7 +319,7 @@ export default class WorldClient extends World {
 	}
 
 	public setGameMode(gameMode: any) {
-		gameMode.world = this;
+		gameMode.worldClient = this;
 		this.gameMode = gameMode;
 		gameMode.init();
 	}
@@ -301,9 +342,28 @@ export default class WorldClient extends World {
 			this.cannonDebugRenderer.update()
 
 		Object.keys(this.allBoxHelpers).forEach((p) => { this.allBoxHelpers[p].update() })
-		Object.keys(this.allCharacters).forEach((p) => { this.allCharacters[p].mixer?.update(dt*this.settings.TimeScale); })
+		Object.keys(this.allCharacters).forEach((p) => {
+			/*if (this.allCharacters[p].labelDiv != null && p =='player') {
+				var start = new THREE.Vector3();
+				start.copy(this.allCharacters[p].position);
+				var dist = start.distanceTo(this.camera.position);
+				console.log(dist)
+				if (dist < 2) {
+					this.allCharacters[p].labelDiv.style.fontSize = 50+"px"
+				} else if(dist > 30) {
+					this.allCharacters[p].labelDiv.style.fontSize = 10+"px"
+				} else {
+					this.allCharacters[p].labelDiv.style.fontSize = (40-dist)+"px"
+				}
+			}*/
+			if(this.allCharacters[p].dirHelper != null) {
+				this.allCharacters[p].dirHelper.lookAt(0, 0, 0);
+			}
+			this.allCharacters[p].mixer?.update(dt*this.settings.TimeScale);
+		})
 
 		this.renderer.render(this.scene, this.camera)
+		this.labelRenderer.render(this.scene, this.camera)
 		this.viewHelper.render(this.renderer)
 		this.stats.update()
 	}
@@ -313,6 +373,7 @@ export default class WorldClient extends World {
 		(this.camera as THREE.PerspectiveCamera).aspect = window.innerWidth / window.innerHeight;
 		(this.camera as THREE.PerspectiveCamera).updateProjectionMatrix()
 		this.renderer.setSize(window.innerWidth, window.innerHeight)
+		this.labelRenderer.setSize(window.innerWidth, window.innerHeight)
 	}
 
 	// Settings

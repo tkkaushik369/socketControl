@@ -41,11 +41,18 @@ export function loadScenarios(world: World) {
 	world.createBalls()
 	
 	// Character
-	let john = new Character({ position: new THREE.Vector3(-2, 5, 2) })
+	const john = new Character({ position: new THREE.Vector3(-2, 5, 2) })
 	john.setBehaviour(new CharacterAI.Random());
 	world.addWorldCharacter(john, "john")
 
-	let bob = new Character({ position: new THREE.Vector3(2, 5, 2) })
+	const bob = new Character({ position: new THREE.Vector3(2, 5, 2) })
 	bob.setBehaviour(new CharacterAI.FollowCharacter(john));
 	world.addWorldCharacter(bob, "bob")
+
+	/*const player = new Character({ position: new THREE.Vector3(2, 5, 5) })
+	world.addWorldCharacter(player, "player")*/
+
+	/*setTimeout(() => {
+		world.removeWorldCharacter('player')
+	}, 5000)*/
 }

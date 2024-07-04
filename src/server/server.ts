@@ -15,6 +15,7 @@ import { Server, Socket } from 'socket.io'
 import WorldServer from './ts/WorldServer'
 import WorldObject from './ts/WorldObjects/WorldObjects'
 import { Player } from './ts/Player'
+import Character from './ts/Characters/Character'
 import { Message } from './ts/Messages/Message'
 import * as THREE from 'three'
 
@@ -40,6 +41,7 @@ class AppServer {
 		this.OnChangeScenario = this.OnChangeScenario.bind(this)
 		this.OnShoot = this.OnShoot.bind(this)
 		this.OnChangeTimeScale = this.OnChangeTimeScale.bind(this)
+		this.OnCharacterControl = this.OnCharacterControl.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 
 		// Init
@@ -63,6 +65,7 @@ class AppServer {
 			socket.on("changeScenario", (inx: number) => this.OnChangeScenario(inx))
 			socket.on("shoot", (data: any) => this.OnShoot(data))
 			socket.on("changeTimeScale", (val: number) => this.OnChangeTimeScale(val))
+			socket.on("characterControl", (data: any) => this.OnCharacterControl(data))
 			socket.on("update", (message: Message) => this.OnUpdate(socket, message))
 		})
 		setInterval(this.ForSocketLoop, this.fixedTimeStep * 1000)
@@ -79,6 +82,9 @@ class AppServer {
 		socket.emit("setid", this.clients[socket.id].Out(), (username: string) => {
 			this.clients[socket.id].userName = username
 			console.log("Player Created: " + socket.id + " -> " + username);
+			
+			const player = new Character({ position: new THREE.Vector3(2, 5, 5) })
+			this.worldServer.addWorldCharacter(player, username)
 		})
 	}
 
@@ -86,6 +92,7 @@ class AppServer {
 		console.log("socket disconnected : " + socket.id);
 		if (this.clients && this.clients[socket.id]) {
 			console.log("Deleted: " + socket.id);
+			this.worldServer.removeWorldCharacter(this.clients[socket.id].userName)
 			delete this.clients[socket.id]
 			this.io.emit("removeClient", socket.id)
 		}
@@ -101,8 +108,7 @@ class AppServer {
 	private OnShoot(data: any) {
 		let position = new THREE.Vector3(data.position.x, data.position.y, data.position.z)
 		let quaternion = new THREE.Quaternion(data.quaternion.x, data.quaternion.y, data.quaternion.z, data.quaternion.w)
-		let dirVec = new THREE.Vector3(data.dirVec.x, data.dirVec.y, data.dirVec.z)
-		this.worldServer.shootBall(position, quaternion, dirVec)
+		this.worldServer.shootBall(position, quaternion, data.isOffset)
 	}
 
 	private OnChangeTimeScale(val: number) {
@@ -110,9 +116,30 @@ class AppServer {
 		this.io.emit("changeTimeScale", { TimeScale: this.worldServer.settings.TimeScale, timeScaleTarget: this.worldServer.timeScaleTarget })
 	}
 
+	private OnCharacterControl(data: { [id: string]: any }) {
+		let character = this.worldServer.allCharacters[data.name];
+		if(character != undefined) {
+			character.setControl(data.key, data.val)
+			if (data.key == 'shoot' && data.val == true) {
+				// console.log(data.key, data.val)
+			}
+		}
+	}
+
 	private OnUpdate(socket: Socket, message: Message) {
 		this.clients[socket.id].ping = Date.now() - this.clients[socket.id].timeStamp
 		this.clients[socket.id].data.count = message.data.count
+
+		if(message.data.controls.isCharacter && (message.data.controls.name != null)) {
+			let character = this.worldServer.allCharacters[message.data.controls.name];
+			if(character != undefined) {
+				character.viewVector.set(
+					message.data.controls.viewVector.x,
+					message.data.controls.viewVector.y,
+					message.data.controls.viewVector.z,
+				)
+			}
+		}
 	}
 
 	public Start() {
@@ -127,7 +154,8 @@ class AppServer {
 		// Player Data
 		Object.keys(this.clients).forEach((id) => {
 			this.clients[id].timeStamp = Date.now()
-			data[id] = this.clients[id].Out()
+			let dataClient = this.clients[id].Out()
+			if(dataClient.userName != null) data[id] = dataClient
 		})
 
 		// Ball Data

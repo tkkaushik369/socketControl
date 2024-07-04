@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import * as _ from 'lodash'
 import WorldClient from './WorldClient'
 import * as Controls from '../../server/ts/Controls'
 import Character from '../../server/ts/Characters/Character'
@@ -87,11 +88,9 @@ export class FreeCameraControls extends GameModeBase {
 			key = key.toLowerCase();
 
 			if (key == 'f' && value == true) {
-				const dirVec = new THREE.Vector3(0, 0, 1)
-				dirVec.unproject(this.worldClient.camera)
 				if (this.worldClient.shootCallBack)
-					this.worldClient.shootCallBack(this.worldClient.camera.position, this.worldClient.camera.quaternion, dirVec)
-				this.worldClient.shootBall(this.worldClient.camera.position, this.worldClient.camera.quaternion, dirVec)
+					this.worldClient.shootCallBack(this.worldClient.camera.position, this.worldClient.camera.quaternion, false)
+				this.worldClient.shootBall(this.worldClient.camera.position, this.worldClient.camera.quaternion, false)
 			}
 
 			// Turn off free cam
@@ -164,6 +163,7 @@ export class CharacterControls extends GameModeBase {
 			'shift': { action: 'run' },
 			' ': { action: 'jump' },
 			'e': { action: 'use' },
+			'f': { action: 'shoot' },
 			'mouse0': { action: 'primary' },
 			'mouse2': { action: 'secondary' },
 			'mouse1': { action: 'tertiary' }
@@ -173,29 +173,35 @@ export class CharacterControls extends GameModeBase {
 	init() {
 		this.checkIfWorldIsSet();
 		if (this.worldClient != undefined) {
-			this.worldClient.cameraController.setRadius(1.8);
-			this.worldClient.cameraDistanceTarget = 1.8;
+			this.worldClient.cameraController.setRadius(1.8);			// 2.6
+			this.worldClient.cameraDistanceTarget = 1.8; 				// 2.6
 			this.worldClient.directionalLight.target = this.character;
+			if(this.worldClient.playerConn != undefined) {
+				this.worldClient.playerConn.data.controls.isCharacter = true;
+				this.worldClient.playerConn.data.controls.name = this.character.name;
+			}
 		}
+		console.log("init")
 	}
 
 	handleAction(event: any, key: any, value: any): void {
 		super.handleAction(event, key, value);
 		if (this.worldClient != undefined) {
 			if (key == 'v' && value == true) {
-				if (this.worldClient.cameraDistanceTarget == 1.8) {
-					this.worldClient.cameraDistanceTarget = 1.1;
-				} else if (this.worldClient.cameraDistanceTarget > 1.3) {
-					this.worldClient.cameraDistanceTarget = 2.1
+				if (this.worldClient.cameraDistanceTarget > 1.8) {				//4.8
+					this.worldClient.cameraDistanceTarget = 1.1					//1.8
+				} else if (this.worldClient.cameraDistanceTarget > 1.3) {		//2.0
+					this.worldClient.cameraDistanceTarget = 2.1					//5.2
 				} else if (this.worldClient.cameraDistanceTarget > 0) {
-					this.worldClient.cameraDistanceTarget = 1.6
+					this.worldClient.cameraDistanceTarget = 1.6					//3.6
 				}
 			} else if (key == 'f' && value == true) {
-				const dirVec = new THREE.Vector3(0, 0, 1)
-				dirVec.unproject(this.worldClient.camera)
+				let obj = new THREE.Object3D()
+				obj.rotation.copy(this.character.rotation)
+				obj.rotateY(Math.PI)
 				if (this.worldClient.shootCallBack)
-					this.worldClient.shootCallBack(this.worldClient.camera.position, this.worldClient.camera.quaternion, dirVec)
-				this.worldClient.shootBall(this.worldClient.camera.position, this.worldClient.camera.quaternion, dirVec)
+					this.worldClient.shootCallBack(this.character.position, obj.quaternion, true)
+				this.worldClient.shootBall(this.character.position, obj.quaternion, true)
 			}
 
 			// shift modifier fix
@@ -203,13 +209,18 @@ export class CharacterControls extends GameModeBase {
 
 			// Free Cam
 			if (key == 'c' && value == true && event.shiftKey == true) {
-				// this.character.resetControls()
-				// this.worldClient.setGameMode(new FreeCameraControls(this));
+				this.character.resetControls()
+				if(this.worldClient.playerConn) {
+					this.worldClient.playerConn.data.controls.isCharacter = false
+					this.worldClient.playerConn.data.controls.name = null
+				}
+				this.worldClient.setGameMode(new FreeCameraControls(this));
 			}
 
 			// Is key bound to action
-			if (key in this.keymap) {
-				// this.character.setControls(this.keymap[key].action, value)
+			if((key in this.keymap) && (this.worldClient.sendCharacterControlCallBack != undefined)) {
+				this.character.setControl(this.keymap[key].action, value, false)
+				this.worldClient.sendCharacterControlCallBack(this.character.name, this.keymap[key].action, value)
 			}
 		}
 	}
@@ -226,6 +237,29 @@ export class CharacterControls extends GameModeBase {
 
 	update() {
 		if (this.worldClient != undefined) {
+			if(!_.includes(this.worldClient.allCharacters, this.character))
+			{
+				this.worldClient.setGameMode(new FreeCameraControls(undefined));
+			} else {
+				let viewVector = new THREE.Vector3().subVectors(this.character.position, this.worldClient.camera.position);
+				this.character.viewVector = new THREE.Vector3().subVectors(this.character.position, this.worldClient.camera.position);
+				if(this.worldClient.playerConn) {
+					this.worldClient.playerConn.data.controls.viewVector.copy(viewVector)
+				}
+
+				/*// Make light follow player (for shadows)
+				this.worldClient.dirLight.position.set(
+					this.character.position.x + this.worldClient.sun.x * 15,
+					this.character.position.y + this.worldClient.sun.y * 15,
+					this.character.position.z + this.worldClient.sun.z * 15);*/
+
+				// Position camera
+				this.worldClient.cameraController.target.set(
+					this.character.position.x,
+					this.character.position.y + this.character.height / 1.7,
+					this.character.position.z
+				);
+			}
 		}
 	}
 }

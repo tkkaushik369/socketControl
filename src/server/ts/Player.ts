@@ -10,7 +10,12 @@ export class Player implements Message {
 		count: number,
 		currentScenarioIndex: number,
 		TimeScale: number,
-		timeScaleTarget: number
+		timeScaleTarget: number,
+		controls: {
+			isCharacter: boolean,
+			name: string | null,
+			viewVector: THREE.Vector3,
+		}
 	}
 
 	public timeStamp: number
@@ -25,7 +30,12 @@ export class Player implements Message {
 			count: -1,
 			currentScenarioIndex: 0,
 			TimeScale: 1,
-			timeScaleTarget: 1
+			timeScaleTarget: 1,
+			controls: {
+				isCharacter: false,
+				name: null,
+				viewVector: new THREE.Vector3(),
+			}
 		}
 
 		this.timeStamp = Date.now()
@@ -43,6 +53,15 @@ export class Player implements Message {
 				currentScenarioIndex: this.data.currentScenarioIndex,
 				TimeScale: this.data.TimeScale,
 				timeScaleTarget: this.data.timeScaleTarget,
+				controls: {
+					isCharacter: this.data.controls.isCharacter,
+					name: this.data.controls.name,
+					viewVector: {
+						x: this.data.controls.viewVector.x,
+						y: this.data.controls.viewVector.y,
+						z: this.data.controls.viewVector.z,
+					}
+				}
 			},
 			timeStamp: this.timeStamp,
 			ping: this.ping,
