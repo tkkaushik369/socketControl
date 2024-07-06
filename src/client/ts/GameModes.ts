@@ -176,7 +176,7 @@ export class CharacterControls extends GameModeBase {
 			this.worldClient.cameraController.setRadius(1.8);			// 2.6
 			this.worldClient.cameraDistanceTarget = 1.8; 				// 2.6
 			this.worldClient.directionalLight.target = this.character;
-			if(this.worldClient.playerConn != undefined) {
+			if (this.worldClient.playerConn != undefined) {
 				this.worldClient.playerConn.data.controls.isCharacter = true;
 				this.worldClient.playerConn.data.controls.name = this.character.name;
 			}
@@ -210,7 +210,7 @@ export class CharacterControls extends GameModeBase {
 			// Free Cam
 			if (key == 'c' && value == true && event.shiftKey == true) {
 				this.character.resetControls()
-				if(this.worldClient.playerConn) {
+				if (this.worldClient.playerConn) {
 					this.worldClient.playerConn.data.controls.isCharacter = false
 					this.worldClient.playerConn.data.controls.name = null
 				}
@@ -218,7 +218,7 @@ export class CharacterControls extends GameModeBase {
 			}
 
 			// Is key bound to action
-			if((key in this.keymap) && (this.worldClient.sendCharacterControlCallBack != undefined)) {
+			if ((key in this.keymap) && (this.worldClient.sendCharacterControlCallBack != undefined)) {
 				this.character.setControl(this.keymap[key].action, value, false)
 				this.worldClient.sendCharacterControlCallBack(this.character.name, this.keymap[key].action, value)
 			}
@@ -237,13 +237,12 @@ export class CharacterControls extends GameModeBase {
 
 	update() {
 		if (this.worldClient != undefined) {
-			if(!_.includes(this.worldClient.allCharacters, this.character))
-			{
+			if (!_.includes(this.worldClient.allCharacters, this.character)) {
 				this.worldClient.setGameMode(new FreeCameraControls(undefined));
 			} else {
 				let viewVector = new THREE.Vector3().subVectors(this.character.position, this.worldClient.camera.position);
 				this.character.viewVector = new THREE.Vector3().subVectors(this.character.position, this.worldClient.camera.position);
-				if(this.worldClient.playerConn) {
+				if (this.worldClient.playerConn) {
 					this.worldClient.playerConn.data.controls.viewVector.copy(viewVector)
 				}
 

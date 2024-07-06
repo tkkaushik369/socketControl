@@ -5,7 +5,6 @@ import WorldObject from './WorldObjects/WorldObjects'
 import * as WorldObjectPhysics from './WorldObjects/WorldObjectPhysics'
 import Character from './Characters/Character'
 import * as _ from 'lodash'
-import Utility from './Utils/Utility'
 import { messageTypes } from './Enums/messageTypes'
 import TWEEN from '@tweenjs/tween.js'
 
@@ -24,6 +23,7 @@ export default class World {
 	protected allBodies: { [id: string]: CANNON.Body }
 	public ballId: number
 	public ballMax: number
+	public allZeroMassBodies: CANNON.Body[]
 	public allBalls: WorldObject[]
 	public allWorldObjects: { [id: string]: WorldObject }
 	public allCharacters: { [id: string]: Character }
@@ -39,6 +39,7 @@ export default class World {
 	protected addBoxHelperCallBack: Function | undefined
 	protected removeBoxHelperCallBack: Function | undefined
 	protected RemoveAllBoxHelpersCallBack: Function | undefined
+	public setGameModeCallBack: Function | undefined
 	public isClient: boolean
 	protected addBoxHelperMesh: boolean = false
 
@@ -89,6 +90,7 @@ export default class World {
 
 		// Init allBodies
 		this.scenario = []
+		this.allZeroMassBodies = []
 		this.allBodies = {}
 		this.allWorldObjects = {}
 		this.allBalls = []
@@ -146,16 +148,14 @@ export default class World {
 					if (physics != undefined) {
 						let worldObject = new WorldObject(child, physics);
 						this.addWorldObject(worldObject, child.userData.name)
-						if (worldObject.physics != undefined) {
-							this.addBody(worldObject.physics.physical, child.userData.name)
-							worldObject.physics.physical.position.x = child.position.x
-							worldObject.physics.physical.position.y = child.position.y
-							worldObject.physics.physical.position.z = child.position.z
-							worldObject.physics.physical.quaternion.x = child.quaternion.x
-							worldObject.physics.physical.quaternion.y = child.quaternion.y
-							worldObject.physics.physical.quaternion.z = child.quaternion.z
-							worldObject.physics.physical.quaternion.w = child.quaternion.w
-						}
+						this.addBody(worldObject.physics.physical, child.userData.name)
+						worldObject.physics.physical.position.x = child.position.x
+						worldObject.physics.physical.position.y = child.position.y
+						worldObject.physics.physical.position.z = child.position.z
+						worldObject.physics.physical.quaternion.x = child.quaternion.x
+						worldObject.physics.physical.quaternion.y = child.quaternion.y
+						worldObject.physics.physical.quaternion.z = child.quaternion.z
+						worldObject.physics.physical.quaternion.w = child.quaternion.w
 					}
 				}
 			}
@@ -186,6 +186,7 @@ export default class World {
 
 	public addBody(body: CANNON.Body, name: string) {
 		if ((this.addMeshCallBack == undefined) || this.worldPhysicsUpdate) {
+			if (body.mass == 0) this.allZeroMassBodies.push(body)
 			this.allBodies[name] = body
 			this.world.addBody(body)
 		}
@@ -194,6 +195,9 @@ export default class World {
 	public removeBody(name: string) {
 		if (this.allBodies[name] === undefined) return
 		this.world.removeBody(this.allBodies[name])
+		const index = this.allZeroMassBodies.indexOf(this.allBodies[name]);
+		if (index > -1)
+			this.allZeroMassBodies.splice(index, 1);
 		delete this.allBodies[name]
 	}
 
@@ -251,35 +255,33 @@ export default class World {
 		if (_.includes(this.allCharacters, character)) {
 			console.warn('Adding character to a world in which it already exists.');
 		} else {
-			if(character.characterCapsule.physics !== undefined) {
-				// Set world
-				character.world = this;
+			// Set world
+			character.world = this;
 
-				this.world.addEventListener('preStep', character.physicsPreStep );
-				this.world.addEventListener('postStep', character.physicsPostStep );
+			this.world.addEventListener('preStep', character.physicsPreStep);
+			this.world.addEventListener('postStep', character.physicsPostStep);
 
-				character.name = name
+			character.name = name
 
-				// Register physics
-				this.addBody(character.characterCapsule.physics.physical, name);
+			// Register physics
+			this.addBody(character.characterCapsule.physics.physical, name);
 
 
-				// Register characters physical capsule object
-				this.addWorldObject(character.characterCapsule, name);
-				
-				// Register character
-				this.allCharacters[name] = character
+			// Register characters physical capsule object
+			this.addWorldObject(character.characterCapsule, name);
 
-				if(this.addMeshCallBack !== undefined) {
-					if((this.addBoxHelperCallBack !== undefined) && this.addBoxHelperMesh) {
-						this.addBoxHelperCallBack(new THREE.BoxHelper( character, 0xffff00 ), name)
-						this.addBoxHelperCallBack(new THREE.BoxHelper( character.characterCapsule.physics.visual, 0xff00ff ), name+"_visual")
-						this.addBoxHelperCallBack(new THREE.BoxHelper( character.raycastBox, 0x00ffff ), name+"_raycast")
-					}
-					this.addMeshCallBack(character, name)
-					this.addMeshCallBack(character.characterCapsule.physics.visual, name+"_visual");
-					this.addMeshCallBack(character.raycastBox, name+"_raycast");
+			// Register character
+			this.allCharacters[name] = character
+
+			if (this.addMeshCallBack !== undefined) {
+				if ((this.addBoxHelperCallBack !== undefined) && this.addBoxHelperMesh) {
+					this.addBoxHelperCallBack(new THREE.BoxHelper(character, 0xffff00), name)
+					this.addBoxHelperCallBack(new THREE.BoxHelper(character.characterCapsule.physics.visual, 0xff00ff), name + "_visual")
+					this.addBoxHelperCallBack(new THREE.BoxHelper(character.raycastBox, 0x00ffff), name + "_raycast")
 				}
+				this.addMeshCallBack(character, name)
+				this.addMeshCallBack(character.characterCapsule.physics.visual, name + "_visual");
+				this.addMeshCallBack(character.raycastBox, name + "_raycast");
 			}
 		}
 	}
@@ -289,19 +291,19 @@ export default class World {
 		let character = this.allCharacters[name]
 		character.world = undefined;
 
-		this.world.removeEventListener('preStep', character.physicsPreStep );
-		this.world.removeEventListener('postStep', character.physicsPostStep );
+		this.world.removeEventListener('preStep', character.physicsPreStep);
+		this.world.removeEventListener('postStep', character.physicsPostStep);
 
 		// Remove visuals
-		if(this.removeMeshCallBack) {
-			if((this.removeBoxHelperCallBack !== undefined) && this.addBoxHelperMesh) {
+		if (this.removeMeshCallBack) {
+			if ((this.removeBoxHelperCallBack !== undefined) && this.addBoxHelperMesh) {
 				this.removeBoxHelperCallBack(name)
-				this.removeBoxHelperCallBack(name+"_visual")
-				this.removeBoxHelperCallBack(name+"_raycast")
+				this.removeBoxHelperCallBack(name + "_visual")
+				this.removeBoxHelperCallBack(name + "_raycast")
 			}
 			this.removeMeshCallBack(character.name);
-			this.removeMeshCallBack(character.name+"_visual");
-			this.removeMeshCallBack(character.name+"_raycast");
+			this.removeMeshCallBack(character.name + "_visual");
+			this.removeMeshCallBack(character.name + "_raycast");
 		}
 
 		// Remove capsule object
@@ -322,20 +324,19 @@ export default class World {
 	public createBalls(addMesh: boolean = true) {
 		for (let i = 0; i < this.ballMax; ++i) {
 			let forward = new THREE.Vector3(0, 0, -1).applyQuaternion(new THREE.Quaternion);
-			let ball = new WorldObject(undefined, undefined);
-			ball.messageType = messageTypes.worldObjectBallData
-			this.allBalls.push(ball)
-			ball.name = "ball_" + i.toString()
-
-			ball.setPhysics(new WorldObjectPhysics.Sphere({
+			let ballPhysics = new WorldObjectPhysics.Sphere({
 				mass: 0.08,
 				radius: 0.03,
 				position: new CANNON.Vec3(0, -1, 0).vadd(new CANNON.Vec3(forward.x, forward.y, forward.z))
-			}));
+			});
+			let ball = new WorldObject(undefined, ballPhysics);
+			ball.messageType = messageTypes.worldObjectBallData
+			this.allBalls.push(ball)
+			ball.name = "ball_" + i.toString()
 			ball.setModelFromPhysicsShape()
 
 			if ((this.addMeshCallBack == undefined) || this.worldPhysicsUpdate)
-				this.world.addBody(ball.physics!.physical)
+				this.world.addBody(ball.physics.physical)
 		}
 		if (addMesh)
 			this.addBallMesh()
@@ -352,14 +353,14 @@ export default class World {
 	protected addCharactersMesh() {
 		Object.keys(this.allCharacters).forEach((p) => {
 			let character = this.allCharacters[p]
-			let body = character.characterCapsule.physics!.physical;
-			if(this.addMeshCallBack != undefined) {
+			let body = character.characterCapsule.physics.physical;
+			if (this.addMeshCallBack != undefined) {
 				this.addMeshCallBack(character, character.name)
-				this.addMeshCallBack(character.characterCapsule.physics!.visual, character.name+"_visual")
-				this.addMeshCallBack(character.raycastBox, character.name+"_raycast")
+				this.addMeshCallBack(character.characterCapsule.physics.visual, character.name + "_visual")
+				this.addMeshCallBack(character.raycastBox, character.name + "_raycast")
 			}
-			this.addBody(body, character.name)
 			this.zeroBody(body)
+			this.addBody(body, character.name)
 			if (character.originalPos != null) body.position.set(character.originalPos.x, character.originalPos.y, character.originalPos.z)
 		})
 	}
@@ -370,12 +371,12 @@ export default class World {
 		forward.applyQuaternion(quaternion);
 		let ball = this.allBalls[this.ballId++]
 		if (this.ballId >= this.ballMax) this.ballId = 0
-		this.zeroBody(ball.physics!.physical)
+		this.zeroBody(ball.physics.physical)
 		let offsetPosition = position.clone().add(forward);
-		ball.physics!.physical.position.set(offsetPosition.x, offsetPosition.y, offsetPosition.z)
-		ball.physics!.physical.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+		ball.physics.physical.position.set(offsetPosition.x, offsetPosition.y, offsetPosition.z)
+		ball.physics.physical.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
 
-		if ((ball.model !== undefined) && (ball.physics !== undefined) && (ball.physics.physical !== undefined)) {
+		if (ball.model !== undefined) {
 			const strength = 100
 			const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion).normalize();
 			const impulse = new CANNON.Vec3(direction.x * strength, direction.y * strength, direction.z * strength)
@@ -403,10 +404,10 @@ export default class World {
 
 	protected updatePhysics() {
 		if (!this.worldPhysicsUpdate) return;
-		
+
 		let dt = this.clock.getDelta();
 		let tdt = dt * this.settings.TimeScale
-		let sec = dt * (1.001-this.settings.TimeScale) * 1000
+		let sec = dt * (1.001 - this.settings.TimeScale) * 1000
 
 		this.settings.TimeScale = THREE.MathUtils.lerp(this.settings.TimeScale, this.timeScaleTarget, 0.2);
 		this.world.step(1 / this.settings.stepFrequency, tdt, this.settings.stepFrequency)
@@ -414,12 +415,12 @@ export default class World {
 		TWEEN.removeAll()
 		let forceUpdate = true
 		// Update all WorldObjects
-		this.allBalls.forEach((p) => { p.update(sec, false, forceUpdate) })
-		Object.keys(this.allWorldObjects).forEach((p) => { this.allWorldObjects[p].update(sec, false, forceUpdate) })
-		if(!this.isClient) {
+		this.allBalls.forEach((p) => { p.update(tdt, false, forceUpdate) })
+		Object.keys(this.allWorldObjects).forEach((p) => { this.allWorldObjects[p].update(tdt, false, forceUpdate) })
+		if (!this.isClient) {
 			Object.keys(this.allCharacters).forEach((p) => {
-				this.allCharacters[p].behaviour.update(sec);
-				this.allCharacters[p].update(sec, false, forceUpdate)
+				this.allCharacters[p].behaviour.update(tdt);
+				this.allCharacters[p].update(tdt, false, forceUpdate)
 				this.allCharacters[p].updateMatrixWorld();
 			})
 		}

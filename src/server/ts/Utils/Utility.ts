@@ -81,4 +81,12 @@ export default class Utility {
 	public static haveDifferentSigns(n1: number, n2: number) {
 		return (n1 < 0) != (n2 < 0);
 	}
+
+	public static getDistanceBetweenVectors(point1: THREE.Vector3, point2: THREE.Vector3) {
+		return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2) + Math.pow(point1.z - point2.z, 2));
+	}
+
+	public static getDistanceBetweenVecs(point1: CANNON.Vec3, point2: CANNON.Vec3) {
+		return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2) + Math.pow(point1.z - point2.z, 2));
+	}
 }

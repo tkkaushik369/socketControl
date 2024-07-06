@@ -8,13 +8,13 @@ export default class WorldObject extends THREE.Object3D {
 
 	public isWorldObject = true
 	public model: THREE.Mesh | undefined
-	public physics: WorldObjectPhysics.Physics | undefined
+	public physics: WorldObjectPhysics.Physics
 
 	public messageType: messageTypes
 	public timeStamp: number
 	public ping: number
 
-	constructor(model: THREE.Mesh | undefined, physics: any = undefined) {
+	constructor(model: THREE.Mesh | undefined, physics: WorldObjectPhysics.Physics) {
 		super()
 
 		this.isWorldObject = true
@@ -57,7 +57,7 @@ export default class WorldObject extends THREE.Object3D {
 	}
 
 	public setModelFromPhysicsShape() {
-		if (this.physics !== undefined) this.model = this.physics.getVisualModel({ visible: true, wireframe: false })
+		this.model = this.physics.getVisualModel({ visible: true, wireframe: false })
 	}
 
 	public setPhysics(physics: WorldObjectPhysics.Physics) {

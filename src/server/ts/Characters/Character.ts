@@ -10,6 +10,8 @@ import { CharacterAI } from './CharacterAI'
 import * as Controls from '../Controls'
 import WorldObject from '../WorldObjects/WorldObjects'
 import * as WorldObjectPhysics from '../WorldObjects/WorldObjectPhysics'
+import World from '../World'
+import TWEEN from '@tweenjs/tween.js'
 
 
 export default class Character extends THREE.Object3D {
@@ -21,7 +23,7 @@ export default class Character extends THREE.Object3D {
 	public modelContainer: THREE.Group
 	public characterModel: any
 
-	public world: any
+	public world: World | undefined
 	public messageType: messageTypes
 
 	public mixer: any
@@ -61,8 +63,7 @@ export default class Character extends THREE.Object3D {
 	public raySafeOffset: number
 	public wantsToJump: boolean
 	public initJumpSpeed: number
-	public groundImpactData: {
-		[id: string]: any }
+	public groundImpactData: { [id: string]: any }
 	public raycastBox: THREE.Mesh
 
 	public name: string
@@ -138,12 +139,11 @@ export default class Character extends THREE.Object3D {
 		let capsule = new THREE.Mesh(capsuleGeometry, new THREE.MeshLambertMaterial({ color: 0xff0000 }))
 		capsule.position.set(0, this.height / 2, 0)
 		capsule.castShadow = true
-		
+
 		// Assign model to character
 		this.characterModel = capsule
 		// Attach model to model container
 		this.modelContainer.add(capsule)
-		
 
 		// Animation mixer - gets set when calling setModel()
 		this.mixer = undefined
@@ -201,8 +201,7 @@ export default class Character extends THREE.Object3D {
 			segments: 8,
 			friction: 0
 		});
-		this.characterCapsule = new WorldObject(undefined, undefined);
-		this.characterCapsule.setPhysics(capsulePhysics);
+		this.characterCapsule = new WorldObject(undefined, capsulePhysics);
 
 		if (this.characterCapsule.physics) {
 			this.characterCapsule.physics.visual.visible = false
@@ -261,7 +260,7 @@ export default class Character extends THREE.Object3D {
 			this.controls.lastControl = action;
 
 			// Tell player to handle states according to new input
-			if(full) this.charState.changeState();
+			if (full) this.charState.changeState();
 
 			// Reset the 'just' attributes
 			action.justPressed = false;
@@ -344,7 +343,8 @@ export default class Character extends THREE.Object3D {
 
 	public takeControl(CharacterControls: any) {
 		if (this.world !== undefined) {
-			this.world.setGameMode(/* new GameModes.CharacterControls(this) */new CharacterControls(this));
+			if (this.world.setGameModeCallBack)
+				this.world.setGameModeCallBack(/* new GameModes.CharacterControls(this) */new CharacterControls(this));
 		} else {
 			console.warn('Attempting to take control of a character that doesn\'t belong to a world.');
 		}
@@ -389,28 +389,51 @@ export default class Character extends THREE.Object3D {
 	public physicsPreStep() {
 		// Player ray casting
 		// Create ray
-		const start = new CANNON.Vec3(this.characterCapsule.physics!.physical.position.x, this.characterCapsule.physics!.physical.position.y, this.characterCapsule.physics!.physical.position.z);
-		const end = new CANNON.Vec3(this.characterCapsule.physics!.physical.position.x, this.characterCapsule.physics!.physical.position.y - this.rayCastLength - this.raySafeOffset, this.characterCapsule.physics!.physical.position.z);
+		const start = new CANNON.Vec3(this.characterCapsule.physics.physical.position.x, this.characterCapsule.physics.physical.position.y, this.characterCapsule.physics.physical.position.z);
+		const end = new CANNON.Vec3(this.characterCapsule.physics.physical.position.x, this.characterCapsule.physics.physical.position.y - this.rayCastLength - this.raySafeOffset, this.characterCapsule.physics.physical.position.z);
 		// Raycast options
 		const rayCastOptions = {
 			collisionFilterMask: ~2, // cast against everything except second collision group (player)
 			skipBackfaces: true, // ignore back faces
 		};
 		// Cast the ray
-		this.rayHasHit = this.world.world.raycastClosest(start, end, rayCastOptions, this.rayResult);
+		if (this.world !== undefined) {
+			this.rayHasHit = this.world.world.raycastClosest(start, end, rayCastOptions, this.rayResult);
+
+			if (!this.rayHasHit) {
+				let ray = new CANNON.Ray(start, end);
+				let hitPoints: CANNON.RaycastResult[] = []
+				this.world.allZeroMassBodies.forEach((body: CANNON.Body) => {
+					let rayResult = new CANNON.RaycastResult();
+					ray.intersectBody(body, rayResult);
+					if (rayResult.hasHit) hitPoints.push(rayResult)
+				})
+				this.rayHasHit = (hitPoints.length > 0);
+				if (this.rayHasHit) {
+					let closestDistance = Infinity;
+					hitPoints.forEach((hitPoint) => {
+						let dist = Utility.getDistanceBetweenVecs(this.characterCapsule.physics.physical.position, hitPoint.hitPointWorld);
+						if (dist < closestDistance) {
+							closestDistance = dist;
+							this.rayResult = hitPoint
+						}
+					})
+				}
+			}
+		}
 
 		if (this.rayHasHit) {
 			if (this.raycastBox.visible) this.raycastBox.position.copy(this.rayResult.hitPointWorld);
-			this.characterCapsule.physics!.physical.position.y = this.rayResult.hitPointWorld.y + this.rayCastLength;
+			this.characterCapsule.physics.physical.position.y = this.rayResult.hitPointWorld.y + this.rayCastLength;
 		} else {
-			if (this.raycastBox.visible) this.raycastBox.position.set(this.characterCapsule.physics!.physical.position.x, this.characterCapsule.physics!.physical.position.y - this.rayCastLength - this.raySafeOffset, this.characterCapsule.physics!.physical.position.z);
+			if (this.raycastBox.visible) this.raycastBox.position.set(this.characterCapsule.physics.physical.position.x, this.characterCapsule.physics.physical.position.y - this.rayCastLength - this.raySafeOffset, this.characterCapsule.physics.physical.position.z);
 		}
 	}
 
 	public physicsPostStep() {
 		// Player ray casting
 		// Get velocities
-		let simulatedVelocity = new THREE.Vector3().copy(this.characterCapsule.physics!.physical.velocity);
+		let simulatedVelocity = new THREE.Vector3().copy(this.characterCapsule.physics.physical.velocity);
 		// Take local velocity
 		let arcadeVelocity = new THREE.Vector3().copy(this.velocity).multiplyScalar(this.moveSpeed);
 		// Turn local into global
@@ -454,11 +477,11 @@ export default class Character extends THREE.Object3D {
 			newVelocity.applyMatrix4(m);
 
 			// Apply velocity
-			this.characterCapsule.physics!.physical.velocity.set(newVelocity.x, newVelocity.y, newVelocity.z);
+			this.characterCapsule.physics.physical.velocity.set(newVelocity.x, newVelocity.y, newVelocity.z);
 		} else {
 			// If we're in air
-			this.characterCapsule.physics!.physical.velocity.set(newVelocity.x, newVelocity.y, newVelocity.z);
-			this.groundImpactData.velocity.copy(this.characterCapsule.physics!.physical.velocity);
+			this.characterCapsule.physics.physical.velocity.set(newVelocity.x, newVelocity.y, newVelocity.z);
+			this.groundImpactData.velocity.copy(this.characterCapsule.physics.physical.velocity);
 		}
 
 		// Jumping
@@ -468,19 +491,19 @@ export default class Character extends THREE.Object3D {
 			if (this.initJumpSpeed > -1) {
 
 				// Flatten velocity
-				this.characterCapsule.physics!.physical.velocity.y = 0;
+				this.characterCapsule.physics.physical.velocity.y = 0;
 
 				// Velocity needs to be at least as much as initJumpSpeed
-				if (this.characterCapsule.physics!.physical.velocity.lengthSquared() < this.initJumpSpeed ** 2) {
-					this.characterCapsule.physics!.physical.velocity.normalize();
-					this.characterCapsule.physics!.physical.velocity.scale(this.initJumpSpeed, this.characterCapsule.physics!.physical.velocity);
+				if (this.characterCapsule.physics.physical.velocity.lengthSquared() < this.initJumpSpeed ** 2) {
+					this.characterCapsule.physics.physical.velocity.normalize();
+					this.characterCapsule.physics.physical.velocity.scale(this.initJumpSpeed, this.characterCapsule.physics.physical.velocity);
 				}
 			}
 
 			// Add positive vertical velocity 
-			this.characterCapsule.physics!.physical.velocity.y += 4;
+			this.characterCapsule.physics.physical.velocity.y += 4;
 			//Move above ground by 1x safe offset value
-			this.characterCapsule.physics!.physical.position.y += this.raySafeOffset * 2;
+			this.characterCapsule.physics.physical.position.y += this.raySafeOffset * 2;
 			//Reset flag
 			this.wantsToJump = false;
 		}
@@ -501,25 +524,31 @@ export default class Character extends THREE.Object3D {
 	}
 
 	public update(timeStamp: number, mesh: boolean = false, force: boolean = false) {
-		if(this.characterCapsule.physics !== undefined) {
-			let options = {
-				springRotation: true,
-				rotationMultiplier: 1,
-				springVelocity: true,
-				rotateModel: true,
-				updateAnimation: true
-			};
-			this.visuals.position.copy(this.modelOffset);
-			if (options.springVelocity) this.springMovement(timeStamp);
-			if (options.springRotation) this.springRotation(timeStamp, options.rotationMultiplier);
-			if (options.rotateModel) this.rotateModel();
-			if (options.updateAnimation && this.mixer != undefined) this.mixer.update(timeStamp);
+		let options = {
+			springRotation: true,
+			rotationMultiplier: 1,
+			springVelocity: true,
+			rotateModel: true,
+			updateAnimation: true
+		};
+		this.visuals.position.copy(this.modelOffset);
+		if (options.springVelocity) this.springMovement(timeStamp);
+		if (options.springRotation) this.springRotation(timeStamp, options.rotationMultiplier);
+		if (options.rotateModel) this.rotateModel();
+		if (options.updateAnimation && this.mixer != undefined) this.mixer.update(timeStamp);
 
+		if (force) {
 			this.position.set(
 				this.characterCapsule.physics.physical.interpolatedPosition.x,
 				this.characterCapsule.physics.physical.interpolatedPosition.y - this.height / 2,
 				this.characterCapsule.physics.physical.interpolatedPosition.z
 			);
+		} else {
+			new TWEEN.Tween(this.position).to({
+				x: this.characterCapsule.physics.physical.interpolatedPosition.x,
+				y: this.characterCapsule.physics.physical.interpolatedPosition.y - this.height / 2,
+				z: this.characterCapsule.physics.physical.interpolatedPosition.z
+			}, timeStamp).start();
 		}
 	}
 
@@ -530,9 +559,9 @@ export default class Character extends THREE.Object3D {
 			type: this.messageType,
 			data: {
 				characterModel_position: {
-					x: this.characterCapsule.physics!.physical.position.x,
-					y: this.characterCapsule.physics!.physical.position.y,
-					z: this.characterCapsule.physics!.physical.position.z,
+					x: this.characterCapsule.physics.physical.position.x,
+					y: this.characterCapsule.physics.physical.position.y,
+					z: this.characterCapsule.physics.physical.position.z,
 				},
 				characterModel_quaternion: {
 					x: this.visuals.quaternion.x,

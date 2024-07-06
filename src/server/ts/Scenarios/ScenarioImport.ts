@@ -39,7 +39,7 @@ export function loadScenarios(world: World) {
 
 	// Load Balls
 	world.createBalls()
-	
+
 	// Character
 	const john = new Character({ position: new THREE.Vector3(-2, 5, 2) })
 	john.setBehaviour(new CharacterAI.Random());

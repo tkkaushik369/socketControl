@@ -44,8 +44,8 @@ export const PlaygroundScenario = (): THREE.Scene => {
 		floorBorderNorth.userData["mass"] = "0"
 		floorBorderNorth.castShadow = true
 		floorBorderNorth.receiveShadow = true
-		floorBorderNorth.position.z = -(sz/2) + (t/2)
-		floorBorderNorth.position.y = (sy/2) + (t/2) + offY
+		floorBorderNorth.position.z = -(sz / 2) + (t / 2)
+		floorBorderNorth.position.y = (sy / 2) + (t / 2) + offY
 		scene.add(floorBorderNorth)
 
 		const floorBorderSouth = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, t), new THREE.MeshStandardMaterial({ color: Number(Utility.default.getRandomMutedColor("0x")) }))
@@ -55,30 +55,30 @@ export const PlaygroundScenario = (): THREE.Scene => {
 		floorBorderSouth.userData["mass"] = "0"
 		floorBorderSouth.castShadow = true
 		floorBorderSouth.receiveShadow = true
-		floorBorderSouth.position.z = (sz/2) - (t/2)
-		floorBorderSouth.position.y = (sy/2) + (t/2) + offY
+		floorBorderSouth.position.z = (sz / 2) - (t / 2)
+		floorBorderSouth.position.y = (sy / 2) + (t / 2) + offY
 		scene.add(floorBorderSouth)
 
-		const floorBorderWest = new THREE.Mesh(new THREE.BoxGeometry(t, sy, sz-(2*t)), new THREE.MeshStandardMaterial({ color: Number(Utility.default.getRandomMutedColor("0x")) }))
+		const floorBorderWest = new THREE.Mesh(new THREE.BoxGeometry(t, sy, sz - (2 * t)), new THREE.MeshStandardMaterial({ color: Number(Utility.default.getRandomMutedColor("0x")) }))
 		floorBorderWest.userData["visible"] = "true";
 		floorBorderWest.userData["physics"] = "box";
 		floorBorderWest.userData["name"] = "floorBorderWest";
 		floorBorderWest.userData["mass"] = "0"
 		floorBorderWest.castShadow = true
 		floorBorderWest.receiveShadow = true
-		floorBorderWest.position.x = -(sx/2) + (t/2)
-		floorBorderWest.position.y = (sy/2) + (t/2) + offY
+		floorBorderWest.position.x = -(sx / 2) + (t / 2)
+		floorBorderWest.position.y = (sy / 2) + (t / 2) + offY
 		scene.add(floorBorderWest)
 
-		const floorBorderEast = new THREE.Mesh(new THREE.BoxGeometry(t, sy, sz-(2*t)), new THREE.MeshStandardMaterial({ color: Number(Utility.default.getRandomMutedColor("0x")) }))
+		const floorBorderEast = new THREE.Mesh(new THREE.BoxGeometry(t, sy, sz - (2 * t)), new THREE.MeshStandardMaterial({ color: Number(Utility.default.getRandomMutedColor("0x")) }))
 		floorBorderEast.userData["visible"] = "true";
 		floorBorderEast.userData["physics"] = "box";
 		floorBorderEast.userData["name"] = "floorBorderEast";
 		floorBorderEast.userData["mass"] = "0"
 		floorBorderEast.castShadow = true
 		floorBorderEast.receiveShadow = true
-		floorBorderEast.position.x = (sx/2) - (t/2)
-		floorBorderEast.position.y = (sy/2) + (t/2) + offY
+		floorBorderEast.position.x = (sx / 2) - (t / 2)
+		floorBorderEast.position.y = (sy / 2) + (t / 2) + offY
 		scene.add(floorBorderEast)
 	}
 

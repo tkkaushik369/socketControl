@@ -72,7 +72,7 @@ export default class AppClient {
 
 	private OnDisConnect(str: string) {
 		console.log("Disconnect " + str)
-		if((this.player !== null) && (this.player.userName !== null)) {
+		if ((this.player !== null) && (this.player.userName !== null)) {
 			this.worldClient.allCharacters[this.player.userName].labelDiv?.remove()
 			this.worldClient.removeWorldCharacter(this.player.userName)
 		}
@@ -146,7 +146,7 @@ export default class AppClient {
 
 	private OnRemoveClient(id: string) {
 		console.log("Removed: " + id)
-		if(this.clients[id].userName !== null) {
+		if (this.clients[id].userName !== null) {
 			this.worldClient.allCharacters[this.clients[id].userName].labelDiv?.remove()
 			this.worldClient.removeWorldCharacter(this.clients[id].userName)
 		}
@@ -160,10 +160,9 @@ export default class AppClient {
 				case messageTypes.playerData: {
 					if (this.clients[id] === undefined) {
 						this.clients[id] = new Player(id)
-						console.log(JSON.stringify(messages[id]))
 						this.clients[id].userName = messages[id].userName
 
-						if((this.clients[id].userName != null) && (this.clients[id].userName != this.player?.userName)) {
+						if ((this.clients[id].userName != null) && (this.player !== null) && (this.clients[id].userName != this.player.userName)) {
 							const player = new Character({ position: new THREE.Vector3(2, 5, 5) })
 							this.worldClient.addWorldCharacter(player, this.clients[id].userName)
 							this.worldClient.LoadCharacter(player)
@@ -240,7 +239,7 @@ export default class AppClient {
 						messages[id].data.raycastBox.x,
 						messages[id].data.raycastBox.y,
 						messages[id].data.raycastBox.z,
-						)
+					)
 					character.position.add(character.modelOffset);
 					let state = messages[id].data.charStateRaw;
 					if (character.lastState !== state) {
@@ -263,9 +262,6 @@ export default class AppClient {
 						if (state == "DropRunning") character.setState(CharacterStates.DropRunning)
 						if (state == "DropRolling") character.setState(CharacterStates.DropRolling)
 						character.lastState = state;
-						if(character.name == 'player') {
-							console.log(state)
-						}
 					}
 					break
 				}

@@ -82,7 +82,7 @@ class AppServer {
 		socket.emit("setid", this.clients[socket.id].Out(), (username: string) => {
 			this.clients[socket.id].userName = username
 			console.log("Player Created: " + socket.id + " -> " + username);
-			
+
 			const player = new Character({ position: new THREE.Vector3(2, 5, 5) })
 			this.worldServer.addWorldCharacter(player, username)
 		})
@@ -118,7 +118,7 @@ class AppServer {
 
 	private OnCharacterControl(data: { [id: string]: any }) {
 		let character = this.worldServer.allCharacters[data.name];
-		if(character != undefined) {
+		if (character != undefined) {
 			character.setControl(data.key, data.val)
 			if (data.key == 'shoot' && data.val == true) {
 				// console.log(data.key, data.val)
@@ -130,9 +130,9 @@ class AppServer {
 		this.clients[socket.id].ping = Date.now() - this.clients[socket.id].timeStamp
 		this.clients[socket.id].data.count = message.data.count
 
-		if(message.data.controls.isCharacter && (message.data.controls.name != null)) {
+		if (message.data.controls.isCharacter && (message.data.controls.name != null)) {
 			let character = this.worldServer.allCharacters[message.data.controls.name];
-			if(character != undefined) {
+			if (character != undefined) {
 				character.viewVector.set(
 					message.data.controls.viewVector.x,
 					message.data.controls.viewVector.y,
@@ -155,7 +155,7 @@ class AppServer {
 		Object.keys(this.clients).forEach((id) => {
 			this.clients[id].timeStamp = Date.now()
 			let dataClient = this.clients[id].Out()
-			if(dataClient.userName != null) data[id] = dataClient
+			if (dataClient.userName != null) data[id] = dataClient
 		})
 
 		// Ball Data

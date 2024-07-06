@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { SimulatorBase, spring } from './SimulatorBase';
 
-export class RelativeSpringSimulator extends SimulatorBase
-{
+export class RelativeSpringSimulator extends SimulatorBase {
 
 	public position: number
 	public velocity: number
@@ -12,8 +11,7 @@ export class RelativeSpringSimulator extends SimulatorBase
 	public damping: number
 	public lastLerp: number
 
-	constructor(fps: number, mass: number, damping: number, startPosition = 0, startVelocity = 0)
-	{
+	constructor(fps: number, mass: number, damping: number, startPosition = 0, startVelocity = 0) {
 		//Construct base
 		super(fps);
 
@@ -30,8 +28,7 @@ export class RelativeSpringSimulator extends SimulatorBase
 		this.lastLerp = 0;
 
 		// Initialize cache by pushing two frames
-		for (let i = 0; i < 2; i++)
-		{
+		for (let i = 0; i < 2; i++) {
 			this.cache.push({
 				position: startPosition,
 				velocity: startVelocity
@@ -43,8 +40,7 @@ export class RelativeSpringSimulator extends SimulatorBase
 	 * Advances the simulation by given time step
 	 * @param {number} timeStep 
 	 */
-	simulate(timeStep: number)
-	{
+	simulate(timeStep: number) {
 		this.generateFrames(timeStep);
 
 		//SpringR lerping
@@ -61,12 +57,10 @@ export class RelativeSpringSimulator extends SimulatorBase
 	/**
 	 * Gets another simulation frame
 	 */
-	getFrame(isLastFrame: boolean)
-	{
+	getFrame(isLastFrame: boolean) {
 		let newFrame = Object.assign({}, this.lastFrame());
 
-		if (isLastFrame)
-		{
+		if (isLastFrame) {
 			// Reset position
 			newFrame.position = 0;
 			// Transition to next frame

@@ -81,6 +81,7 @@ export default class WorldClient extends World {
 		this.addBoxHelperCallBack = this.addBoxHelper
 		this.removeBoxHelperCallBack = this.removeBoxHelper
 		this.RemoveAllBoxHelpersCallBack = this.removeAllBoxHelpers
+		this.setGameModeCallBack = this.setGameMode
 		this.isClient = true
 
 		// Init
@@ -98,10 +99,10 @@ export default class WorldClient extends World {
 		this.parentDom.appendChild(this.renderer.domElement)
 
 		this.labelRenderer = new CSS2DRenderer();
-		this.labelRenderer.setSize( window.innerWidth, window.innerHeight );
+		this.labelRenderer.setSize(window.innerWidth, window.innerHeight);
 		this.labelRenderer.domElement.style.position = 'absolute';
 		this.labelRenderer.domElement.style.top = '0px';
-		this.parentDom.appendChild( this.labelRenderer.domElement );
+		this.parentDom.appendChild(this.labelRenderer.domElement);
 
 		// Scene
 		this.scene = new THREE.Scene()
@@ -238,18 +239,18 @@ export default class WorldClient extends World {
 					});
 				}
 			});
-			
+
 			{
-				const labelDiv = document.createElement( 'div' );
+				const labelDiv = document.createElement('div');
 				labelDiv.className = 'label';
 				labelDiv.textContent = character.name;
 
-				const label = new CSS2DObject( labelDiv );
-				label.position.set( 0, 1.3, 0 );
+				const label = new CSS2DObject(labelDiv);
+				label.position.set(0, 1.3, 0);
 				// label.center.set( 0, 1 );
 				character.labelDiv = labelDiv
 				character.label = label
-				object.add( label );
+				object.add(label);
 
 				character.dirHelper = new THREE.Mesh(new THREE.SphereGeometry(0.01), new THREE.MeshLambertMaterial({ wireframe: false, color: 0x00ffff }))
 				character.dirHelper.position.set(0, 1.2, 0)
@@ -257,11 +258,11 @@ export default class WorldClient extends World {
 
 				const arr = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.1, 32), new THREE.MeshLambertMaterial({ wireframe: false, color: 0x00ffff }));
 				arr.position.set(0, 0, 0.08)
-				arr.rotation.x = Math.PI/2
+				arr.rotation.x = Math.PI / 2
 				character.dirHelper.add(arr)
 				object.add(character.dirHelper)
 			}
-			
+
 			character.setModel(object)
 			character.setModelOffset(new THREE.Vector3(0, -0.1, 0));
 		}, (xhr: any) => {
@@ -343,23 +344,8 @@ export default class WorldClient extends World {
 
 		Object.keys(this.allBoxHelpers).forEach((p) => { this.allBoxHelpers[p].update() })
 		Object.keys(this.allCharacters).forEach((p) => {
-			/*if (this.allCharacters[p].labelDiv != null && p =='player') {
-				var start = new THREE.Vector3();
-				start.copy(this.allCharacters[p].position);
-				var dist = start.distanceTo(this.camera.position);
-				console.log(dist)
-				if (dist < 2) {
-					this.allCharacters[p].labelDiv.style.fontSize = 50+"px"
-				} else if(dist > 30) {
-					this.allCharacters[p].labelDiv.style.fontSize = 10+"px"
-				} else {
-					this.allCharacters[p].labelDiv.style.fontSize = (40-dist)+"px"
-				}
-			}*/
-			if(this.allCharacters[p].dirHelper != null) {
-				this.allCharacters[p].dirHelper.lookAt(0, 0, 0);
-			}
-			this.allCharacters[p].mixer?.update(dt*this.settings.TimeScale);
+			if (this.allCharacters[p].dirHelper != null) this.allCharacters[p].dirHelper.lookAt(0, 0, 0);
+			this.allCharacters[p].mixer?.update(dt * this.settings.TimeScale);
 		})
 
 		this.renderer.render(this.scene, this.camera)
@@ -389,8 +375,8 @@ export default class WorldClient extends World {
 		this.worldPhysicsUpdate = enabled;
 		this.buildScene(this.currentScenarioIndex);
 		this.allBalls.forEach((ball: any) => {
-			if (enabled) this.world.addBody(ball.physics!.physical)
-			else this.world.removeBody(ball.physics!.physical)
+			if (enabled) this.world.addBody(ball.physics.physical)
+			else this.world.removeBody(ball.physics.physical)
 		});
 		this.cannonDebugRenderer.update()
 	}
