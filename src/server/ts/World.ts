@@ -407,19 +407,19 @@ export default class World {
 
 		let dt = this.clock.getDelta();
 		let tdt = dt * this.settings.TimeScale
-		let sec = dt * (1.001 - this.settings.TimeScale) * 1000
+		let sec = dt * (1.01 - this.settings.TimeScale) * 1000
 
 		this.settings.TimeScale = THREE.MathUtils.lerp(this.settings.TimeScale, this.timeScaleTarget, 0.2);
 		this.world.step(1 / this.settings.stepFrequency, tdt, this.settings.stepFrequency)
 
 		TWEEN.removeAll()
-		let forceUpdate = true
+		let forceUpdate = false
 		// Update all WorldObjects
 		this.allBalls.forEach((p) => { p.update(tdt, false, forceUpdate) })
 		Object.keys(this.allWorldObjects).forEach((p) => { this.allWorldObjects[p].update(tdt, false, forceUpdate) })
 		if (!this.isClient) {
 			Object.keys(this.allCharacters).forEach((p) => {
-				this.allCharacters[p].behaviour.update(tdt);
+				this.allCharacters[p].behaviour.update(sec);
 				this.allCharacters[p].update(tdt, false, forceUpdate)
 				this.allCharacters[p].updateMatrixWorld();
 			})

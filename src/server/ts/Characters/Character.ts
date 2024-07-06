@@ -227,7 +227,7 @@ export default class Character extends THREE.Object3D {
 		const boxGeo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
 		const boxMat = new THREE.MeshLambertMaterial({ color: 0xff0000 });
 		this.raycastBox = new THREE.Mesh(boxGeo, boxMat);
-		this.raycastBox.visible = true;
+		this.raycastBox.visible = false;
 	}
 
 	public setBehaviour(behaviour: any) {

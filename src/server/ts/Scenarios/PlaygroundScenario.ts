@@ -82,5 +82,58 @@ export const PlaygroundScenario = (): THREE.Scene => {
 		scene.add(floorBorderEast)
 	}
 
+	{
+		const angle = 15 * Math.PI / 180;
+
+		const stairs1 = new THREE.Mesh(new THREE.BoxGeometry(4, t, 8), new THREE.MeshStandardMaterial({ color: Number(Utility.default.getRandomMutedColor("0x")) }))
+		stairs1.userData["visible"] = "true"
+		stairs1.userData["physics"] = "box"
+		stairs1.userData["name"] = "stairs1"
+		stairs1.userData["mass"] = "0"
+		stairs1.castShadow = true
+		stairs1.receiveShadow = true
+		stairs1.position.x = -(sx / 2) + (4 / 2) + t
+		stairs1.position.y = Math.sin(angle) * 4
+		stairs1.rotation.x = angle
+		scene.add(stairs1)
+
+		const stairConnect = new THREE.Mesh(new THREE.BoxGeometry(4, t, 4), new THREE.MeshStandardMaterial({ color: Number(Utility.default.getRandomMutedColor("0x")) }))
+		stairConnect.userData["visible"] = "true"
+		stairConnect.userData["physics"] = "box"
+		stairConnect.userData["name"] = "stairConnect"
+		stairConnect.userData["mass"] = "0"
+		stairConnect.castShadow = true
+		stairConnect.receiveShadow = true
+		stairConnect.position.x = stairs1.position.x
+		stairConnect.position.y = Math.sin(angle) * 8
+		stairConnect.position.z = - 4 - 1.84
+		scene.add(stairConnect)
+
+		const stairs2 = new THREE.Mesh(new THREE.BoxGeometry(8, t, 4), new THREE.MeshStandardMaterial({ color: Number(Utility.default.getRandomMutedColor("0x")) }))
+		stairs2.userData["visible"] = "true"
+		stairs2.userData["physics"] = "box"
+		stairs2.userData["name"] = "stairs2"
+		stairs2.userData["mass"] = "0"
+		stairs2.castShadow = true
+		stairs2.receiveShadow = true
+		stairs2.position.x = -(sx / 2) + 4 + t + (Math.cos(angle) * 4)
+		stairs2.position.y = stairs1.position.y + (Math.sin(angle) * 8)
+		stairs2.position.z = stairConnect.position.z
+		stairs2.rotation.z = angle
+		scene.add(stairs2)
+
+		const floor2 = new THREE.Mesh(new THREE.BoxGeometry(8, t, 8), new THREE.MeshStandardMaterial({ color: Number(Utility.default.getRandomMutedColor("0x")) }))
+		floor2.userData["visible"] = "true"
+		floor2.userData["physics"] = "box"
+		floor2.userData["name"] = "floor2"
+		floor2.userData["mass"] = "0"
+		floor2.castShadow = true
+		floor2.receiveShadow = true
+		floor2.position.x = -(sx / 2) + 4 + t + (Math.cos(angle) * 8) + (8 / 2)
+		floor2.position.y = stairs2.position.y + (Math.sin(angle) * 4)
+		floor2.position.z = stairConnect.position.z + (8 / 2) - (4 / 2);
+		scene.add(floor2)
+	}
+
 	return scene
 }

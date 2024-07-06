@@ -24,7 +24,6 @@ export default class WorldClient extends World {
 	public cameraController: CameraController
 
 	private ambientLight: THREE.AmbientLight
-	private spotLight: THREE.SpotLight
 	public directionalLight: THREE.DirectionalLight
 
 	private helpers: { [id: string]: THREE.Object3D }
@@ -117,17 +116,6 @@ export default class WorldClient extends World {
 		this.scene.add(this.ambientLight)
 
 		const lightVector = new THREE.Vector3(24, 30, 24)
-		this.spotLight = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 2, 1, 2)
-		// this.spotLight.position.set(lightVector.x, lightVector.y, lightVector.z)
-		// this.spotLight.target.position.set(0, 0, 0)
-		// this.spotLight.castShadow = true
-		// this.spotLight.shadow.camera.fov = 30
-		// this.spotLight.shadow.camera.near = 500
-		// this.spotLight.shadow.camera.far = 4000
-		// this.spotLight.shadow.bias = -0.0001
-		// this.spotLight.shadow.mapSize.width = 2048
-		// this.spotLight.shadow.mapSize.height = 2048
-		// this.scene.add(this.spotLight)
 
 		this.directionalLight = new THREE.DirectionalLight(0xffffff, 1)
 		this.directionalLight.position.set(lightVector.x, lightVector.y, lightVector.z)
@@ -151,9 +139,6 @@ export default class WorldClient extends World {
 
 		this.helpers['gridHelper'] = new THREE.GridHelper(10, 10)
 		this.scene.add(this.helpers['gridHelper'])
-
-		this.helpers['spotLight'] = new THREE.SpotLightHelper(this.spotLight)
-		this.scene.add(this.helpers['spotLight'])
 
 		this.helpers['directionalLight'] = new THREE.DirectionalLightHelper(this.directionalLight, 1)
 		this.scene.add(this.helpers['directionalLight'])
