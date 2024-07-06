@@ -40,6 +40,7 @@ export default class AppClient {
 		this.ForShoot = this.ForShoot.bind(this)
 		this.OnChangeTimeScale = this.OnChangeTimeScale.bind(this)
 		this.ForChangeTimeScale = this.ForChangeTimeScale.bind(this)
+		this.ForSetTimeScaleTarget = this.ForSetTimeScaleTarget.bind(this)
 		this.ForCharacterControl = this.ForCharacterControl.bind(this)
 
 		// Init
@@ -51,6 +52,7 @@ export default class AppClient {
 		this.worldClient.changeSceneCallBack = this.ForChangeScenario
 		this.worldClient.shootCallBack = this.ForShoot
 		this.worldClient.changeTimeScaleCallBack = this.ForChangeTimeScale
+		this.worldClient.setTimeScaleTargetCallBack = this.ForSetTimeScaleTarget
 		this.worldClient.sendCharacterControlCallBack = this.ForCharacterControl
 		this.player = null
 
@@ -63,6 +65,7 @@ export default class AppClient {
 		this.io.on("players", this.OnPlayers);
 		this.io.on("changeScenario", this.OnChangeScenario);
 		this.io.on("changeTimeScale", this.OnChangeTimeScale);
+		this.io.on("setTimeScaleTarget", this.OnChangeTimeScale);
 		setInterval(this.ForSocketLoop, this.fixedTimeStep * 1000)
 	}
 
@@ -108,9 +111,13 @@ export default class AppClient {
 		this.worldClient.settings.TimeScale = data.TimeScale
 		this.worldClient.timeScaleTarget = data.timeScaleTarget
 	}
-
+	
 	private ForChangeTimeScale(val: number) {
 		this.io.emit("changeTimeScale", val)
+	}
+
+	private ForSetTimeScaleTarget(val: number) {
+		this.io.emit("setTimeScaleTarget", val)
 	}
 
 	private ForCharacterControl(name: string, key: string, val: boolean) {

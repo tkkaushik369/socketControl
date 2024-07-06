@@ -64,12 +64,13 @@ export default class World {
 		this.addCharactersMesh = this.addCharactersMesh.bind(this)
 		this.shootBall = this.shootBall.bind(this)
 		this.changeTimeScale = this.changeTimeScale.bind(this)
+		this.setTimeScaleTarget = this.setTimeScaleTarget.bind(this)
 		this.updatePhysics = this.updatePhysics.bind(this)
 
 		// Init
 		this.clients = clients
 		this.settings = {
-			stepFrequency: 60,
+			stepFrequency: 45, // >= 32
 			TimeScale: 1,
 			// client
 			PointerLock: true,
@@ -402,6 +403,10 @@ export default class World {
 		}
 	}
 
+	public setTimeScaleTarget(value: number) {
+		this.timeScaleTarget = value
+	}
+
 	protected updatePhysics() {
 		if (!this.worldPhysicsUpdate) return;
 
@@ -413,7 +418,7 @@ export default class World {
 		this.world.step(1 / this.settings.stepFrequency, tdt, this.settings.stepFrequency)
 
 		TWEEN.removeAll()
-		let forceUpdate = false
+		let forceUpdate = true
 		// Update all WorldObjects
 		this.allBalls.forEach((p) => { p.update(tdt, false, forceUpdate) })
 		Object.keys(this.allWorldObjects).forEach((p) => { this.allWorldObjects[p].update(tdt, false, forceUpdate) })

@@ -32,6 +32,7 @@ class AppServer {
 	private clients: { [id: string]: Player }
 
 	private fixedTimeStep: number
+	private lastTimeScale = 0
 
 	constructor(port: number) {
 		// Bind Functions
@@ -41,6 +42,7 @@ class AppServer {
 		this.OnChangeScenario = this.OnChangeScenario.bind(this)
 		this.OnShoot = this.OnShoot.bind(this)
 		this.OnChangeTimeScale = this.OnChangeTimeScale.bind(this)
+		this.OnSetTimeScaleTarget = this.OnSetTimeScaleTarget.bind(this)
 		this.OnCharacterControl = this.OnCharacterControl.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 
@@ -65,6 +67,7 @@ class AppServer {
 			socket.on("changeScenario", (inx: number) => this.OnChangeScenario(inx))
 			socket.on("shoot", (data: any) => this.OnShoot(data))
 			socket.on("changeTimeScale", (val: number) => this.OnChangeTimeScale(val))
+			socket.on("setTimeScaleTarget", (val: number) => this.OnSetTimeScaleTarget(val))
 			socket.on("characterControl", (data: any) => this.OnCharacterControl(data))
 			socket.on("update", (message: Message) => this.OnUpdate(socket, message))
 		})
@@ -113,7 +116,10 @@ class AppServer {
 
 	private OnChangeTimeScale(val: number) {
 		this.worldServer.changeTimeScale(val)
-		this.io.emit("changeTimeScale", { TimeScale: this.worldServer.settings.TimeScale, timeScaleTarget: this.worldServer.timeScaleTarget })
+	}
+	
+	private OnSetTimeScaleTarget(val: number) {
+		this.worldServer.setTimeScaleTarget(val)
 	}
 
 	private OnCharacterControl(data: { [id: string]: any }) {
@@ -176,6 +182,11 @@ class AppServer {
 			this.worldServer.allCharacters[id].timeStamp = Date.now()
 			data[id] = this.worldServer.allCharacters[id].Out()
 		})
+
+		if(this.worldServer.settings.TimeScale != this.lastTimeScale) {
+			this.io.emit("changeTimeScale", { TimeScale: this.worldServer.settings.TimeScale, timeScaleTarget: this.worldServer.timeScaleTarget })
+			this.lastTimeScale = this.worldServer.settings.TimeScale
+		}
 
 		this.io.emit("players", data)
 	};

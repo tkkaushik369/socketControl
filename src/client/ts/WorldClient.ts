@@ -42,6 +42,7 @@ export default class WorldClient extends World {
 	public changeSceneCallBack: Function | undefined
 	public shootCallBack: Function | undefined
 	public changeTimeScaleCallBack: Function | undefined
+	public setTimeScaleTargetCallBack: Function | undefined
 	public sendCharacterControlCallBack: Function | undefined
 	public playerConn: Player | undefined
 

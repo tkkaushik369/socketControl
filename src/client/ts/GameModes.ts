@@ -14,13 +14,14 @@ export class GameModeBase {
 	handleAction(event: any, key: any, value: any) {
 		if (this.worldClient != undefined) {
 			key = key.toLowerCase();
-
 			if (key == 't' && value == true) {
 				if (this.worldClient.timeScaleTarget < 0.5) {
-					this.worldClient.timeScaleTarget = 1;
+					if (this.worldClient != undefined && this.worldClient.setTimeScaleTargetCallBack !== undefined)
+						this.worldClient.setTimeScaleTargetCallBack(1)
 				}
 				else {
-					this.worldClient.timeScaleTarget = 0.3;
+					if (this.worldClient != undefined && this.worldClient.setTimeScaleTargetCallBack !== undefined)
+						this.worldClient.setTimeScaleTargetCallBack(0.3)
 				}
 			}
 		}
