@@ -2,7 +2,6 @@ import * as THREE from 'three'
 import * as WorldObjectPhysics from './WorldObjectPhysics'
 import { Message } from '../Messages/Message'
 import { messageTypes } from '../Enums/messageTypes'
-import TWEEN from '@tweenjs/tween.js'
 
 export default class WorldObject extends THREE.Object3D {
 
@@ -30,19 +29,11 @@ export default class WorldObject extends THREE.Object3D {
 	public update(timeStamp: number, mesh: boolean = false, force: boolean = false) {
 		if ((this.physics !== undefined) && (this.physics.physical !== undefined)) {
 			if (force) {
+				this.position.copy(this.physics.physical.position)
+				this.quaternion.copy(this.physics.physical.quaternion)
+			} else {
 				this.position.copy(this.physics.physical.interpolatedPosition)
 				this.quaternion.copy(this.physics.physical.interpolatedQuaternion)
-			} else {
-				new TWEEN.Tween(this.position).to({
-					x: this.physics.physical.interpolatedPosition.x,
-					y: this.physics.physical.interpolatedPosition.y,
-					z: this.physics.physical.interpolatedPosition.z,
-				}, timeStamp).start();
-				new TWEEN.Tween(this.quaternion).to({
-					x: this.physics.physical.interpolatedQuaternion.x,
-					y: this.physics.physical.interpolatedQuaternion.y,
-					z: this.physics.physical.interpolatedQuaternion.z,
-				}, timeStamp).start();
 			}
 		}
 

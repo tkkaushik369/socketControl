@@ -6,7 +6,7 @@ import * as WorldObjectPhysics from './WorldObjects/WorldObjectPhysics'
 import Character from './Characters/Character'
 import * as _ from 'lodash'
 import { messageTypes } from './Enums/messageTypes'
-import TWEEN from '@tweenjs/tween.js'
+
 
 export default class World {
 
@@ -387,7 +387,7 @@ export default class World {
 			const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion).normalize();
 			const impulse = new CANNON.Vec3(direction.x * strength, direction.y * strength, direction.z * strength)
 			ball.physics.physical.applyForce(impulse)
-			ball.update(0, false, true)
+			ball.update(0, true, true)
 		}
 	}
 
@@ -417,24 +417,22 @@ export default class World {
 
 		let dt = this.clock.getDelta();
 		let tdt = dt * this.settings.TimeScale
-		let sec = dt * (1.01 - this.settings.TimeScale) * 1000
+		// let sec = dt * (1.01 - this.settings.TimeScale) * 1000
 
 		this.settings.TimeScale = THREE.MathUtils.lerp(this.settings.TimeScale, this.timeScaleTarget, 0.2);
 		this.world.step(1 / this.settings.stepFrequency, tdt, this.settings.stepFrequency)
 
-		TWEEN.removeAll()
-		let forceUpdate = true
+		let forceUpdate = false
 		// Update all WorldObjects
 		this.allBalls.forEach((p) => { p.update(tdt, false, forceUpdate) })
 		Object.keys(this.allWorldObjects).forEach((p) => { this.allWorldObjects[p].update(tdt, false, forceUpdate) })
 		if (!this.isClient) {
 			Object.keys(this.allCharacters).forEach((p) => {
-				this.allCharacters[p].behaviour.update(sec);
+				this.allCharacters[p].behaviour.update(tdt);
 				this.allCharacters[p].update(tdt, false, forceUpdate)
 				this.allCharacters[p].updateMatrixWorld();
 			})
 		}
 
-		TWEEN.update()
 	}
 }

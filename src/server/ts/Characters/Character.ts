@@ -11,7 +11,6 @@ import * as Controls from '../Controls'
 import WorldObject from '../WorldObjects/WorldObjects'
 import * as WorldObjectPhysics from '../WorldObjects/WorldObjectPhysics'
 import World from '../World'
-import TWEEN from '@tweenjs/tween.js'
 
 
 export default class Character extends THREE.Object3D {
@@ -539,16 +538,16 @@ export default class Character extends THREE.Object3D {
 
 		if (force) {
 			this.position.set(
+				this.characterCapsule.physics.physical.position.x,
+				this.characterCapsule.physics.physical.position.y - this.height / 2,
+				this.characterCapsule.physics.physical.position.z
+			);
+		} else {
+			this.position.set(
 				this.characterCapsule.physics.physical.interpolatedPosition.x,
 				this.characterCapsule.physics.physical.interpolatedPosition.y - this.height / 2,
 				this.characterCapsule.physics.physical.interpolatedPosition.z
 			);
-		} else {
-			new TWEEN.Tween(this.position).to({
-				x: this.characterCapsule.physics.physical.interpolatedPosition.x,
-				y: this.characterCapsule.physics.physical.interpolatedPosition.y - this.height / 2,
-				z: this.characterCapsule.physics.physical.interpolatedPosition.z
-			}, timeStamp).start();
 		}
 	}
 
@@ -559,9 +558,9 @@ export default class Character extends THREE.Object3D {
 			type: this.messageType,
 			data: {
 				characterModel_position: {
-					x: this.characterCapsule.physics.physical.position.x,
-					y: this.characterCapsule.physics.physical.position.y,
-					z: this.characterCapsule.physics.physical.position.z,
+					x: this.characterCapsule.physics.physical.interpolatedPosition.x,
+					y: this.characterCapsule.physics.physical.interpolatedPosition.y,
+					z: this.characterCapsule.physics.physical.interpolatedPosition.z,
 				},
 				characterModel_quaternion: {
 					x: this.visuals.quaternion.x,

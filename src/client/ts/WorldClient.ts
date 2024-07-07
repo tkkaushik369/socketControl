@@ -1,6 +1,12 @@
 import * as THREE from 'three'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader'
 import World from "../../server/ts/World"
 import { Player } from "../../server/ts/Player"
 import CannonDebugRenderer from '../../server/ts/utils/cannonDebugRenderer'
@@ -18,6 +24,9 @@ export default class WorldClient extends World {
 	private parentDom: HTMLElement
 	private renderer: THREE.WebGLRenderer
 	private labelRenderer: CSS2DRenderer
+	private composer: EffectComposer
+	private effectFXAA: ShaderPass
+	private outlinePass: OutlinePass
 	public scene: THREE.Scene
 	public camera: THREE.Camera
 	public cameraDistanceTarget: number
@@ -165,7 +174,42 @@ export default class WorldClient extends World {
 
 		// stats
 		this.stats = new Stats()
-		this.parentDom.appendChild(this.stats.dom)
+		document.body.appendChild(this.stats.dom)
+
+		// Post Processing
+		const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
+		const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { samples: 4, type: THREE.HalfFloatType });
+
+		this.composer = new EffectComposer(this.renderer, renderTarget)
+
+		const renderPass = new RenderPass(this.scene, this.camera)
+
+		this.outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.scene, this.camera)
+		this.outlinePass.edgeStrength = 0.5
+		this.outlinePass.edgeGlow = 0
+		this.outlinePass.edgeThickness = 0.5
+		this.outlinePass.pulsePeriod = 0
+		// this.outlinePass.usePatternTexture = true
+		this.outlinePass.visibleEdgeColor.set(new THREE.Color(0x00ffff))
+		this.outlinePass.hiddenEdgeColor.set(new THREE.Color(0xe5a00d))
+
+		const outlinePass = this.outlinePass
+		const textureLoader = new THREE.TextureLoader()
+		textureLoader.load('images/tri_pattern.jpg', function (texture) {
+			outlinePass.patternTexture = texture
+			texture.wrapS = THREE.RepeatWrapping
+			texture.wrapT = THREE.RepeatWrapping
+		})
+
+		const outputPass = new OutputPass()
+
+		this.effectFXAA = new ShaderPass(FXAAShader)
+		this.effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight)
+
+		this.composer.addPass(renderPass)
+		this.composer.addPass(this.outlinePass)
+		this.composer.addPass(this.effectFXAA)
+		this.composer.addPass(outputPass)
 
 		// GUI
 		this.gui = new GUI()
@@ -246,7 +290,7 @@ export default class WorldClient extends World {
 				arr.position.set(0, 0, 0.08)
 				arr.rotation.x = Math.PI / 2
 				character.dirHelper.add(arr)
-				object.add(character.dirHelper)
+				character.modelContainer.add(character.dirHelper)
 			}
 
 			character.setModel(object)
@@ -317,6 +361,12 @@ export default class WorldClient extends World {
 
 		let dt = this.clock.getDelta()
 
+		let models: THREE.Object3D[] = []
+		Object.keys(this.allCharacters).forEach((p) => {
+			models.push(this.allCharacters[p].characterModel)
+		})
+		this.outlinePass.selectedObjects = models
+
 		// Update Gamemode
 		this.gameMode.update();
 
@@ -334,7 +384,8 @@ export default class WorldClient extends World {
 			this.allCharacters[p].mixer?.update(dt * this.settings.TimeScale);
 		})
 
-		this.renderer.render(this.scene, this.camera)
+
+		this.composer.render()
 		this.labelRenderer.render(this.scene, this.camera)
 		this.viewHelper.render(this.renderer)
 		this.stats.update()
@@ -346,6 +397,8 @@ export default class WorldClient extends World {
 		(this.camera as THREE.PerspectiveCamera).updateProjectionMatrix()
 		this.renderer.setSize(window.innerWidth, window.innerHeight)
 		this.labelRenderer.setSize(window.innerWidth, window.innerHeight)
+		this.composer.setSize(window.innerWidth, window.innerHeight)
+		this.effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight);
 	}
 
 	// Settings
@@ -379,15 +432,13 @@ export default class WorldClient extends World {
 /*
 // TODO
 
-https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_outline.html
-https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_ssao.html
+* https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_outline.html
+* https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_fxaa.html
+* https://github.com/mrdoob/three.js/blob/master/examples/webgpu_multisampled_renderbuffers.html
 https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_unreal_bloom.html
 https://github.com/mrdoob/three.js/blob/master/examples/webgl_gpgpu_water.html
-https://github.com/mrdoob/three.js/blob/master/examples/webgl_multisampled_renderbuffers.html
 https://github.com/mrdoob/three.js/blob/master/examples/webgl_shadowmap_csm.html
 https://github.com/mrdoob/three.js/blob/master/examples/webgl_shadowmap_pcss.html
-https://github.com/mrdoob/three.js/blob/master/examples/webgpu_multisampled_renderbuffers.html
 https://github.com/mrdoob/three.js/blob/master/examples/webgl_portal.html
-https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_fxaa.html
 
 */
