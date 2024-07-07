@@ -135,7 +135,6 @@ export default class AppClient {
 		this.worldClient.addWorldCharacter(player, this.player.userName)
 		this.worldClient.LoadCharacter(player)
 		player.takeControl(GameModes.CharacterControls)
-		// this.worldClient.setGameMode(new GameModes.CharacterControls(player));
 
 		// load server Scenario
 		if (message.data.currentScenarioIndex)

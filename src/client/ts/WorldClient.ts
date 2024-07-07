@@ -375,3 +375,19 @@ export default class WorldClient extends World {
 		this.settings.timeScaleTarget = value;
 	}
 }
+
+/*
+// TODO
+
+https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_outline.html
+https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_ssao.html
+https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_unreal_bloom.html
+https://github.com/mrdoob/three.js/blob/master/examples/webgl_gpgpu_water.html
+https://github.com/mrdoob/three.js/blob/master/examples/webgl_multisampled_renderbuffers.html
+https://github.com/mrdoob/three.js/blob/master/examples/webgl_shadowmap_csm.html
+https://github.com/mrdoob/three.js/blob/master/examples/webgl_shadowmap_pcss.html
+https://github.com/mrdoob/three.js/blob/master/examples/webgpu_multisampled_renderbuffers.html
+https://github.com/mrdoob/three.js/blob/master/examples/webgl_portal.html
+https://github.com/mrdoob/three.js/blob/master/examples/webgl_postprocessing_fxaa.html
+
+*/

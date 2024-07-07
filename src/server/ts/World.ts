@@ -42,7 +42,6 @@ export default class World {
 	public setGameModeCallBack: Function | undefined
 	public isClient: boolean
 	protected addBoxHelperMesh: boolean = false
-
 	public constructor(clients: { [id: string]: Player }, worldPhysicsUpdate: boolean = true) {
 		// Bind Functions
 		this.updatePhysics = this.updatePhysics.bind(this)
@@ -169,6 +168,7 @@ export default class World {
 		this.removeAllWorldObjects();
 		if (this.allHelpersCallBack != undefined) this.allHelpersCallBack(true)
 		this.addBallMesh()
+		if (this.RemoveAllBoxHelpersCallBack != undefined) this.RemoveAllBoxHelpersCallBack();
 		this.addCharactersMesh()
 
 		if (inx == -1) return
@@ -298,9 +298,9 @@ export default class World {
 		// Remove visuals
 		if (this.removeMeshCallBack) {
 			if ((this.removeBoxHelperCallBack !== undefined) && this.addBoxHelperMesh) {
-				this.removeBoxHelperCallBack(name)
-				this.removeBoxHelperCallBack(name + "_visual")
-				this.removeBoxHelperCallBack(name + "_raycast")
+				this.removeBoxHelperCallBack(character.name)
+				this.removeBoxHelperCallBack(character.name + "_visual")
+				this.removeBoxHelperCallBack(character.name + "_raycast")
 			}
 			this.removeMeshCallBack(character.name);
 			this.removeMeshCallBack(character.name + "_visual");
@@ -359,6 +359,11 @@ export default class World {
 				this.addMeshCallBack(character, character.name)
 				this.addMeshCallBack(character.characterCapsule.physics.visual, character.name + "_visual")
 				this.addMeshCallBack(character.raycastBox, character.name + "_raycast")
+				if ((this.addBoxHelperCallBack !== undefined) && this.addBoxHelperMesh) {
+					this.addBoxHelperCallBack(new THREE.BoxHelper(character, 0xffff00), character.name)
+					this.addBoxHelperCallBack(new THREE.BoxHelper(character.characterCapsule.physics.visual, 0xff00ff), character.name + "_visual")
+					this.addBoxHelperCallBack(new THREE.BoxHelper(character.raycastBox, 0x00ffff), character.name + "_raycast")
+				}
 			}
 			this.zeroBody(body)
 			this.addBody(body, character.name)
