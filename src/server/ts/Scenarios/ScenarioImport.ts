@@ -7,11 +7,13 @@ import { BoxScenario } from './BoxScenario'
 import { CameraScenario } from './CameraScenario'
 import { SphereScenario } from './SphereScenario'
 import { PlaygroundScenario } from './PlaygroundScenario'
+import { HauntedHouse } from './HauntedHouse'
 
 export { BoxScenario } from './BoxScenario'
 export { CameraScenario } from './CameraScenario'
 export { SphereScenario } from './SphereScenario'
 export { PlaygroundScenario } from './PlaygroundScenario'
+export { HauntedHouse } from './HauntedHouse'
 
 export function loadScenarios(world: World) {
 	world.addScenario('box', () => {
@@ -34,6 +36,11 @@ export function loadScenarios(world: World) {
 		world.addScene(scene)
 	})
 
+		world.addScenario('HauntedHouse', () => {
+		const scene = HauntedHouse(world)
+		world.addScene(scene)
+	})
+	
 	// Build Scene
 	world.buildScene(3)
 

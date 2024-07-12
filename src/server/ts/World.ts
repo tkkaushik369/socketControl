@@ -42,6 +42,8 @@ export default class World {
 	public setGameModeCallBack: Function | undefined
 	public isClient: boolean
 	protected addBoxHelperMesh: boolean = false
+	public WorldClient: any
+
 	public constructor(clients: { [id: string]: Player }, worldPhysicsUpdate: boolean = true) {
 		// Bind Functions
 		this.updatePhysics = this.updatePhysics.bind(this)
@@ -95,7 +97,7 @@ export default class World {
 		this.allWorldObjects = {}
 		this.allBalls = []
 		this.ballId = 0
-		this.ballMax = 5
+		this.ballMax = 20 // 5
 		this.allCharacters = {}
 
 		this.currentScenarioIndex = 0
@@ -104,10 +106,13 @@ export default class World {
 	}
 
 	public addScene(scene: THREE.Scene) {
-		var listMesh: any[] = []
+		var listMesh: THREE.Mesh[] = []
+		var listNoMesh: any[] = []
 		scene.children.forEach((child: any) => {
 			if (child.isMesh) {
 				listMesh.push(child)
+			} else {
+				listNoMesh.push(child)
 			}
 		})
 		listMesh.forEach((child: any) => {
@@ -158,6 +163,11 @@ export default class World {
 						worldObject.physics.physical.quaternion.w = child.quaternion.w
 					}
 				}
+			}
+		})
+			listNoMesh.forEach((child: any) => {
+			if((child.userData.name != undefined) && (this.addMeshCallBack != undefined)) {
+				this.addMeshCallBack(child, child.userData.name)
 			}
 		})
 	}
@@ -327,7 +337,7 @@ export default class World {
 			let forward = new THREE.Vector3(0, 0, -1).applyQuaternion(new THREE.Quaternion);
 			let ballPhysics = new WorldObjectPhysics.Sphere({
 				mass: 0.08,
-				radius: 0.03,
+				radius: 0.5, // 0.03,
 				position: new CANNON.Vec3(0, -1, 0).vadd(new CANNON.Vec3(forward.x, forward.y, forward.z))
 			});
 			let ball = new WorldObject(undefined, ballPhysics);
@@ -383,7 +393,7 @@ export default class World {
 		ball.physics.physical.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
 
 		if (ball.model !== undefined) {
-			const strength = 100
+			const strength = 10 // 100
 			const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(quaternion).normalize();
 			const impulse = new CANNON.Vec3(direction.x * strength, direction.y * strength, direction.z * strength)
 			ball.physics.physical.applyForce(impulse)

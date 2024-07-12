@@ -3,6 +3,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
+import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
@@ -26,13 +27,13 @@ export default class WorldClient extends World {
 	private labelRenderer: CSS2DRenderer
 	private composer: EffectComposer
 	private effectFXAA: ShaderPass
-	private outlinePass: OutlinePass
+	public outlinePass: OutlinePass
 	public scene: THREE.Scene
 	public camera: THREE.Camera
 	public cameraDistanceTarget: number
 	public cameraController: CameraController
 
-	private ambientLight: THREE.AmbientLight
+	public ambientLight: THREE.AmbientLight
 	public directionalLight: THREE.DirectionalLight
 
 	private helpers: { [id: string]: THREE.Object3D }
@@ -55,6 +56,16 @@ export default class WorldClient extends World {
 	public sendCharacterControlCallBack: Function | undefined
 	public playerConn: Player | undefined
 
+	// all Senarios
+	/* private tubeGeometry: THREE.TubeGeometry
+	private cameraEye: THREE.Object3D
+	private position = new THREE.Vector3()
+	private direction = new THREE.Vector3()
+	private binormal = new THREE.Vector3()
+	private normal = new THREE.Vector3()
+	private lookAt = new THREE.Vector3()
+	private params: { [id: string]: any } */
+	
 	public constructor(clients: { [id: string]: Player }, parentDom?: HTMLElement) {
 		super(clients)
 
@@ -92,6 +103,7 @@ export default class WorldClient extends World {
 		this.RemoveAllBoxHelpersCallBack = this.removeAllBoxHelpers
 		this.setGameModeCallBack = this.setGameMode
 		this.isClient = true
+		this.WorldClient = this
 
 		// Init
 		let fog = new THREE.Fog(0x222222, 1000, 2000)
@@ -118,6 +130,7 @@ export default class WorldClient extends World {
 		this.scene.fog = fog
 
 		// Camera
+		const camera = new THREE.PerspectiveCamera(75, window.innerHeight / window.innerWidth, 0.03, 100)
 		this.camera = new THREE.PerspectiveCamera(75, window.innerHeight / window.innerWidth, 0.03, 100)
 		this.camera.position.set(0, 10, 15)
 
@@ -184,12 +197,14 @@ export default class WorldClient extends World {
 
 		const renderPass = new RenderPass(this.scene, this.camera)
 
+		const ssaoPass = new SSAOPass(this.scene, this.camera, window.innerWidth, window.innerHeight);
+
 		this.outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.scene, this.camera)
 		this.outlinePass.edgeStrength = 0.5
 		this.outlinePass.edgeGlow = 0
 		this.outlinePass.edgeThickness = 0.5
 		this.outlinePass.pulsePeriod = 0
-		// this.outlinePass.usePatternTexture = true
+		this.outlinePass.usePatternTexture = false
 		this.outlinePass.visibleEdgeColor.set(new THREE.Color(0x00ffff))
 		this.outlinePass.hiddenEdgeColor.set(new THREE.Color(0xe5a00d))
 
@@ -207,6 +222,7 @@ export default class WorldClient extends World {
 		this.effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight)
 
 		this.composer.addPass(renderPass)
+		// this.composer.addPass(ssaoPass)
 		this.composer.addPass(this.outlinePass)
 		this.composer.addPass(this.effectFXAA)
 		this.composer.addPass(outputPass)
@@ -243,6 +259,63 @@ export default class WorldClient extends World {
 		window.addEventListener('resize', this.onWindowResize, false)
 		this.onWindowResize()
 
+		/* {
+			this.params = {
+				extrusionSegments: 120,
+				radiusSegments: 6,
+				closed: true,
+				scale: 0.4,
+				radius: 0.12,
+				offset: 0,
+				velocity: 0.05,
+				lookAhead: true,
+				wireframe: true,
+				useCamera: false,
+				visible: true,
+			}
+
+			this.cameraEye = new THREE.PointLight( 0x88ffee, 3);
+			this.cameraEye.add( new THREE.Mesh( new THREE.SphereGeometry( 0.02, 16, 8 ), new THREE.MeshStandardMaterial( { emissive: 0x88dddd, emissiveIntensity: 1, color: 0x000000 } ) ) );
+			this.cameraEye.position.set( 1, 2, -8 );
+			this.cameraEye.castShadow = true;
+			(this.cameraEye as THREE.PointLight).shadow.camera.near = 0.02
+			this.scene.add( this.cameraEye );
+			this.scene.add( this.cameraEye );
+
+			if(this.params.useCamera) {
+				this.cameraController.camera = camera
+				this.camera.position.set(0, 0, 0)
+				this.cameraEye.add(this.camera)
+			}
+
+			const points = [
+				new THREE.Vector3( -2,	0,	-2 ),
+				new THREE.Vector3( -3,	1,	0 ),
+				new THREE.Vector3( -2,	0,	2 ),
+				new THREE.Vector3( 0,	1,	3 ),
+				new THREE.Vector3( 2,	0,	2 ),
+				new THREE.Vector3( 3,	1,	0),
+				new THREE.Vector3( 2,	0,	-2 ),
+				new THREE.Vector3( 0,	1,	-3 ),
+			]
+			points.forEach((vec) => {
+				vec.x +=  5.2
+				vec.y +=  3
+				vec.z +=  14.5
+			})
+			const sampleClosedSpline = new THREE.CatmullRomCurve3( points );
+
+			sampleClosedSpline.curveType = 'catmullrom';
+			sampleClosedSpline.closed = this.params.closed;
+
+			this.tubeGeometry = new THREE.TubeGeometry( sampleClosedSpline, this.params.extrusionSegments, this.params.radius, this.params.radiusSegments, this.params.closed );
+			let mesh = new THREE.Mesh( this.tubeGeometry, new THREE.MeshStandardMaterial( { transparent: true, opacity: 0.5, color: 0x000000, visible: this.params.visible, wireframe: this.params.wireframe, wireframeLinewidth: 2, emissive: this.params.wireframe? 0x003333: 0x000000, emissiveIntensity: 1, side: THREE.DoubleSide }) );
+			mesh.castShadow = true
+			mesh.receiveShadow = true
+			mesh.scale.set(this.params.scale, this.params.scale, this.params.scale)
+			this.scene.add( mesh );
+		} */
+		
 		this.animate()
 	}
 
@@ -360,6 +433,31 @@ export default class WorldClient extends World {
 		this.renderer.clear()
 
 		let dt = this.clock.getDelta()
+
+		/* {
+			const time = Date.now();
+			const looptime = 1000 / this.params.velocity
+			const t = ( time % looptime ) / looptime;
+
+			this.tubeGeometry.parameters.path.getPointAt( t, this.position );
+			this.position = this.position.multiplyScalar( this.params.scale );
+
+			const segments = this.tubeGeometry.tangents.length;
+			const pickt = t * segments;
+			const pick = Math.floor( pickt );
+			const pickNext = ( pick + 1 ) % segments;
+			this.binormal.subVectors( this.tubeGeometry.binormals[ pickNext ], this.tubeGeometry.binormals[ pick ] );
+			this.binormal.multiplyScalar( pickt - pick ).add( this.tubeGeometry.binormals[ pick ] );
+			this.tubeGeometry.parameters.path.getTangentAt( t, this.direction );
+			this.normal.copy( this.binormal ).cross( this.direction );
+			this.position.add( this.normal.clone().multiplyScalar( this.params.offset ) );
+			this.cameraEye.position.copy(this.position );
+			this.tubeGeometry.parameters.path.getPointAt( ( t + 30 / this.tubeGeometry.parameters.path.getLength() ) % 1, this.lookAt );
+			this.lookAt.copy( this.position ).add( this.direction );
+			this.cameraEye.matrix.lookAt( this.cameraEye.position, this.lookAt, this.normal );
+			this.cameraEye.quaternion.setFromRotationMatrix( this.cameraEye.matrix );
+			this.cameraEye.rotation.z -= Math.PI
+		} */
 
 		let models: THREE.Object3D[] = []
 		Object.keys(this.allCharacters).forEach((p) => {

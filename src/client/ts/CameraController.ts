@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 export class CameraController {
 
-	private camera: THREE.Camera
+	public camera: THREE.Camera
 	public target: THREE.Vector3
 	private sensitivity: THREE.Vector2
 

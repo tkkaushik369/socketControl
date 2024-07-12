@@ -58,7 +58,8 @@ export class FreeCameraControls extends GameModeBase {
 			'd': { action: 'right' },
 			'e': { action: 'up' },
 			'q': { action: 'down' },
-			'shift': { action: 'fast' }
+			'shift': { action: 'fast' },
+			'control': { action: 'slow' },
 		};
 
 		this.controls = {
@@ -68,7 +69,8 @@ export class FreeCameraControls extends GameModeBase {
 			up: new Controls.LerpControl(),
 			back: new Controls.LerpControl(),
 			down: new Controls.LerpControl(),
-			fast: new Controls.LerpControl()
+			fast: new Controls.LerpControl(),
+			slow: new Controls.LerpControl(),
 		};
 	}
 
@@ -135,15 +137,16 @@ export class FreeCameraControls extends GameModeBase {
 			}
 
 			// Set fly speed
-			let speed = this.movementSpeed * (this.controls.fast.value ? 5 : 1);
+			let speedFast = this.movementSpeed * (this.controls.fast.value ? 5 : 1);
+			let speedSlow = this.movementSpeed * (this.controls.slow.value ? 0.9 : 0);
 
 			let up = new THREE.Vector3(0, 1, 0);
 			let forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.worldClient.camera.quaternion);
 			let right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.worldClient.camera.quaternion);
 
-			this.worldClient.cameraController.target.add(forward.multiplyScalar(speed * (this.controls.forward.floatValue - this.controls.back.floatValue)));
-			this.worldClient.cameraController.target.add(right.multiplyScalar(speed * (this.controls.right.floatValue - this.controls.left.floatValue)));
-			this.worldClient.cameraController.target.add(up.multiplyScalar(speed * (this.controls.up.floatValue - this.controls.down.floatValue)));
+			this.worldClient.cameraController.target.add(forward.multiplyScalar((speedFast - speedSlow) * (this.controls.forward.floatValue - this.controls.back.floatValue)));
+			this.worldClient.cameraController.target.add(right.multiplyScalar((speedFast - speedSlow) * (this.controls.right.floatValue - this.controls.left.floatValue)));
+			this.worldClient.cameraController.target.add(up.multiplyScalar((speedFast - speedSlow) * (this.controls.up.floatValue - this.controls.down.floatValue)));
 		}
 	}
 }
