@@ -12,7 +12,7 @@
 
 ## Base Source Code
 
-This project is based on the source code from swift502/[Sketchbook](https://github.com/swift502/Sketchbook) v0.2. The base code provided a solid foundation for building the mechanics and 3D environment.
+This project is based on the source code from swift502/[Sketchbook](https://github.com/swift502/Sketchbook) v0.4. The base code provided a solid foundation for building the mechanics and 3D environment.
 
 # Installation
 ```
