@@ -4,6 +4,7 @@
 		"module": "commonjs",
 		"outDir": "../../dist/server",
 		"esModuleInterop": true,
+		"resolveJsonModule": true,
 		"skipLibCheck": true
 	},
 	"include": [

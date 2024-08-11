@@ -3,7 +3,10 @@
 		"target": "ES6",
 		"moduleResolution": "node",
 		"strict": true,
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"allowJs": true,
 	},
 	"include": [
 		"**/*.ts"

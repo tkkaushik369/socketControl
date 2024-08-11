@@ -39,5 +39,9 @@ npm run dev
 - **Socket.io**: For real-time, bidirectional communication between clients and server.
 - **Node.js & Express**: Backend server setup.
 
+### Todo
+- Add Sky and Ocean
+- Boat Vehicle
+
 ## Contributing
 Contributions are welcome! If you have ideas, feature requests, or bug reports, please open an issue or submit a pull request.

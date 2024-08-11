@@ -1,13 +1,23 @@
 import './css/main.css'
-import { io, Socket } from 'socket.io-client'
-import WorldClient from './ts/WorldClient'
-import { Player } from '../server/ts/Player'
-import * as GameModes from './ts/GameModes'
-import { Message } from '../server/ts/Messages/Message'
-import { messageTypes } from '../server/ts/Enums/messageTypes'
-import * as CharacterStates from '../server/ts/Characters/CharacterStates'
-import Character from '../server/ts/Characters/Character'
 import * as THREE from 'three'
+import { LDrawLoader } from 'three/examples/jsm/loaders/LDrawLoader'
+import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
+import * as Utils from '../server/ts/Core/FunctionLibrary'
+import { io, Socket } from 'socket.io-client'
+import { WorldClient } from './ts/World/WorldClient'
+import { Player } from '../server/ts/Core/Player'
+import { ControlsTypes } from '../server/ts/Enums/ControlsTypes'
+import { MessageTypes } from '../server/ts/Enums/MessagesTypes'
+import { AttachModels } from './ts/Utils/AttachModels'
+import { EntityType } from '../server/ts/Enums/EntityType'
+import { VehicleSeat } from '../server/ts/Vehicles/VehicleSeat'
+import { Car } from '../server/ts/Vehicles/Car'
+import { Helicopter } from '../server/ts/Vehicles/Helicopter'
+import { Airplane } from '../server/ts/Vehicles/Airplane'
+import * as CharState from '../server/ts/Characters/CharacterStates/_CharacterStateLibrary'
+import * as VehicalState from '../server/ts/Characters/CharacterStates/Vehicles/_VehicleStateLibrary'
+import _ from 'lodash'
+
 
 if (navigator.userAgent.includes('QtWebEngine')) {
 	document.body.classList.add('bodyTransparent')
@@ -15,268 +25,742 @@ if (navigator.userAgent.includes('QtWebEngine')) {
 }
 
 const pingStats = document.getElementById('pingStats') as HTMLDivElement
+const controls = document.getElementById('controls') as HTMLDivElement
 const workBox = document.getElementById('work') as HTMLDivElement
 
 export default class AppClient {
 
 	private io: Socket
-
 	private worldClient: WorldClient
-	private player: Player | null
-	private clients: { [id: string]: Player }
-
-	private fixedTimeStep: number
+	private sID: string
+	private lastUpdate: number
 
 	constructor() {
-		// Bind Functions
+		// bind functions
 		this.OnConnect = this.OnConnect.bind(this)
 		this.OnDisConnect = this.OnDisConnect.bind(this)
 		this.OnSetID = this.OnSetID.bind(this)
 		this.OnRemoveClient = this.OnRemoveClient.bind(this)
 		this.OnPlayers = this.OnPlayers.bind(this)
-		this.OnChangeScenario = this.OnChangeScenario.bind(this)
+		this.OnControls = this.OnControls.bind(this)
+		this.OnScenario = this.OnScenario.bind(this)
+		this.ForControls = this.ForControls.bind(this)
+		this.ForLaunchScenatio = this.ForLaunchScenatio.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
-		this.ForChangeScenario = this.ForChangeScenario.bind(this)
-		this.ForShoot = this.ForShoot.bind(this)
-		this.OnChangeTimeScale = this.OnChangeTimeScale.bind(this)
-		this.ForChangeTimeScale = this.ForChangeTimeScale.bind(this)
-		this.ForSetTimeScaleTarget = this.ForSetTimeScaleTarget.bind(this)
-		this.ForCharacterControl = this.ForCharacterControl.bind(this)
 
-		// Init
-		this.clients = {}
-		this.fixedTimeStep = 1.0 / 60.0; // fps
-
+		// init
 		this.io = io()
-		this.worldClient = new WorldClient(this.clients, workBox)
-		this.worldClient.changeSceneCallBack = this.ForChangeScenario
-		this.worldClient.shootCallBack = this.ForShoot
-		this.worldClient.changeTimeScaleCallBack = this.ForChangeTimeScale
-		this.worldClient.setTimeScaleTargetCallBack = this.ForSetTimeScaleTarget
-		this.worldClient.sendCharacterControlCallBack = this.ForCharacterControl
-		this.player = null
+		this.worldClient = new WorldClient(controls, workBox, this.ForSocketLoop, this.ForLaunchScenatio)
+		this.sID = ""
+		this.lastUpdate = Date.now()
 
-
-		// Socket
+		// socket
 		this.io.on("connect", this.OnConnect);
 		this.io.on("disconnect", this.OnDisConnect);
-		this.io.on("setid", this.OnSetID);
+		this.io.on("setID", this.OnSetID);
 		this.io.on("removeClient", this.OnRemoveClient);
 		this.io.on("players", this.OnPlayers);
-		this.io.on("changeScenario", this.OnChangeScenario);
-		this.io.on("changeTimeScale", this.OnChangeTimeScale);
-		this.io.on("setTimeScaleTarget", this.OnChangeTimeScale);
-		setInterval(this.ForSocketLoop, this.fixedTimeStep * 1000)
+		this.io.on("controls", this.OnControls);
+		this.io.on("scenario", this.OnScenario);
 	}
 
 	private OnConnect() {
 		console.log("Connected")
+		this.worldClient.stats.dom.classList.remove("noPing")
+		this.worldClient.stats.dom.classList.add("ping")
 	}
 
 	private OnDisConnect(str: string) {
-		console.log("Disconnect " + str)
-		if ((this.player !== null) && (this.player.userName !== null)) {
-			this.worldClient.allCharacters[this.player.userName].labelDiv?.remove()
-			this.worldClient.removeWorldCharacter(this.player.userName)
-		}
-	}
-
-	private OnChangeScenario(inx: number) {
-		console.log("Scenario Change: " + inx)
-		this.worldClient.changeScenario(inx, false)
-	}
-
-	private ForChangeScenario(inx: number) {
-		this.io.emit("changeScenario", inx)
-	}
-
-	private ForShoot(position: THREE.Vector3, quaternion: THREE.Quaternion, isOffset: boolean) {
-		this.io.emit('shoot', {
-			position: {
-				x: position.x,
-				y: position.y,
-				z: position.z,
-			},
-			quaternion: {
-				x: quaternion.x,
-				y: quaternion.y,
-				z: quaternion.z,
-				w: quaternion.w,
-			},
-			isOffset: isOffset,
+		console.log("Disconnect: " + str)
+		this.worldClient.stats.dom.classList.remove("ping")
+		this.worldClient.stats.dom.classList.add("noPing")
+		Object.keys(this.worldClient.users).forEach((sID) => {
+			if (this.worldClient.users[sID] !== undefined) {
+				this.worldClient.users[sID].attachments.forEach(obj => {
+					this.worldClient.scene.remove(obj)
+				});
+				this.worldClient.users[sID].removeUser()
+				delete this.worldClient.users[sID]
+			}
 		})
 	}
 
-	private OnChangeTimeScale(data: any) {
-		this.worldClient.settings.TimeScale = data.TimeScale
-		this.worldClient.timeScaleTarget = data.timeScaleTarget
+	private OnSetID(message: any, callBack: Function) {
+		this.worldClient.getGLTF('./models/world.glb', (gltf: any) => {
+			this.worldClient.loadScene(gltf, false)
+
+
+			this.worldClient.launchScenario(message.lastScenarioID, false)
+			this.worldClient.player = new Player(message.sID, this.worldClient, this.worldClient.camera, this.worldClient.renderer.domElement)
+			this.worldClient.player.setUID("Player_" + message.count)
+			this.sID = this.worldClient.player.sID
+
+			// Initialization
+			this.worldClient.player.inputManager.controlsCallBack = this.ForControls
+			this.worldClient.player.cameraOperator.camera.add(AttachModels.makeCamera())
+			this.worldClient.player.attachments.push(this.worldClient.player.cameraOperator.camera)
+			this.worldClient.player.cameraOperator.camera.visible = false
+			this.worldClient.scene.add(this.worldClient.player.cameraOperator.camera)
+			this.worldClient.player.addUser()
+
+			console.log(`Username: ${this.worldClient.player.uID}`)
+			this.worldClient.users[this.worldClient.player.sID] = this.worldClient.player
+			if (false) {
+				this.worldClient.paths.forEach((path) => {
+					Object.keys(path.nodes).forEach((nID) => {
+						path.nodes[nID].object.add(AttachModels.makePointHighlight(0.2))
+					})
+				})
+				this.worldClient.vehicles.forEach((vehi) => {
+					vehi.seats.forEach((seat) => {
+						seat.entryPoints.forEach((ep) => {
+							ep.add(AttachModels.makePointHighlight(0.2))
+						})
+					})
+				})
+			}
+			this.worldClient.characters.forEach((char) => {
+				AttachModels.makeCharacter(char, (char === this.worldClient.player!.character) ? callBack : null)
+			})
+
+			this.worldClient.scene.traverse((obj) => {
+				if (obj.hasOwnProperty('userData')) {
+					if (obj.userData.hasOwnProperty('debug')) {
+						if (obj.userData.debug) {
+							obj.visible = true;
+							const textureLoader = new THREE.TextureLoader();
+							const texture = textureLoader.load(
+								'./images/uv-test-bw.jpg',
+							);
+							let mat = new THREE.MeshStandardMaterial({ map: texture });
+							console.log(obj.hasOwnProperty("isMesh"));
+							(obj as THREE.Mesh).material = mat
+							// this.worldClient.scene.add(new VertexNormalsHelper(obj, 0.1, 0x00ff00))
+						}
+					}
+				}
+			})
+
+			let lp = new LDrawLoader()
+			this.worldClient.vehicles.forEach((vehi) => {
+				if (vehi.uID == 'legocar') {
+					vehi.remove(vehi.modelContainer)
+					vehi.modelContainer = new THREE.Group()
+					lp.load('./models/car.mpd', (obj) => {
+						let scale = 0.01
+						obj.scale.set(scale, scale, scale)
+						obj.position.set(0, -0.22, 0)
+						obj.rotateX(Math.PI)
+						vehi.modelContainer.add(obj)
+						vehi.add(vehi.modelContainer)
+
+						let wheels: THREE.Object3D[] = []
+						let isfl = true
+						let isfr = true
+						let isbl = true
+						let isbr = true
+						let wheelFL: any = null
+						let wheelFR: any = null
+						let wheelBL: any = null
+						let wheelBR: any = null
+						let owFL: any = null
+						let owFR: any = null
+						let owBL: any = null
+						let owBR: any = null
+						let chair: any = null
+						let stearing: any = null
+						obj.traverse((o) => {
+							if (o.hasOwnProperty('userData')) {
+								if (o.userData.hasOwnProperty('keywords')) {
+									if (_.includes(o.userData.keywords, 'Tire')) {
+										wheels.push(o)
+									}
+									if (_.includes(o.userData.keywords, 'chair')) {
+										chair = o
+									}
+								}
+								if (o.userData.hasOwnProperty('fileName')) {
+									if (o.userData.fileName === "parts/3828.dat") {
+										stearing = o
+									}
+								}
+							}
+						})
+
+						vehi.wheels.forEach((wheel) => {
+							let fl = "wheel_fl"
+							let fr = "wheel_fr"
+							let bl = "wheel_bl"
+							let br = "wheel_br"
+							if (wheel.wheelObject.userData.name == fl) {
+								if (isfl) {
+									wheelFL = wheel
+									owFL = wheels[0]
+									isfl = false
+								}
+							}
+							if (wheel.wheelObject.userData.name == fr) {
+								if (isfr) {
+									wheelFR = wheel
+									owFR = wheels[1]
+									isfr = false
+								}
+							}
+							if (wheel.wheelObject.userData.name == bl) {
+								if (isbl) {
+									wheelBL = wheel
+									owBL = wheels[2]
+									isbl = false
+								}
+							}
+							if (wheel.wheelObject.userData.name == br) {
+								if (isbr) {
+									wheelBR = wheel
+									owBR = wheels[3]
+									isbr = false
+								}
+							}
+						})
+
+						if ((wheelFL !== null) && (owFL !== null)) {
+							this.worldClient.scene.remove(wheelFL.wheelObject)
+							let offset = new THREE.Object3D()
+							this.worldClient.scene.add(offset)
+							wheelFL.wheelObject = offset
+							offset.attach(owFL)
+							owFL.position.set(0, 0, 0)
+							owFL.rotation.set(0, Math.PI / 2, 0)
+						}
+
+						if ((wheelFR !== null) && (owFR !== null)) {
+							this.worldClient.scene.remove(wheelFR.wheelObject)
+							let offset = new THREE.Object3D()
+							this.worldClient.scene.add(offset)
+							wheelFR.wheelObject = offset
+							offset.attach(owFR)
+							owFR.position.set(0, 0, 0)
+							owFR.rotation.set(0, Math.PI / 2, 0)
+						}
+
+						if ((wheelBL !== null) && (owBL !== null)) {
+							this.worldClient.scene.remove(wheelBL.wheelObject)
+							let offset = new THREE.Object3D()
+							this.worldClient.scene.add(offset)
+							wheelBL.wheelObject = offset
+							offset.attach(owBL)
+							owBL.position.set(0, 0, 0)
+							owBL.rotation.set(0, Math.PI / 2, 0)
+						}
+
+						if ((wheelBR !== null) && (owBR !== null)) {
+							this.worldClient.scene.remove(wheelBR.wheelObject)
+							let offset = new THREE.Object3D()
+							this.worldClient.scene.add(offset)
+							wheelBR.wheelObject = offset
+							offset.attach(owBR)
+							owBR.position.set(0, 0, 0)
+							owBR.rotation.set(0, Math.PI / 2, 0)
+						}
+
+						/* if (vehi.seats.length > 0) {
+							this.worldClient.scene.remove(vehi.seats[0].seatPointObject)
+							let offset = new THREE.Object3D()
+							Utils.setDefaults(offset.userData, vehi.seats[0].seatPointObject.userData)
+							this.worldClient.scene.add(offset)
+							vehi.seats[0].seatPointObject = chair
+							offset.attach(chair)
+							chair.position.set(0, 0, 0)
+							chair.rotation.set(0, Math.PI / 2, 0)
+						} */
+
+						let stterObj = (vehi as Car).steeringWheel
+						console.log((stterObj !== null), (stearing !== null))
+						if ((stterObj !== null) && (stearing !== null)) {
+							// this.worldClient.scene.remove(stterObj)
+							let offset = new THREE.Object3D()
+							vehi.add(offset);
+							(vehi as Car).steeringWheel = offset
+							offset.position.set(0, 0.228, 0.3)
+							offset.rotation.set(Math.PI / 5, 0, 0)
+							offset.attach(stearing)
+							stearing.position.set(0, 0, 0)
+							stearing.rotation.x += 0.0001
+						}
+					})
+				}
+			})
+		})
 	}
-	
-	private ForChangeTimeScale(val: number) {
-		this.io.emit("changeTimeScale", val)
-	}
 
-	private ForSetTimeScaleTarget(val: number) {
-		this.io.emit("setTimeScaleTarget", val)
-	}
-
-	private ForCharacterControl(name: string, key: string, val: boolean) {
-		this.io.emit("characterControl", { name: name, key: key, val: val })
-	}
-
-	private OnSetID(message: Message, callBack: Function) {
-		this.player = new Player(message.id)
-		this.player.userName = "Player " + message.data.count
-		this.worldClient.playerConn = this.player
-		console.log("Username: " + this.player.userName)
-		callBack(this.player.userName)
-
-		const player = new Character({ position: new THREE.Vector3(2, 5, 5) })
-		this.worldClient.addWorldCharacter(player, this.player.userName)
-		this.worldClient.LoadCharacter(player)
-		player.takeControl(GameModes.CharacterControls)
-
-		// load server Scenario
-		if (message.data.currentScenarioIndex)
-			this.worldClient.changeScenario(message.data.currentScenarioIndex, false)
-
-		// load server TimeScale
-		if (message.data.TimeScale)
-			this.worldClient.settings.TimeScale = message.data.TimeScale
-		if (message.data.timeScaleTarget)
-			this.worldClient.timeScaleTarget = message.data.timeScaleTarget
-
-		// start socket loop
-		setInterval(this.ForSocketLoop, this.fixedTimeStep * 1000)
-	}
-
-	private OnRemoveClient(id: string) {
-		console.log("Removed: " + id)
-		if (this.clients[id].userName !== null) {
-			this.worldClient.allCharacters[this.clients[id].userName].labelDiv?.remove()
-			this.worldClient.removeWorldCharacter(this.clients[id].userName)
+	private OnRemoveClient(sID: string) {
+		if (this.worldClient.users[sID] !== undefined) {
+			console.log(`Removed User: ${this.worldClient.users[sID].uID}`)
+			this.worldClient.users[sID].attachments.forEach(obj => {
+				this.worldClient.scene.remove(obj)
+			});
+			this.worldClient.users[sID].removeUser()
+			delete this.worldClient.users[sID]
 		}
-		if (this.clients[id]) delete this.clients[id]
 	}
 
-	private OnPlayers(messages: { [id: string]: Message }) {
+	private OnPlayers(messages: { [id: string]: any }) {
 		pingStats.innerHTML = "Ping: " + "<br>"
 		Object.keys(messages).forEach((id) => {
-			switch (messages[id].type) {
-				case messageTypes.playerData: {
-					if (this.clients[id] === undefined) {
-						this.clients[id] = new Player(id)
-						this.clients[id].userName = messages[id].userName
-
-						if ((this.clients[id].userName != null) && (this.player !== null) && (this.clients[id].userName != this.player.userName)) {
-							const player = new Character({ position: new THREE.Vector3(2, 5, 5) })
-							this.worldClient.addWorldCharacter(player, this.clients[id].userName)
-							this.worldClient.LoadCharacter(player)
-						}
+			if (messages[id].sID !== undefined) {
+				pingStats.innerHTML += "[" + messages[id].sID + "] "
+				if (messages[id].sID == this.sID) {
+					if (this.lastUpdate < Date.now() - 1000) {
+						this.worldClient.networkStats.update(messages[id].ping, 100)
+						this.lastUpdate = Date.now()
 					}
-
-					this.clients[id].userName = messages[id].userName
-					this.clients[id].data.count = messages[id].data.count
-					this.clients[id].timeStamp = messages[id].timeStamp
-					this.clients[id].ping = messages[id].ping
-
-					if (this.clients[id].userName != null) {
-						pingStats.innerHTML += this.clients[id].userName + ": "
-						pingStats.innerHTML += this.clients[id].ping + "<br>"
-					}
-					break;
+					pingStats.innerHTML += "(YOU) "
 				}
-				case messageTypes.worldObjectData: {
-					if (messages[id].userName != null) {
-						if (this.worldClient.allWorldObjects[id] != undefined) {
-							if (this.worldClient.allWorldObjects[id].model != undefined) {
-								this.worldClient.allWorldObjects[id].model?.position.set(
-									messages[id].data.position.x,
-									messages[id].data.position.y,
-									messages[id].data.position.z,
+				pingStats.innerHTML += messages[id].uID + ": "
+				pingStats.innerHTML += messages[id].ping + "<br>"
+			}
+
+			switch (messages[id].msgType) {
+				case MessageTypes.Player: {
+					if (this.worldClient.users[id] === undefined) {
+						const player = new Player(messages[id].sID, this.worldClient, Utils.defaultCamera(), null)
+						// Initialization
+						player.setUID(messages[id].uID)
+						player.cameraOperator.camera.add(AttachModels.makeCamera())
+						player.attachments.push(player.cameraOperator.camera)
+						this.worldClient.scene.add(player.cameraOperator.camera)
+						player.addUser()
+						if (player.character !== null)
+							AttachModels.makeCharacter(player.character)
+
+						console.log("New User: " + player.uID)
+						this.worldClient.users[player.sID] = player
+					}
+
+					if (this.worldClient.users[id] === undefined) {
+						console.log("Undefined Player" + this.worldClient.users[id])
+						break
+					}
+
+					this.worldClient.timeScaleTarget = messages[id].data.timeScaleTarget
+
+					this.worldClient.users[id].cameraOperator.camera.position.set(
+						messages[id].data.cameraPosition.x,
+						messages[id].data.cameraPosition.y,
+						messages[id].data.cameraPosition.z,
+					)
+					this.worldClient.users[id].cameraOperator.camera.quaternion.set(
+						messages[id].data.cameraQuaternion.x,
+						messages[id].data.cameraQuaternion.y,
+						messages[id].data.cameraQuaternion.z,
+						messages[id].data.cameraQuaternion.w,
+					)
+					break
+				}
+				case MessageTypes.Character: {
+					this.worldClient.characters.forEach((char) => {
+						if (char.uID === messages[id].uID) {
+							if (char.physicsEnabled !== messages[id].data.physicsEnabled) {
+								char.setPhysicsEnabled(messages[id].data.physicsEnabled)
+							}
+							if (messages[id].data.physicsEnabled && messages[id].data.physicsEnabled) {
+								this.worldClient.zeroBody(char.characterCapsule.body)
+								char.characterCapsule.body.position.set(
+									messages[id].data.characterPosition.x,
+									messages[id].data.characterPosition.y,
+									messages[id].data.characterPosition.z,
 								)
-								this.worldClient.allWorldObjects[id].model?.quaternion.set(
-									messages[id].data.quaternion.x,
-									messages[id].data.quaternion.y,
-									messages[id].data.quaternion.z,
-									messages[id].data.quaternion.w,
+								char.characterCapsule.body.interpolatedPosition.set(
+									messages[id].data.characterPosition.x,
+									messages[id].data.characterPosition.y,
+									messages[id].data.characterPosition.z,
+								)
+								char.position.set(
+									messages[id].data.characterPosition.x,
+									messages[id].data.characterPosition.y,
+									messages[id].data.characterPosition.z,
+								)
+								char.quaternion.set(
+									messages[id].data.characterQuaternion.x,
+									messages[id].data.characterQuaternion.y,
+									messages[id].data.characterQuaternion.z,
+									messages[id].data.characterQuaternion.w,
 								)
 							}
+
+							if ((messages[id].data.AiData.character !== null) && (char.behaviour !== null)) {
+								char.triggerAction(messages[id].data.AiData.character.action, messages[id].data.AiData.character.isPressed)
+								if ((messages[id].data.AiData.character !== null) && (char.controlledObject !== null))
+									char.controlledObject.triggerAction(messages[id].data.AiData.controlledObject.action, messages[id].data.AiData.controlledObject.isPressed)
+							}
+
+							if (char.charState.constructor.name !== messages[id].data.charState) {
+								console.log(char.uID, messages[id].data.charState)
+								let isError = null
+								// CharacterStates
+								if (false) char
+								else if (CharState.DropIdle.name === messages[id].data.charState) char.setState(new CharState.DropIdle(char), false)
+								else if (CharState.DropRolling.name === messages[id].data.charState) char.setState(new CharState.DropRolling(char), false)
+								else if (CharState.DropRunning.name === messages[id].data.charState) char.setState(new CharState.DropRunning(char), false)
+								else if (CharState.EndWalk.name === messages[id].data.charState) char.setState(new CharState.EndWalk(char), false)
+								else if (CharState.Falling.name === messages[id].data.charState) char.setState(new CharState.Falling(char), false)
+								else if (CharState.Idle.name === messages[id].data.charState) char.setState(new CharState.Idle(char), false)
+								else if (CharState.IdleRotateLeft.name === messages[id].data.charState) char.setState(new CharState.IdleRotateLeft(char), false)
+								else if (CharState.IdleRotateRight.name === messages[id].data.charState) char.setState(new CharState.IdleRotateRight(char), false)
+								else if (CharState.JumpIdle.name === messages[id].data.charState) char.setState(new CharState.JumpIdle(char), false)
+								else if (CharState.JumpRunning.name === messages[id].data.charState) char.setState(new CharState.JumpRunning(char), false)
+								else if (CharState.Sprint.name === messages[id].data.charState) char.setState(new CharState.Sprint(char), false)
+								else if (CharState.StartWalkBackLeft.name === messages[id].data.charState) char.setState(new CharState.StartWalkBackLeft(char), false)
+								else if (CharState.StartWalkBackRight.name === messages[id].data.charState) char.setState(new CharState.StartWalkBackRight(char), false)
+								else if (CharState.StartWalkForward.name === messages[id].data.charState) char.setState(new CharState.StartWalkForward(char), false)
+								else if (CharState.StartWalkLeft.name === messages[id].data.charState) char.setState(new CharState.StartWalkLeft(char), false)
+								else if (CharState.StartWalkRight.name === messages[id].data.charState) char.setState(new CharState.StartWalkRight(char), false)
+								else if (CharState.Walk.name === messages[id].data.charState) char.setState(new CharState.Walk(char), false)
+								// VehicalStates
+								else if (VehicalState.CloseVehicleDoorInside.name === messages[id].data.charState) {
+									let seat: VehicleSeat | null = null
+									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									if (vehi !== null) {
+										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										seat = vehiSeat
+									}
+									if (seat !== null) {
+										char.setState(new VehicalState.CloseVehicleDoorInside(char, seat), false)
+									} else {
+										isError = "CloseVehicleDoorInside Failed"
+									}
+								} else if (VehicalState.CloseVehicleDoorOutside.name === messages[id].data.charState) {
+									let seat: VehicleSeat | null = null
+									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									if (vehi !== null) {
+										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										seat = vehiSeat
+									}
+									if (seat !== null) {
+										char.setState(new VehicalState.CloseVehicleDoorOutside(char, seat), false)
+									} else {
+										isError = "CloseVehicleDoorOutside Failed"
+									}
+								} else if (VehicalState.Driving.name === messages[id].data.charState) {
+									let seat: VehicleSeat | null = null
+									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									if (vehi !== null) {
+										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										seat = vehiSeat
+									}
+									if (seat !== null) {
+										char.setState(new VehicalState.Driving(char, seat), false)
+									} else {
+										isError = "Driving Failed"
+									}
+								} else if (VehicalState.EnteringVehicle.name === messages[id].data.charState) {
+									let seat: VehicleSeat | null = null
+									let entryPoint: THREE.Object3D | null = null
+									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									if (vehi !== null) {
+										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										if (vehiSeat !== null) {
+											let ep = Utils.getEntryPoint(vehiSeat, messages[id].data.vehicalState.entryPoint)
+											seat = vehiSeat
+											entryPoint = ep
+										}
+									}
+									if ((seat !== null) && (entryPoint !== null)) {
+										char.setState(new VehicalState.EnteringVehicle(char, seat, entryPoint), false)
+									} else {
+										isError = "EnteringVehicle Failed"
+									}
+								} else if (VehicalState.ExitingAirplane.name === messages[id].data.charState) {
+									let seat: VehicleSeat | null = null
+									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									if (vehi !== null) {
+										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										seat = vehiSeat
+									}
+									if (seat !== null) {
+										char.setState(new VehicalState.ExitingAirplane(char, seat), false)
+									} else {
+										isError = "ExitingAirplane Failed"
+									}
+								} else if (VehicalState.ExitingVehicle.name === messages[id].data.charState) {
+									let seat: VehicleSeat | null = null
+									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									if (vehi !== null) {
+										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										seat = vehiSeat
+									}
+									if (seat !== null) {
+										char.setState(new VehicalState.ExitingVehicle(char, seat), false)
+									} else {
+										isError = "ExitingVehicle Failed"
+									}
+								} else if (VehicalState.OpenVehicleDoor.name === messages[id].data.charState) {
+									let seat: VehicleSeat | null = null
+									let entryPoint: THREE.Object3D | null = null
+									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									if (vehi !== null) {
+										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										if (vehiSeat !== null) {
+											let ep = Utils.getEntryPoint(vehiSeat, messages[id].data.vehicalState.entryPoint)
+											seat = vehiSeat
+											entryPoint = ep
+										}
+									}
+									if ((seat !== null) && (entryPoint !== null)) {
+										char.setState(new VehicalState.OpenVehicleDoor(char, seat, entryPoint), false)
+									} else {
+										isError = "OpenVehicleDoor Failed"
+									}
+								} else if (VehicalState.Sitting.name === messages[id].data.charState) {
+									let seat: VehicleSeat | null = null
+									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									if (vehi !== null) {
+										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										seat = vehiSeat
+									}
+									if (seat !== null) {
+										char.setState(new VehicalState.Sitting(char, seat), false)
+									} else {
+										isError = "Sitting Failed"
+									}
+								} else if (VehicalState.SwitchingSeats.name === messages[id].data.charState) {
+									let fromSeat: VehicleSeat | null = null
+									let toSeat: VehicleSeat | null = null
+									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									if (vehi !== null) {
+										fromSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.fromSeat)
+										toSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.toSeat)
+									}
+									if ((fromSeat !== null) && (toSeat !== null)) {
+										char.setState(new VehicalState.SwitchingSeats(char, fromSeat, toSeat), false)
+									} else {
+										isError = "SwitchingSeats Failed"
+									}
+								}
+								else {
+									isError = "Unknown State: " + messages[id].data.charState
+								}
+								if (isError === null)
+									char.charState.onInputChange()
+								else console.log(isError)
+								/* if(char.cs.name !== messages[id].data.cs.name)
+									char.setAnimation(messages[id].data.cs.name, messages[id].data.cs.duration) */
+							}
 						}
-					}
-					break;
+					})
+					break
 				}
-				case messageTypes.worldObjectBallData: {
-					if (messages[id].userName != null) {
-						let ball = this.worldClient.allBalls[(Number(id.split("_")[1]))]
-						ball.model?.position.set(
-							messages[id].data.position.x,
-							messages[id].data.position.y,
-							messages[id].data.position.z,
-						)
-						ball.model?.quaternion.set(
-							messages[id].data.quaternion.x,
-							messages[id].data.quaternion.y,
-							messages[id].data.quaternion.z,
-							messages[id].data.quaternion.w,
-						)
-					}
-					break;
+				case MessageTypes.Vehical: {
+					this.worldClient.vehicles.forEach((vehi) => {
+						if (vehi.uID === messages[id].uID) {
+							this.worldClient.zeroBody(vehi.collision)
+							vehi.collision.position.set(
+								messages[id].data.vehiclePosition.x,
+								messages[id].data.vehiclePosition.y,
+								messages[id].data.vehiclePosition.z,
+							)
+							vehi.collision.quaternion.set(
+								messages[id].data.vehicleQuaternion.x,
+								messages[id].data.vehicleQuaternion.y,
+								messages[id].data.vehicleQuaternion.z,
+								messages[id].data.vehicleQuaternion.w,
+							)
+							vehi.collision.interpolatedPosition.set(
+								messages[id].data.vehiclePosition.x,
+								messages[id].data.vehiclePosition.y,
+								messages[id].data.vehiclePosition.z,
+							)
+							vehi.collision.interpolatedQuaternion.set(
+								messages[id].data.vehicleQuaternion.x,
+								messages[id].data.vehicleQuaternion.y,
+								messages[id].data.vehicleQuaternion.z,
+								messages[id].data.vehicleQuaternion.w,
+							)
+							vehi.position.set(
+								messages[id].data.vehiclePosition.x,
+								messages[id].data.vehiclePosition.y,
+								messages[id].data.vehiclePosition.z,
+							)
+							vehi.quaternion.set(
+								messages[id].data.vehicleQuaternion.x,
+								messages[id].data.vehicleQuaternion.y,
+								messages[id].data.vehicleQuaternion.z,
+								messages[id].data.vehicleQuaternion.w,
+							)
+							
+							switch (messages[id].data.entity) {
+								case EntityType.Airplane: {
+									for (let i = 0; i < messages[id].data.wheels.length; i++) {
+										vehi.wheels[i].wheelObject.position.set(
+											messages[id].data.wheels[i].position.x,
+											messages[id].data.wheels[i].position.y,
+											messages[id].data.wheels[i].position.z,
+										)
+										vehi.wheels[i].wheelObject.quaternion.set(
+											messages[id].data.wheels[i].quaternion.x,
+											messages[id].data.wheels[i].quaternion.y,
+											messages[id].data.wheels[i].quaternion.z,
+											messages[id].data.wheels[i].quaternion.w,
+										)
+									}
+									if ((vehi as Airplane).rotor) {
+										(vehi as Airplane).rotor!.quaternion.set(
+											messages[id].data.rotor.quaternion.x,
+											messages[id].data.rotor.quaternion.y,
+											messages[id].data.rotor.quaternion.z,
+											messages[id].data.rotor.quaternion.w,
+										)
+									}
+									if ((vehi as Airplane).leftAileron) {
+										(vehi as Airplane).leftAileron!.quaternion.set(
+											messages[id].data.leftaileron.quaternion.x,
+											messages[id].data.leftaileron.quaternion.y,
+											messages[id].data.leftaileron.quaternion.z,
+											messages[id].data.leftaileron.quaternion.w,
+										)
+									}
+									if ((vehi as Airplane).rightAileron) {
+										(vehi as Airplane).rightAileron!.quaternion.set(
+											messages[id].data.rightaileron.quaternion.x,
+											messages[id].data.rightaileron.quaternion.y,
+											messages[id].data.rightaileron.quaternion.z,
+											messages[id].data.rightaileron.quaternion.w,
+										)
+									}
+									if ((vehi as Airplane).rudder) {
+										(vehi as Airplane).rudder!.quaternion.set(
+											messages[id].data.rudder.quaternion.x,
+											messages[id].data.rudder.quaternion.y,
+											messages[id].data.rudder.quaternion.z,
+											messages[id].data.rudder.quaternion.w,
+										)
+									}
+									for (let i = 0; i < messages[id].data.elevators.length; i++) {
+										(vehi as Airplane).elevators[i].quaternion.set(
+											messages[id].data.elevators[i].quaternion.x,
+											messages[id].data.elevators[i].quaternion.y,
+											messages[id].data.elevators[i].quaternion.z,
+											messages[id].data.elevators[i].quaternion.w,
+										)
+									}
+									break
+								}
+								case EntityType.Car: {
+									for (let i = 0; i < messages[id].data.wheels.length; i++) {
+										vehi.wheels[i].wheelObject.position.set(
+											messages[id].data.wheels[i].position.x,
+											messages[id].data.wheels[i].position.y,
+											messages[id].data.wheels[i].position.z,
+										)
+										vehi.wheels[i].wheelObject.quaternion.set(
+											messages[id].data.wheels[i].quaternion.x,
+											messages[id].data.wheels[i].quaternion.y,
+											messages[id].data.wheels[i].quaternion.z,
+											messages[id].data.wheels[i].quaternion.w,
+										)
+									}
+									for (let i = 0; i < messages[id].data.doors.length; i++) {
+										if (vehi.seats[i].door !== null) {
+											if (vehi.seats[i].door!.doorObject !== null) {
+												vehi.seats[i].door!.doorObject.position.set(
+													messages[id].data.doors[i].position.x,
+													messages[id].data.doors[i].position.y,
+													messages[id].data.doors[i].position.z,
+												)
+												vehi.seats[i].door!.doorObject.quaternion.set(
+													messages[id].data.doors[i].quaternion.x,
+													messages[id].data.doors[i].quaternion.y,
+													messages[id].data.doors[i].quaternion.z,
+													messages[id].data.doors[i].quaternion.w,
+												)
+											}
+										}
+									}
+									if ((vehi as Car).steeringWheel !== null) {
+										(vehi as Car).steeringWheel!.quaternion.set(
+											messages[id].data.steeringWheel.quaternion.x,
+											messages[id].data.steeringWheel.quaternion.y,
+											messages[id].data.steeringWheel.quaternion.z,
+											messages[id].data.steeringWheel.quaternion.w,
+										)
+									}
+									break
+								}
+								case EntityType.Helicopter: {
+									for (let i = 0; i < messages[id].data.doors.length; i++) {
+										if (vehi.seats[i].door !== null) {
+											if (vehi.seats[i].door!.doorObject !== null) {
+												vehi.seats[i].door!.doorObject.position.set(
+													messages[id].data.doors[i].position.x,
+													messages[id].data.doors[i].position.y,
+													messages[id].data.doors[i].position.z,
+												)
+												vehi.seats[i].door!.doorObject.quaternion.set(
+													messages[id].data.doors[i].quaternion.x,
+													messages[id].data.doors[i].quaternion.y,
+													messages[id].data.doors[i].quaternion.z,
+													messages[id].data.doors[i].quaternion.w,
+												)
+											}
+										}
+									}
+									for (let i = 0; i < messages[id].data.rotors.length; i++) {
+										if ((vehi as Helicopter).rotors[i]) {
+											(vehi as Helicopter).rotors[i].quaternion.set(
+												messages[id].data.rotors[i].quaternion.x,
+												messages[id].data.rotors[i].quaternion.y,
+												messages[id].data.rotors[i].quaternion.z,
+												messages[id].data.rotors[i].quaternion.w,
+											);
+										}
+									}
+									break
+								}
+								default: {
+									console.log("Unknown Entity:", messages[id].data.entity)
+									break
+								}
+							}
+						}
+					})
+					break
 				}
-				case messageTypes.worldObjectCharacter: {
-					let character = this.worldClient.allCharacters[id]
-					if (character === undefined) {
-						// console.log(messages[id])
-						break;
-					}
-					character.position.set(
-						messages[id].data.characterModel_position.x,
-						messages[id].data.characterModel_position.y,
-						messages[id].data.characterModel_position.z,
-					);
-					character.quaternion.set(
-						messages[id].data.characterModel_quaternion.x,
-						messages[id].data.characterModel_quaternion.y,
-						messages[id].data.characterModel_quaternion.z,
-						messages[id].data.characterModel_quaternion.w,
-					);
-					character.characterCapsule.physics!.visual.position.copy(character.position)
-					character.raycastBox.position.set(
-						messages[id].data.raycastBox.x,
-						messages[id].data.raycastBox.y,
-						messages[id].data.raycastBox.z,
-					)
-					character.position.add(character.modelOffset);
-					let state = messages[id].data.charStateRaw;
-					if (character.lastState !== state) {
-						if (state == "DefaultState") character.setState(CharacterStates.DefaultState)
-						if (state == "Idle") character.setState(CharacterStates.Idle)
-						if (state == "IdleRotateRight") character.setState(CharacterStates.IdleRotateRight)
-						if (state == "IdleRotateLeft") character.setState(CharacterStates.IdleRotateLeft)
-						if (state == "Walk") character.setState(CharacterStates.Walk)
-						if (state == "Sprint") character.setState(CharacterStates.Sprint)
-						if (state == "StartWalkForward") character.setState(CharacterStates.StartWalkForward)
-						if (state == "StartWalkLeft") character.setState(CharacterStates.StartWalkLeft)
-						if (state == "StartWalkRight") character.setState(CharacterStates.StartWalkRight)
-						if (state == "StartWalkBackLeft") character.setState(CharacterStates.StartWalkBackLeft)
-						if (state == "StartWalkRight") character.setState(CharacterStates.StartWalkRight)
-						if (state == "EndWalk") character.setState(CharacterStates.EndWalk)
-						if (state == "JumpIdle") character.setState(CharacterStates.JumpIdle)
-						if (state == "JumpRunning") character.setState(CharacterStates.JumpRunning)
-						if (state == "Falling") character.setState(CharacterStates.Falling)
-						if (state == "DropIdle") character.setState(CharacterStates.DropIdle)
-						if (state == "DropRunning") character.setState(CharacterStates.DropRunning)
-						if (state == "DropRolling") character.setState(CharacterStates.DropRolling)
-						character.lastState = state;
-					}
+				default: {
+					console.log("Unknown Message: ", messages[id].uID)
 					break
 				}
 			}
 		})
 	}
 
+	private OnControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {
+		if (controls.sID === this.sID) return
+		let user = this.worldClient.users[controls.sID]
+		if (user !== undefined) {
+			user.inputManager.setControls(controls)
+		}
+	}
+
+	private OnScenario(scenarioName: string) {
+		this.worldClient.launchScenario(scenarioName, false)
+
+		this.worldClient.characters.forEach((char) => {
+			AttachModels.makeCharacter(char, null)
+		})
+	}
+
+	private ForControls(controls: { type: ControlsTypes, data: { [id: string]: any } }) {
+		if (this.worldClient.player !== null) {
+			this.io.emit("controls", controls)
+			this.worldClient.player.inputManager.setControls(controls)
+		}
+	}
+
+	private ForLaunchScenatio(scenarioName: string) {
+		if (this.worldClient.player !== null) this.io.emit("scenario", scenarioName)
+	}
+
 	private ForSocketLoop() {
-		if (this.player !== null) this.io.emit("update", this.player.Out())
+		if (this.worldClient.player !== null) this.io.emit("update"/* , this.worldClient.player.Out() */)
 	}
 }
 
