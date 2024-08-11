@@ -78,6 +78,7 @@ export class AttachModels {
 			character.animations.forEach((anime) => {
 				anim[anime.name] = anime.duration
 			})
+			console.log(anim)
 			if (character.world !== null) {
 				character.world.characters.forEach((char) => {
 					char.allAnim = anim

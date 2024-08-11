@@ -37,18 +37,21 @@ export class TrimeshCollider implements ICollider {
 		let indices = []
 		let vertices = []
 
-		let inxBuff = bufferGeometry.getIndex()!.array
-		let vertBuff = bufferGeometry.attributes.position.array
-		inxBuff.forEach((i) => { indices.push(i) })
-		for (let i = 0; i < inxBuff.length; i++) {
-			indices.push(inxBuff[i])
-		}
-		for (let i = 0; i < vertBuff.length; i++) {
-			vertices.push(vertBuff[i])
-		}
+		let indicesBuffer = bufferGeometry.getIndex()
+		if (indicesBuffer !== null) {
+			let inxBuff = indicesBuffer.array
+			let vertBuff = bufferGeometry.attributes.position.array
+			inxBuff.forEach((i) => { indices.push(i) })
+			for (let i = 0; i < inxBuff.length; i++) {
+				indices.push(inxBuff[i])
+			}
+			for (let i = 0; i < vertBuff.length; i++) {
+				vertices.push(vertBuff[i])
+			}
 
-		bufferGeometry.setAttribute('position', new THREE.BufferAttribute(Utils.vertInx(indices, vertices), 3))
-		bufferGeometry.computeVertexNormals()
+			bufferGeometry.setAttribute('position', new THREE.BufferAttribute(Utils.vertInx(indices, vertices), 3))
+			bufferGeometry.computeVertexNormals()
+		}
 
 		let shape = threeToCannon(this.mesh, { type: ShapeType.MESH })
 		if (shape != null) {

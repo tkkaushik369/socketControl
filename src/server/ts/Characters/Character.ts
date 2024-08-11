@@ -1002,41 +1002,41 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		let csc = this.charState.state
 		let vehicalState: { [id: string]: any } = {}
 		if (false) this
-		else if ("CloseVehicleDoorInside" == csc) {
+		else if ("CloseVehicleDoorInside" === csc) {
 			let ovd = (this.charState as VehicalState.CloseVehicleDoorInside)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		} else if ("CloseVehicleDoorOutside" == csc) {
+		} else if ("CloseVehicleDoorOutside" === csc) {
 			let ovd = (this.charState as VehicalState.CloseVehicleDoorOutside)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		} else if ("Driving" == csc) {
+		} else if ("Driving" ===csc) {
 			let ovd = (this.charState as VehicalState.Driving)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		} else if ("EnteringVehicle" == csc) {
+		} else if ("EnteringVehicle" === csc) {
 			let ovd = (this.charState as VehicalState.EnteringVehicle)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
 			vehicalState['entryPoint'] = ovd.entryPoint.userData
-		} else if ("ExitingAirplane" == csc) {
+		} else if ("ExitingAirplane" === csc) {
 			let ovd = (this.charState as VehicalState.ExitingAirplane)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		} else if ("ExitingVehicle" == csc) {
+		} else if ("ExitingVehicle" === csc) {
 			let ovd = (this.charState as VehicalState.ExitingVehicle)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		} else if ("OpenVehicleDoor" == csc) {
+		} else if ("OpenVehicleDoor" === csc) {
 			let ovd = (this.charState as VehicalState.OpenVehicleDoor)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
 			vehicalState['entryPoint'] = ovd.entryPoint.userData
-		} else if ("Sitting" == csc) {
+		} else if ("Sitting" ===csc) {
 			let ovd = (this.charState as VehicalState.Sitting)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		} else if ("SwitchingSeats" == csc) {
+		} else if ("SwitchingSeats" === csc) {
 			let ovd = (this.charState as VehicalState.SwitchingSeats)
 			vehicalState['vehical'] = ovd.fromSeat.vehicle.uID
 			vehicalState['fromSeat'] = ovd.fromSeat.seatPointObject.userData

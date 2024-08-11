@@ -14,6 +14,7 @@ import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { Character } from '../Characters/Character'
 import { Vehicle } from '../Vehicles/Vehicle'
 import { VehicleSeat } from '../Vehicles/VehicleSeat'
+import { Example } from "../Scenes/Example";
 
 export abstract class WorldBase {
 	public physicsFrameRate: number
@@ -31,15 +32,20 @@ export abstract class WorldBase {
 	public users: { [id: string]: Player } = {}
 
 	public settings: { [id: string]: any }
-	protected updatables: IUpdatable[]
+	public updatables: IUpdatable[]
 	public paths: Path[]
 	public scenarios: Scenario[]
+	public scenariosCalls: { [id: string]: any }
 	public lastScenarioID: string | null
+	public isMapGlb: boolean
+	public mapLoadFinishCallBack: Function | null
+	public maps: { [id: string]: any }
+	public lastMapID: string | null
 	public characters: Character[]
 	public vehicles: Vehicle[]
 
-	protected sceneObjects: THREE.Object3D[]
-	protected worldObjects: CANNON.Body[]
+	public sceneObjects: THREE.Object3D[]
+	public worldObjects: CANNON.Body[]
 
 	// server
 	protected updatePhysicsCallback: Function | null
@@ -50,6 +56,7 @@ export abstract class WorldBase {
 	protected doPhysics: boolean
 	public updateControlsCallBack: Function | null
 	public scenarioGUIFolderCallback: GUI | null
+	public launchMapCallback: Function | null
 	public launchScenarioCallback: Function | null
 	public boxSize: THREE.Vector3 = new THREE.Vector3()
 
@@ -87,6 +94,17 @@ export abstract class WorldBase {
 		this.paths = []
 		this.scenarios = []
 		this.lastScenarioID = null
+		this.isMapGlb = false
+		this.mapLoadFinishCallBack = null
+		this.maps = {
+			'sketchbook': () => {
+				this.launchMap('sketchbook', true, true)
+			},
+			'test': () => {
+				this.launchMap('test', true, true)
+			},
+		}
+		this.lastMapID = null
 		this.characters = []
 		this.vehicles = []
 
@@ -99,6 +117,7 @@ export abstract class WorldBase {
 		this.doPhysics = true
 		this.updateControlsCallBack = null
 		this.scenarioGUIFolderCallback = null
+		this.launchMapCallback = null
 		this.launchScenarioCallback = null
 
 		// Settings
@@ -108,13 +127,14 @@ export abstract class WorldBase {
 			// Client
 			Pointer_Lock: true,
 			Mouse_Sensitivity: 0.2,
-			Debug_Physics: false,
+			Debug_Physics: true,
 			Debug_Physics_Wireframe: true,
 			Debug_Physics_MeshOpacity: 1,
 			Debug_Physics_MeshEdges: false,
 			Debug_FPS: true,
 			Debug_Helper: true,
 		}
+		this.scenariosCalls = {}
 
 		// fog
 		let fog = new THREE.Fog(0x222222, 1000, 2000)
@@ -184,11 +204,13 @@ export abstract class WorldBase {
 	}
 
 	public addSceneObject(object: any) {
+		if (_.includes(this.sceneObjects, object)) return
 		this.sceneObjects.push(object)
 		this.scene.add(object)
 	}
 
 	public removeSceneObject(object: any) {
+		if (!_.includes(this.sceneObjects, object)) return
 		this.scene.remove(object)
 		_.pull(this.sceneObjects, object)
 	}
@@ -206,17 +228,27 @@ export abstract class WorldBase {
 	}
 
 	public isOutOfBounds(position: CANNON.Vec3): boolean {
-		/* let equi = new THREE.Vector3().copy(this.boxSize)
-		equi = equi.multiplyScalar(2)
-		let inside = position.x > -equi.x && position.x < equi.x &&
-			position.z > -equi.z && position.z < equi.z &&
-			position.y > -equi.y
-		let belowSeaLevel = position.y < equi.y */
+		let inside = true
+		let belowSeaLevel = false
 
-		let inside = position.x > -211.882 && position.x < 211.882 &&
-			position.z > -169.098 && position.z < 153.232 &&
-			position.y > 0.107
-		let belowSeaLevel = position.y < 14.989
+		switch (this.lastMapID) {
+			case 'sketchbook': {
+				inside = position.x > -211.882 && position.x < 211.882 &&
+					position.z > -169.098 && position.z < 153.232 &&
+					position.y > 0.107
+				belowSeaLevel = position.y < 14.989
+				break
+			}
+			case 'test': {
+				let equi = new THREE.Vector3().copy(this.boxSize)
+				equi = equi.multiplyScalar(2)
+				inside = position.x > -equi.x && position.x < equi.x &&
+					position.z > -equi.z && position.z < equi.z &&
+					position.y > -equi.y
+				belowSeaLevel = position.y < equi.y
+				break
+			}
+		}
 
 		return !inside && belowSeaLevel
 	}
@@ -263,12 +295,54 @@ export abstract class WorldBase {
 	}
 
 	public clearScene() {
-		this.sceneObjects.forEach((obj) => { this.removeSceneObject(obj) })
-		this.worldObjects.forEach((obj) => { this.removeWorldObject(obj) })
+		for (let i = 0; i < this.worldObjects.length; i++) {
+			this.removeWorldObject(this.worldObjects[i])
+			i--
+		}
+		for (let i = 0; i < this.sceneObjects.length; i++) {
+			this.removeSceneObject(this.sceneObjects[i])
+			i--
+		}
+		if (this.scenarioGUIFolderCallback) {
+			for (let i = 0; i < this.scenarioGUIFolderCallback.children.length; i++) {
+				this.scenarioGUIFolderCallback.children[i].destroy()
+				i--
+			}
+		}
+		Object.keys(this.scenariosCalls).forEach((key) => {
+			delete this.scenariosCalls[key]
+		})
+	}
+
+	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
+		if (isCallback) {
+			if (this.launchMapCallback !== null) {
+				this.launchMapCallback(mapID)
+			}
+		} else {
+			if (false) mapID
+			else if (mapID == 'sketchbook') {
+				this.getGLTF(this.isClient ? './models/world.glb' : './dist/server/models/world.glb.json', (gltf: any) => {
+					this.isMapGlb = true
+					this.lastMapID = 'sketchbook'
+					this.loadScene(gltf, isLaunched)
+					if (this.mapLoadFinishCallBack) this.mapLoadFinishCallBack()
+				})
+			}
+			else if (mapID == 'test') {
+				console.log("test")
+				this.isMapGlb = false
+				this.lastMapID = 'test'
+				this.loadScene(new Example().getScene(), isLaunched)
+				if (this.mapLoadFinishCallBack) this.mapLoadFinishCallBack()
+			}
+		}
 	}
 
 	public loadScene(gltf: any, isLaunmch: boolean = true) {
+		this.clearEntities(true)
 		this.clearScene()
+
 		gltf.scene.traverse((child: any) => {
 			if (child.hasOwnProperty('userData')) {
 				if (child.type === 'Mesh') {
@@ -333,7 +407,7 @@ export abstract class WorldBase {
 		} else {
 			this.lastScenarioID = scenarioID
 
-			this.clearEntities()
+			this.clearEntities(false)
 
 			// Launch default scenario
 			for (const scenario of this.scenarios) {
@@ -364,7 +438,7 @@ export abstract class WorldBase {
 		}
 	}
 
-	public clearEntities(): void {
+	public clearEntities(isClean: boolean): void {
 		for (let i = 0; i < this.characters.length; i++) {
 			this.remove(this.characters[i])
 			i--
@@ -373,6 +447,21 @@ export abstract class WorldBase {
 		for (let i = 0; i < this.vehicles.length; i++) {
 			this.remove(this.vehicles[i])
 			i--
+		}
+
+		if (isClean) {
+			for (let i = 0; i < this.scenarios.length; i++) {
+				for (let j = 0; j < this.scenarios[i].spawnPoints.length; j++) {
+					_.pull(this.scenarios[i].spawnPoints, this.scenarios[i].spawnPoints[j])
+					j--
+				}
+				this.scenarios[i].spawnPoints = []
+				_.pull(this.scenarios, this.scenarios[i])
+				i++
+			}
+			this.characters = []
+			this.vehicles = []
+			this.scenarios = []
 		}
 	}
 

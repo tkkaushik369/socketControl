@@ -26,17 +26,20 @@ export abstract class BaseScene {
 		switch (type) {
 			case 'car': {
 				switch (subtype) {
+					case 'car_test': return { scene: this.car }
 					case 'lego': return { scene: this.legocar }
 					default: return { scene: this.car }
 				}
 			}
 			case 'heli': {
 				switch (subtype) {
+					case 'heli_test': { scene: this.heli }
 					default: return { scene: this.heli }
 				}
 			}
 			case 'airplane': {
 				switch (subtype) {
+					case 'airplane_test': { scene: this.airplane }
 					default: return { scene: this.airplane }
 				}
 			}

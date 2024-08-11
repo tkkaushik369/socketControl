@@ -77,12 +77,12 @@ export class Scenario {
 	}
 
 	public createLaunchLink(): void {
-		this.world.settings[this.name] = () => {
+		this.world.scenariosCalls[this.name] = () => {
 			this.world.launchScenario(this.name, this.world.isClient)
 		}
 
 		if (this.world.scenarioGUIFolderCallback !== null) {
-			this.world.scenarioGUIFolderCallback.add(this.world.settings, this.name)
+			this.world.scenarioGUIFolderCallback.add(this.world.scenariosCalls, this.name)
 		}
 	}
 

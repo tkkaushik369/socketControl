@@ -17,7 +17,7 @@ import { Airplane } from '../server/ts/Vehicles/Airplane'
 import * as CharState from '../server/ts/Characters/CharacterStates/_CharacterStateLibrary'
 import * as VehicalState from '../server/ts/Characters/CharacterStates/Vehicles/_VehicleStateLibrary'
 import _ from 'lodash'
-
+import { Example } from '../server/ts/Scenes/Example'
 
 if (navigator.userAgent.includes('QtWebEngine')) {
 	document.body.classList.add('bodyTransparent')
@@ -39,18 +39,21 @@ export default class AppClient {
 		// bind functions
 		this.OnConnect = this.OnConnect.bind(this)
 		this.OnDisConnect = this.OnDisConnect.bind(this)
+		this.MapLoader = this.MapLoader.bind(this)
 		this.OnSetID = this.OnSetID.bind(this)
 		this.OnRemoveClient = this.OnRemoveClient.bind(this)
 		this.OnPlayers = this.OnPlayers.bind(this)
 		this.OnControls = this.OnControls.bind(this)
+		this.OnMap = this.OnMap.bind(this)
 		this.OnScenario = this.OnScenario.bind(this)
 		this.ForControls = this.ForControls.bind(this)
-		this.ForLaunchScenatio = this.ForLaunchScenatio.bind(this)
+		this.ForLaunchMap = this.ForLaunchMap.bind(this)
+		this.ForLaunchScenario = this.ForLaunchScenario.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 
 		// init
 		this.io = io()
-		this.worldClient = new WorldClient(controls, workBox, this.ForSocketLoop, this.ForLaunchScenatio)
+		this.worldClient = new WorldClient(controls, workBox, this.ForSocketLoop, this.ForLaunchMap, this.ForLaunchScenario)
 		this.sID = ""
 		this.lastUpdate = Date.now()
 
@@ -61,6 +64,7 @@ export default class AppClient {
 		this.io.on("removeClient", this.OnRemoveClient);
 		this.io.on("players", this.OnPlayers);
 		this.io.on("controls", this.OnControls);
+		this.io.on("map", this.OnMap);
 		this.io.on("scenario", this.OnScenario);
 	}
 
@@ -85,16 +89,197 @@ export default class AppClient {
 		})
 	}
 
+	private MapLoader() {
+		if (false) {
+			this.worldClient.paths.forEach((path) => {
+				Object.keys(path.nodes).forEach((nID) => {
+					path.nodes[nID].object.add(AttachModels.makePointHighlight(0.2))
+				})
+			})
+			this.worldClient.vehicles.forEach((vehi) => {
+				vehi.seats.forEach((seat) => {
+					seat.entryPoints.forEach((ep) => {
+						ep.add(AttachModels.makePointHighlight(0.2))
+					})
+				})
+			})
+		}
+
+		this.worldClient.scene.traverse((obj) => {
+			if (obj.hasOwnProperty('userData')) {
+				if (obj.userData.hasOwnProperty('debug')) {
+					if (obj.userData.debug) {
+						obj.visible = true;
+						const textureLoader = new THREE.TextureLoader();
+						const texture = textureLoader.load(
+							'./images/uv-test-bw.jpg',
+						);
+						let mat = new THREE.MeshStandardMaterial({ map: texture });
+						console.log(obj.hasOwnProperty("isMesh"));
+						(obj as THREE.Mesh).material = mat
+						// this.worldClient.scene.add(new VertexNormalsHelper(obj, 0.1, 0x00ff00))
+					}
+				}
+			}
+		})
+
+
+		let lp = new LDrawLoader()
+		this.worldClient.vehicles.forEach((vehi) => {
+			if (vehi.uID == 'legocar') {
+				vehi.remove(vehi.modelContainer)
+				vehi.modelContainer = new THREE.Group()
+				lp.load('./models/car.mpd', (obj) => {
+					let scale = 0.01
+					obj.scale.set(scale, scale, scale)
+					obj.position.set(0, -0.22, 0)
+					obj.rotateX(Math.PI)
+					vehi.modelContainer.add(obj)
+					vehi.add(vehi.modelContainer)
+
+					let wheels: THREE.Object3D[] = []
+					let isfl = true
+					let isfr = true
+					let isbl = true
+					let isbr = true
+					let wheelFL: any = null
+					let wheelFR: any = null
+					let wheelBL: any = null
+					let wheelBR: any = null
+					let owFL: any = null
+					let owFR: any = null
+					let owBL: any = null
+					let owBR: any = null
+					let chair: any = null
+					let stearing: any = null
+					obj.traverse((o) => {
+						if (o.hasOwnProperty('userData')) {
+							if (o.userData.hasOwnProperty('keywords')) {
+								if (_.includes(o.userData.keywords, 'Tire')) {
+									wheels.push(o)
+								}
+								if (_.includes(o.userData.keywords, 'chair')) {
+									chair = o
+								}
+							}
+							if (o.userData.hasOwnProperty('fileName')) {
+								if (o.userData.fileName === "parts/3828.dat") {
+									stearing = o
+								}
+							}
+						}
+					})
+
+					vehi.wheels.forEach((wheel) => {
+						let fl = "wheel_fl"
+						let fr = "wheel_fr"
+						let bl = "wheel_bl"
+						let br = "wheel_br"
+						if (wheel.wheelObject.userData.name == fl) {
+							if (isfl) {
+								wheelFL = wheel
+								owFL = wheels[0]
+								isfl = false
+							}
+						}
+						if (wheel.wheelObject.userData.name == fr) {
+							if (isfr) {
+								wheelFR = wheel
+								owFR = wheels[1]
+								isfr = false
+							}
+						}
+						if (wheel.wheelObject.userData.name == bl) {
+							if (isbl) {
+								wheelBL = wheel
+								owBL = wheels[2]
+								isbl = false
+							}
+						}
+						if (wheel.wheelObject.userData.name == br) {
+							if (isbr) {
+								wheelBR = wheel
+								owBR = wheels[3]
+								isbr = false
+							}
+						}
+					})
+
+					if ((wheelFL !== null) && (owFL !== null)) {
+						this.worldClient.scene.remove(wheelFL.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelFL.wheelObject = offset
+						offset.attach(owFL)
+						owFL.position.set(0, 0, 0)
+						owFL.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					if ((wheelFR !== null) && (owFR !== null)) {
+						this.worldClient.scene.remove(wheelFR.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelFR.wheelObject = offset
+						offset.attach(owFR)
+						owFR.position.set(0, 0, 0)
+						owFR.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					if ((wheelBL !== null) && (owBL !== null)) {
+						this.worldClient.scene.remove(wheelBL.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelBL.wheelObject = offset
+						offset.attach(owBL)
+						owBL.position.set(0, 0, 0)
+						owBL.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					if ((wheelBR !== null) && (owBR !== null)) {
+						this.worldClient.scene.remove(wheelBR.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelBR.wheelObject = offset
+						offset.attach(owBR)
+						owBR.position.set(0, 0, 0)
+						owBR.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					/* if (vehi.seats.length > 0) {
+						this.worldClient.scene.remove(vehi.seats[0].seatPointObject)
+						let offset = new THREE.Object3D()
+						Utils.setDefaults(offset.userData, vehi.seats[0].seatPointObject.userData)
+						this.worldClient.scene.add(offset)
+						vehi.seats[0].seatPointObject = chair
+						offset.attach(chair)
+						chair.position.set(0, 0, 0)
+						chair.rotation.set(0, Math.PI / 2, 0)
+					} */
+
+					let stterObj = (vehi as Car).steeringWheel
+					if ((stterObj !== null) && (stearing !== null)) {
+						// this.worldClient.scene.remove(stterObj)
+						let offset = new THREE.Object3D()
+						vehi.add(offset);
+						(vehi as Car).steeringWheel = offset
+						offset.position.set(0, 0.228, 0.3)
+						offset.rotation.set(Math.PI / 5, 0, 0)
+						offset.attach(stearing)
+						stearing.position.set(0, 0, 0)
+						stearing.rotation.x += 0.0001
+					}
+				})
+			}
+		})
+	}
+
 	private OnSetID(message: any, callBack: Function) {
-		this.worldClient.getGLTF('./models/world.glb', (gltf: any) => {
-			this.worldClient.loadScene(gltf, false)
-
-
+		let caller = () => {
 			this.worldClient.launchScenario(message.lastScenarioID, false)
 			this.worldClient.player = new Player(message.sID, this.worldClient, this.worldClient.camera, this.worldClient.renderer.domElement)
 			this.worldClient.player.setUID("Player_" + message.count)
 			this.sID = this.worldClient.player.sID
-
+			
 			// Initialization
 			this.worldClient.player.inputManager.controlsCallBack = this.ForControls
 			this.worldClient.player.cameraOperator.camera.add(AttachModels.makeCamera())
@@ -102,194 +287,19 @@ export default class AppClient {
 			this.worldClient.player.cameraOperator.camera.visible = false
 			this.worldClient.scene.add(this.worldClient.player.cameraOperator.camera)
 			this.worldClient.player.addUser()
-
+			
 			console.log(`Username: ${this.worldClient.player.uID}`)
 			this.worldClient.users[this.worldClient.player.sID] = this.worldClient.player
-			if (false) {
-				this.worldClient.paths.forEach((path) => {
-					Object.keys(path.nodes).forEach((nID) => {
-						path.nodes[nID].object.add(AttachModels.makePointHighlight(0.2))
-					})
-				})
-				this.worldClient.vehicles.forEach((vehi) => {
-					vehi.seats.forEach((seat) => {
-						seat.entryPoints.forEach((ep) => {
-							ep.add(AttachModels.makePointHighlight(0.2))
-						})
-					})
-				})
-			}
+
 			this.worldClient.characters.forEach((char) => {
 				AttachModels.makeCharacter(char, (char === this.worldClient.player!.character) ? callBack : null)
 			})
+			
+			this.MapLoader()
+		}
 
-			this.worldClient.scene.traverse((obj) => {
-				if (obj.hasOwnProperty('userData')) {
-					if (obj.userData.hasOwnProperty('debug')) {
-						if (obj.userData.debug) {
-							obj.visible = true;
-							const textureLoader = new THREE.TextureLoader();
-							const texture = textureLoader.load(
-								'./images/uv-test-bw.jpg',
-							);
-							let mat = new THREE.MeshStandardMaterial({ map: texture });
-							console.log(obj.hasOwnProperty("isMesh"));
-							(obj as THREE.Mesh).material = mat
-							// this.worldClient.scene.add(new VertexNormalsHelper(obj, 0.1, 0x00ff00))
-						}
-					}
-				}
-			})
-
-			let lp = new LDrawLoader()
-			this.worldClient.vehicles.forEach((vehi) => {
-				if (vehi.uID == 'legocar') {
-					vehi.remove(vehi.modelContainer)
-					vehi.modelContainer = new THREE.Group()
-					lp.load('./models/car.mpd', (obj) => {
-						let scale = 0.01
-						obj.scale.set(scale, scale, scale)
-						obj.position.set(0, -0.22, 0)
-						obj.rotateX(Math.PI)
-						vehi.modelContainer.add(obj)
-						vehi.add(vehi.modelContainer)
-
-						let wheels: THREE.Object3D[] = []
-						let isfl = true
-						let isfr = true
-						let isbl = true
-						let isbr = true
-						let wheelFL: any = null
-						let wheelFR: any = null
-						let wheelBL: any = null
-						let wheelBR: any = null
-						let owFL: any = null
-						let owFR: any = null
-						let owBL: any = null
-						let owBR: any = null
-						let chair: any = null
-						let stearing: any = null
-						obj.traverse((o) => {
-							if (o.hasOwnProperty('userData')) {
-								if (o.userData.hasOwnProperty('keywords')) {
-									if (_.includes(o.userData.keywords, 'Tire')) {
-										wheels.push(o)
-									}
-									if (_.includes(o.userData.keywords, 'chair')) {
-										chair = o
-									}
-								}
-								if (o.userData.hasOwnProperty('fileName')) {
-									if (o.userData.fileName === "parts/3828.dat") {
-										stearing = o
-									}
-								}
-							}
-						})
-
-						vehi.wheels.forEach((wheel) => {
-							let fl = "wheel_fl"
-							let fr = "wheel_fr"
-							let bl = "wheel_bl"
-							let br = "wheel_br"
-							if (wheel.wheelObject.userData.name == fl) {
-								if (isfl) {
-									wheelFL = wheel
-									owFL = wheels[0]
-									isfl = false
-								}
-							}
-							if (wheel.wheelObject.userData.name == fr) {
-								if (isfr) {
-									wheelFR = wheel
-									owFR = wheels[1]
-									isfr = false
-								}
-							}
-							if (wheel.wheelObject.userData.name == bl) {
-								if (isbl) {
-									wheelBL = wheel
-									owBL = wheels[2]
-									isbl = false
-								}
-							}
-							if (wheel.wheelObject.userData.name == br) {
-								if (isbr) {
-									wheelBR = wheel
-									owBR = wheels[3]
-									isbr = false
-								}
-							}
-						})
-
-						if ((wheelFL !== null) && (owFL !== null)) {
-							this.worldClient.scene.remove(wheelFL.wheelObject)
-							let offset = new THREE.Object3D()
-							this.worldClient.scene.add(offset)
-							wheelFL.wheelObject = offset
-							offset.attach(owFL)
-							owFL.position.set(0, 0, 0)
-							owFL.rotation.set(0, Math.PI / 2, 0)
-						}
-
-						if ((wheelFR !== null) && (owFR !== null)) {
-							this.worldClient.scene.remove(wheelFR.wheelObject)
-							let offset = new THREE.Object3D()
-							this.worldClient.scene.add(offset)
-							wheelFR.wheelObject = offset
-							offset.attach(owFR)
-							owFR.position.set(0, 0, 0)
-							owFR.rotation.set(0, Math.PI / 2, 0)
-						}
-
-						if ((wheelBL !== null) && (owBL !== null)) {
-							this.worldClient.scene.remove(wheelBL.wheelObject)
-							let offset = new THREE.Object3D()
-							this.worldClient.scene.add(offset)
-							wheelBL.wheelObject = offset
-							offset.attach(owBL)
-							owBL.position.set(0, 0, 0)
-							owBL.rotation.set(0, Math.PI / 2, 0)
-						}
-
-						if ((wheelBR !== null) && (owBR !== null)) {
-							this.worldClient.scene.remove(wheelBR.wheelObject)
-							let offset = new THREE.Object3D()
-							this.worldClient.scene.add(offset)
-							wheelBR.wheelObject = offset
-							offset.attach(owBR)
-							owBR.position.set(0, 0, 0)
-							owBR.rotation.set(0, Math.PI / 2, 0)
-						}
-
-						/* if (vehi.seats.length > 0) {
-							this.worldClient.scene.remove(vehi.seats[0].seatPointObject)
-							let offset = new THREE.Object3D()
-							Utils.setDefaults(offset.userData, vehi.seats[0].seatPointObject.userData)
-							this.worldClient.scene.add(offset)
-							vehi.seats[0].seatPointObject = chair
-							offset.attach(chair)
-							chair.position.set(0, 0, 0)
-							chair.rotation.set(0, Math.PI / 2, 0)
-						} */
-
-						let stterObj = (vehi as Car).steeringWheel
-						console.log((stterObj !== null), (stearing !== null))
-						if ((stterObj !== null) && (stearing !== null)) {
-							// this.worldClient.scene.remove(stterObj)
-							let offset = new THREE.Object3D()
-							vehi.add(offset);
-							(vehi as Car).steeringWheel = offset
-							offset.position.set(0, 0.228, 0.3)
-							offset.rotation.set(Math.PI / 5, 0, 0)
-							offset.attach(stearing)
-							stearing.position.set(0, 0, 0)
-							stearing.rotation.x += 0.0001
-						}
-					})
-				}
-			})
-		})
+		this.worldClient.mapLoadFinishCallBack = caller;
+		this.worldClient.launchMap(message.lastMapID, false, false)
 	}
 
 	private OnRemoveClient(sID: string) {
@@ -541,8 +551,6 @@ export default class AppClient {
 								if (isError === null)
 									char.charState.onInputChange()
 								else console.log(isError)
-								/* if(char.cs.name !== messages[id].data.cs.name)
-									char.setAnimation(messages[id].data.cs.name, messages[id].data.cs.duration) */
 							}
 						}
 					})
@@ -585,7 +593,7 @@ export default class AppClient {
 								messages[id].data.vehicleQuaternion.z,
 								messages[id].data.vehicleQuaternion.w,
 							)
-							
+
 							switch (messages[id].data.entity) {
 								case EntityType.Airplane: {
 									for (let i = 0; i < messages[id].data.wheels.length; i++) {
@@ -747,6 +755,18 @@ export default class AppClient {
 		})
 	}
 
+	private OnMap(mapName: string) {
+		let caller = () => {
+			this.worldClient.characters.forEach((char) => {
+				AttachModels.makeCharacter(char, null)
+			})
+
+			this.MapLoader()
+		}
+		this.worldClient.mapLoadFinishCallBack = caller
+		this.worldClient.launchMap(mapName, false, true)
+	}
+
 	private ForControls(controls: { type: ControlsTypes, data: { [id: string]: any } }) {
 		if (this.worldClient.player !== null) {
 			this.io.emit("controls", controls)
@@ -754,7 +774,11 @@ export default class AppClient {
 		}
 	}
 
-	private ForLaunchScenatio(scenarioName: string) {
+	private ForLaunchMap(mapName: string) {
+		if (this.worldClient.player !== null) this.io.emit("map", mapName)
+	}
+
+	private ForLaunchScenario(scenarioName: string) {
 		if (this.worldClient.player !== null) this.io.emit("scenario", scenarioName)
 	}
 

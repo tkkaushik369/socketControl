@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { WorldBase } from "./WorldBase";
-import { Example } from "../Scenes/Example";
 import { JSDOM } from 'jsdom'
 import fs from 'fs'
 
@@ -12,8 +11,6 @@ export class WorldServer extends WorldBase {
 
 		// init
 		this.updatePhysicsCallback = updatePhysicsCallback
-
-		// this.loadScene(new Example().getScene())
 	}
 
 	public getGLTF(path: string, callback: Function) {

@@ -68,7 +68,7 @@ export class Player implements INetwork {
 			data: "spawn",
 			type: "player",
 		}
-		spawnPlayer.position.set(3, 15, 5)
+		spawnPlayer.position.set(0, 17, -5)
 
 		this.spawnPoint = new CharacterSpawnPoint(spawnPlayer, spawnPlayer.userData)
 	}

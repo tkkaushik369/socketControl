@@ -340,6 +340,7 @@ export class Example extends BaseScene {
 						spawnVehical.userData = {
 							data: "spawn",
 							type: "car",
+							subtype: "car_test",
 							name: "car",
 						}
 						scenario2.add(spawnVehical)
@@ -351,6 +352,7 @@ export class Example extends BaseScene {
 						spawnVehical.userData = {
 							data: "spawn",
 							type: "car",
+							subtype: "car_test",
 							name: "car_ai",
 							driver: "ai",
 							first_node: "node1"
@@ -376,6 +378,7 @@ export class Example extends BaseScene {
 						spawnVehical.userData = {
 							data: "spawn",
 							type: "heli",
+							subtype: "heli_test",
 							name: "heli",
 						}
 						scenario2.add(spawnVehical)
@@ -388,6 +391,7 @@ export class Example extends BaseScene {
 						spawnVehical.userData = {
 							data: "spawn",
 							type: "heli",
+							subtype: "heli_test",
 							name: "heli_ramp",
 						}
 						scenario2.add(spawnVehical)
@@ -399,6 +403,7 @@ export class Example extends BaseScene {
 						spawnVehical.userData = {
 							data: "spawn",
 							type: "airplane",
+							subtype: "airplane_test",
 							name: "airplane",
 						}
 						scenario2.add(spawnVehical)

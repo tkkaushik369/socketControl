@@ -4,7 +4,6 @@ import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { WorldBase } from '../../../server/ts/World/WorldBase'
 import { CannonDebugRenderer } from '../Utils/CannonDebugRenderer'
-import { Example } from '../../../server/ts/Scenes/Example'
 import { AttachModels } from '../Utils/AttachModels'
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
@@ -19,10 +18,11 @@ export class WorldClient extends WorldBase {
 	public stats: Stats
 	public networkStats: Stats.Panel
 	private gui: GUI
+	private mapGUIFolder: GUI
 	private scenarioGUIFolder: GUI
-	private cannonDebugRenderer: CannonDebugRenderer
+	public cannonDebugRenderer: CannonDebugRenderer
 
-	constructor(controlsDom: HTMLDivElement, parentDom: HTMLDivElement, updatateCallback: Function, launchScenarioCallback: Function) {
+	constructor(controlsDom: HTMLDivElement, parentDom: HTMLDivElement, updatateCallback: Function, launchMapCallback: Function, launchScenarioCallback: Function) {
 		super()
 
 		// functions bind
@@ -46,6 +46,7 @@ export class WorldClient extends WorldBase {
 		this.updatePhysicsCallback = updatateCallback
 		this.isClient = true
 		this.updateControlsCallBack = this.updateControls
+		this.launchMapCallback = launchMapCallback
 		this.launchScenarioCallback = launchScenarioCallback
 
 		// Renderer
@@ -100,11 +101,16 @@ export class WorldClient extends WorldBase {
 		inputFolder.open()
 		folderSettings.close()
 
+		// Maps
+		this.mapGUIFolder = this.gui.addFolder('Maps')
+		Object.keys(this.maps).forEach((key) => {
+			this.mapGUIFolder.add(this.maps, key)
+		})
+		this.mapGUIFolder.open()
+
+		// Scenarios
 		this.scenarioGUIFolder = this.gui.addFolder('Scenarios')
 		this.scenarioGUIFolderCallback = this.scenarioGUIFolder
-
-		// this.loadScene(new Example().getScene())
-		// this.getGLTF('./models/world.glb', this.loadScene)
 
 		// Resize
 		window.addEventListener('resize', this.onWindowResize, false)
@@ -121,7 +127,7 @@ export class WorldClient extends WorldBase {
 			this.timeScaleFunc(this.settings.Time_Scale)
 		}
 
-		if (false) {
+		if (true) {
 			this.scene.add(AttachModels.makePointHighlight())
 		}
 	}

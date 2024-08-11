@@ -34,6 +34,7 @@ class AppServer {
 		this.OnDisConnect = this.OnDisConnect.bind(this)
 		this.OnUpdate = this.OnUpdate.bind(this)
 		this.OnControls = this.OnControls.bind(this)
+		this.OnMap = this.OnMap.bind(this)
 		this.OnScenario = this.OnScenario.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 
@@ -45,12 +46,16 @@ class AppServer {
 		this.server = new http.Server(app)
 		this.io = new Server(this.server)
 		this.worldServer = new WorldServer(this.ForSocketLoop)
-		this.worldServer.getGLTF('./dist/server/models/world.glb.json', this.worldServer.loadScene)
+
+		// this.worldServer.maps['test']();
+		// this.worldServer.maps['sketchbook']();
+		this.worldServer.launchMap('sketchbook', false, true)
 
 		this.io.on("connection", (socket: Socket) => {
 			this.OnConnect(socket)
 			socket.on("disconnect", () => this.OnDisConnect(socket))
 			socket.on("controls", (controls: { type: ControlsTypes, data: { [id: string]: any } }) => this.OnControls(socket, controls))
+			socket.on("map", (mapName: string) => this.OnMap(socket, mapName))
 			socket.on("scenario", (scenarioName: string) => this.OnScenario(socket, scenarioName))
 			socket.on("update", (message: any) => this.OnUpdate(socket, message))
 		})
@@ -63,7 +68,8 @@ class AppServer {
 		socket.emit("setID", {
 			sID: this.worldServer.users[socket.id].sID,
 			count: (this.uid++).toString(),
-			lastScenarioID: this.worldServer.lastScenarioID
+			lastScenarioID: this.worldServer.lastScenarioID,
+			lastMapID: this.worldServer.lastMapID,
 		}, (userName: string, anime: { [id: string]: number }) => {
 			this.worldServer.users[socket.id].setUID(userName)
 			this.worldServer.users[socket.id].addUser()
@@ -102,6 +108,12 @@ class AppServer {
 			controls['sID'] = socket.id;
 			this.io.emit('controls', controls)
 		}
+	}
+
+	private OnMap(socket: Socket, mapName: string) {
+		console.log(`Map: ${mapName}`)
+		this.worldServer.launchMap(mapName, false, true)
+		this.io.emit("map", mapName)
 	}
 
 	private OnScenario(socket: Socket, scenarioName: string) {

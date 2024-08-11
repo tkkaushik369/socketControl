@@ -48,9 +48,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 	public spawn(world: WorldBase) {
 		if (this.type === null) return
 		const type: string = this.type
-		world.getGLTF(((world.isClient) ? './models/' : './dist/server/models/') + type + ((world.isClient) ? '.glb' : '.glb.json'), (gltf: any) => {
-			let model = gltf
-			// let model = new Example().getVehical(type, this.subtype)
+		let caller = (model: any): Vehicle => {
 			let vehicle: Vehicle = this.getNewVehicleByType(model)
 			vehicle.uID = this.userData.name
 			vehicle.spawnPoint = this.object
@@ -99,13 +97,24 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 				}
 			}
 			return vehicle
-		})
+		}
+
+		if (world.isMapGlb) {
+			world.getGLTF(((world.isClient) ? './models/' : './dist/server/models/') + type + ((world.isClient) ? '.glb' : '.glb.json'), (gltf: any) => {
+				let model = gltf
+				return caller(model)
+			})
+		} else {
+			let model = new Example().getVehical(type, this.subtype)
+			return caller(model)
+		}
 	}
 
 	private getNewVehicleByType(model: any): Vehicle {
 		switch (this.type) {
 			case 'car': {
 				switch (this.subtype) {
+					case 'car_test': return new Car(model)
 					case 'lego': {
 						let vehicle = new Car(model, 40)
 						vehicle.engineForce = 300
@@ -119,11 +128,13 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			}
 			case 'heli': {
 				switch (this.subtype) {
+					case 'heli_test': return new Helicopter(model)
 					default: return new Helicopter(model)
 				}
 			}
 			case 'airplane': {
 				switch (this.subtype) {
+					case 'airplane_test': return new Airplane(model)
 					default: return new Airplane(model)
 				}
 			}
