@@ -1,4 +1,5 @@
 export abstract class CharacterAIBase {
+	state = 'CharacterAIBase'
 	currentCharacterControl: { action: string, isPressed: boolean }
 	currentVehicalControl: { action: string, isPressed: boolean }
 

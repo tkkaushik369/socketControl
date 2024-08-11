@@ -11,6 +11,8 @@ import * as Utils from '../../../Core/FunctionLibrary'
 import { SpringSimulator } from '../../../Physics/SpringSimulation/SpringSimulator'
 
 export class OpenVehicleDoor extends CharacterStateBase {
+	state = 'OpenVehicleDoor'
+
 	public seat: VehicleSeat
 	public entryPoint: THREE.Object3D
 	private hasOpenedDoor: boolean = false

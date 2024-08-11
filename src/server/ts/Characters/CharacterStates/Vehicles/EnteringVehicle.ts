@@ -16,6 +16,7 @@ import { SpringSimulator } from '../../../Physics/SpringSimulation/SpringSimulat
 import { Vehicle } from '../../../Vehicles/Vehicle'
 
 export class EnteringVehicle extends CharacterStateBase {
+	state = 'EnteringVehicle'
 	public vehicle: Vehicle
 	private animData: any
 	public seat: VehicleSeat

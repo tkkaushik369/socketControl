@@ -6,6 +6,7 @@ import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
 export class JumpRunning extends CharacterStateBase implements ICharacterState {
+	state = 'JumpRunning'
 	private alreadyJumped: boolean
 
 	constructor(character: Character) {

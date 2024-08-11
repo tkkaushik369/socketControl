@@ -8,6 +8,7 @@ import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
 export class IdleRotateLeft extends CharacterStateBase implements ICharacterState {
+	state = 'IdleRotateLeft'
 	constructor(character: Character) {
 		super(character)
 		// bind functions

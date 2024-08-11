@@ -15,6 +15,8 @@ import {
 } from '../_CharacterStateLibrary'
 
 export class ExitingVehicle extends ExitingStateBase {
+	state = 'ExitingVehicle'
+
 	constructor(character: Character, seat: VehicleSeat) {
 		super(character, seat)
 		// bind functions

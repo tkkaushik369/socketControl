@@ -10,6 +10,7 @@ import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { SeatType } from '../../../Enums/SeatType'
 
 export class Sitting extends CharacterStateBase {
+	state = 'Sitting'
 	public seat: VehicleSeat
 
 	constructor(character: Character, seat: VehicleSeat) {

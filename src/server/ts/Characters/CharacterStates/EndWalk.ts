@@ -9,6 +9,8 @@ import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
 export class EndWalk extends CharacterStateBase implements ICharacterState {
+	
+	state = 'EndWalk'
 	constructor(character: Character) {
 		super(character)
 		// bind function

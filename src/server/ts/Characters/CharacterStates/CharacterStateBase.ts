@@ -16,6 +16,7 @@ import { Character } from '../Character'
 import { ICharacterState } from '../../Interfaces/ICharacterState'
 
 export abstract class CharacterStateBase implements ICharacterState {
+	state = 'CharacterStateBase'
 	public character: Character
 	public timer: number
 	public animationLength: any

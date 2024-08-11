@@ -7,6 +7,7 @@ import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
 export class DropRolling extends CharacterStateBase implements ICharacterState {
+	state = 'DropRolling'
 	constructor(character: Character) {
 		super(character)
 		// bind function

@@ -11,6 +11,7 @@ import {
 import { Character } from '../Character'
 
 export class StartWalkBase extends CharacterStateBase {
+	state = 'StartWalkBase'
 	constructor(character: Character) {
 		super(character)
 		// bind function

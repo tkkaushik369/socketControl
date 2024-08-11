@@ -2,10 +2,9 @@
 	"name": "socketcontrol",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.js",
 	"scripts": {
 		"setup": "npm install && npm fund && npm run build",
-		"build": "webpack --config ./src/webpack.dev.js && tsc -p ./src/server",
+		"build": "webpack --config ./src/webpack.prod.js && tsc -p ./src/server",
 		"dev": "concurrently -k \"tsc -p ./src/server -w\" \"nodemon ./dist/server/server.js\" \"webpack serve --config ./src/webpack.dev.js\"",
 		"start": "node ./dist/server/server.js",
 		"test": "echo \"Error: no test specified\" && exit 1"

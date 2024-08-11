@@ -393,30 +393,29 @@ export default class AppClient {
 									char.controlledObject.triggerAction(messages[id].data.AiData.controlledObject.action, messages[id].data.AiData.controlledObject.isPressed)
 							}
 
-							if (char.charState.constructor.name !== messages[id].data.charState) {
-								console.log(char.uID, messages[id].data.charState)
+							if (char.charState.state !== messages[id].data.charState) {
 								let isError = null
 								// CharacterStates
 								if (false) char
-								else if (CharState.DropIdle.name === messages[id].data.charState) char.setState(new CharState.DropIdle(char), false)
-								else if (CharState.DropRolling.name === messages[id].data.charState) char.setState(new CharState.DropRolling(char), false)
-								else if (CharState.DropRunning.name === messages[id].data.charState) char.setState(new CharState.DropRunning(char), false)
-								else if (CharState.EndWalk.name === messages[id].data.charState) char.setState(new CharState.EndWalk(char), false)
-								else if (CharState.Falling.name === messages[id].data.charState) char.setState(new CharState.Falling(char), false)
-								else if (CharState.Idle.name === messages[id].data.charState) char.setState(new CharState.Idle(char), false)
-								else if (CharState.IdleRotateLeft.name === messages[id].data.charState) char.setState(new CharState.IdleRotateLeft(char), false)
-								else if (CharState.IdleRotateRight.name === messages[id].data.charState) char.setState(new CharState.IdleRotateRight(char), false)
-								else if (CharState.JumpIdle.name === messages[id].data.charState) char.setState(new CharState.JumpIdle(char), false)
-								else if (CharState.JumpRunning.name === messages[id].data.charState) char.setState(new CharState.JumpRunning(char), false)
-								else if (CharState.Sprint.name === messages[id].data.charState) char.setState(new CharState.Sprint(char), false)
-								else if (CharState.StartWalkBackLeft.name === messages[id].data.charState) char.setState(new CharState.StartWalkBackLeft(char), false)
-								else if (CharState.StartWalkBackRight.name === messages[id].data.charState) char.setState(new CharState.StartWalkBackRight(char), false)
-								else if (CharState.StartWalkForward.name === messages[id].data.charState) char.setState(new CharState.StartWalkForward(char), false)
-								else if (CharState.StartWalkLeft.name === messages[id].data.charState) char.setState(new CharState.StartWalkLeft(char), false)
-								else if (CharState.StartWalkRight.name === messages[id].data.charState) char.setState(new CharState.StartWalkRight(char), false)
-								else if (CharState.Walk.name === messages[id].data.charState) char.setState(new CharState.Walk(char), false)
+								else if ("DropIdle" === messages[id].data.charState) char.setState(new CharState.DropIdle(char), false)
+								else if ("DropRolling" === messages[id].data.charState) char.setState(new CharState.DropRolling(char), false)
+								else if ("DropRunning" === messages[id].data.charState) char.setState(new CharState.DropRunning(char), false)
+								else if ("EndWalk" === messages[id].data.charState) char.setState(new CharState.EndWalk(char), false)
+								else if ("Falling" === messages[id].data.charState) char.setState(new CharState.Falling(char), false)
+								else if ("Idle" === messages[id].data.charState) char.setState(new CharState.Idle(char), false)
+								else if ("IdleRotateLeft" === messages[id].data.charState) char.setState(new CharState.IdleRotateLeft(char), false)
+								else if ("IdleRotateRight" === messages[id].data.charState) char.setState(new CharState.IdleRotateRight(char), false)
+								else if ("JumpIdle" === messages[id].data.charState) char.setState(new CharState.JumpIdle(char), false)
+								else if ("JumpRunning" === messages[id].data.charState) char.setState(new CharState.JumpRunning(char), false)
+								else if ("Sprint" === messages[id].data.charState) char.setState(new CharState.Sprint(char), false)
+								else if ("StartWalkBackLeft" === messages[id].data.charState) char.setState(new CharState.StartWalkBackLeft(char), false)
+								else if ("StartWalkBackRight" === messages[id].data.charState) char.setState(new CharState.StartWalkBackRight(char), false)
+								else if ("StartWalkForward" === messages[id].data.charState) char.setState(new CharState.StartWalkForward(char), false)
+								else if ("StartWalkLeft" === messages[id].data.charState) char.setState(new CharState.StartWalkLeft(char), false)
+								else if ("StartWalkRight" === messages[id].data.charState) char.setState(new CharState.StartWalkRight(char), false)
+								else if ("Walk" === messages[id].data.charState) char.setState(new CharState.Walk(char), false)
 								// VehicalStates
-								else if (VehicalState.CloseVehicleDoorInside.name === messages[id].data.charState) {
+								else if ("CloseVehicleDoorInside" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
@@ -428,7 +427,7 @@ export default class AppClient {
 									} else {
 										isError = "CloseVehicleDoorInside Failed"
 									}
-								} else if (VehicalState.CloseVehicleDoorOutside.name === messages[id].data.charState) {
+								} else if ("CloseVehicleDoorOutside" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
@@ -440,7 +439,7 @@ export default class AppClient {
 									} else {
 										isError = "CloseVehicleDoorOutside Failed"
 									}
-								} else if (VehicalState.Driving.name === messages[id].data.charState) {
+								} else if ("Driving" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
@@ -452,7 +451,7 @@ export default class AppClient {
 									} else {
 										isError = "Driving Failed"
 									}
-								} else if (VehicalState.EnteringVehicle.name === messages[id].data.charState) {
+								} else if ("EnteringVehicle" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let entryPoint: THREE.Object3D | null = null
 									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
@@ -469,7 +468,7 @@ export default class AppClient {
 									} else {
 										isError = "EnteringVehicle Failed"
 									}
-								} else if (VehicalState.ExitingAirplane.name === messages[id].data.charState) {
+								} else if ("ExitingAirplane" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
@@ -481,7 +480,7 @@ export default class AppClient {
 									} else {
 										isError = "ExitingAirplane Failed"
 									}
-								} else if (VehicalState.ExitingVehicle.name === messages[id].data.charState) {
+								} else if ("ExitingVehicle" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
@@ -493,7 +492,7 @@ export default class AppClient {
 									} else {
 										isError = "ExitingVehicle Failed"
 									}
-								} else if (VehicalState.OpenVehicleDoor.name === messages[id].data.charState) {
+								} else if ("OpenVehicleDoor" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let entryPoint: THREE.Object3D | null = null
 									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
@@ -510,7 +509,7 @@ export default class AppClient {
 									} else {
 										isError = "OpenVehicleDoor Failed"
 									}
-								} else if (VehicalState.Sitting.name === messages[id].data.charState) {
+								} else if ("Sitting" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
@@ -522,7 +521,7 @@ export default class AppClient {
 									} else {
 										isError = "Sitting Failed"
 									}
-								} else if (VehicalState.SwitchingSeats.name === messages[id].data.charState) {
+								} else if ("SwitchingSeats" === messages[id].data.charState) {
 									let fromSeat: VehicleSeat | null = null
 									let toSeat: VehicleSeat | null = null
 									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)

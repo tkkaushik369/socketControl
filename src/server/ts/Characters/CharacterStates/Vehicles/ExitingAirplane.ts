@@ -7,6 +7,7 @@ import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 
 export class ExitingAirplane extends ExitingStateBase {
+	state = 'ExitingAirplane'
 
 	constructor(character: Character, seat: VehicleSeat) {
 		super(character, seat)

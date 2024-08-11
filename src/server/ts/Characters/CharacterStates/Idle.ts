@@ -7,6 +7,7 @@ import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
 export class Idle extends CharacterStateBase implements ICharacterState {
+	state = 'Idle'
 	constructor(character: Character) {
 		super(character)
 		// bind functions

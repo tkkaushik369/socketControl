@@ -999,51 +999,44 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		let newPos = new THREE.Vector3()
 		this.getWorldPosition(newPos)
 
-		let csc = this.charState.constructor.name
+		let csc = this.charState.state
 		let vehicalState: { [id: string]: any } = {}
 		if (false) this
-		else if (VehicalState.CloseVehicleDoorInside.name == csc) {
+		else if ("CloseVehicleDoorInside" == csc) {
 			let ovd = (this.charState as VehicalState.CloseVehicleDoorInside)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		}
-		else if (VehicalState.CloseVehicleDoorOutside.name == csc) {
+		} else if ("CloseVehicleDoorOutside" == csc) {
 			let ovd = (this.charState as VehicalState.CloseVehicleDoorOutside)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		}
-		else if (VehicalState.Driving.name == csc) {
+		} else if ("Driving" == csc) {
 			let ovd = (this.charState as VehicalState.Driving)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		}
-		else if (VehicalState.EnteringVehicle.name == csc) {
+		} else if ("EnteringVehicle" == csc) {
 			let ovd = (this.charState as VehicalState.EnteringVehicle)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
 			vehicalState['entryPoint'] = ovd.entryPoint.userData
-		}
-		else if (VehicalState.ExitingAirplane.name == csc) {
+		} else if ("ExitingAirplane" == csc) {
 			let ovd = (this.charState as VehicalState.ExitingAirplane)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		}
-		else if (VehicalState.ExitingVehicle.name == csc) {
+		} else if ("ExitingVehicle" == csc) {
 			let ovd = (this.charState as VehicalState.ExitingVehicle)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		}
-		else if (VehicalState.OpenVehicleDoor.name == csc) {
+		} else if ("OpenVehicleDoor" == csc) {
 			let ovd = (this.charState as VehicalState.OpenVehicleDoor)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
 			vehicalState['entryPoint'] = ovd.entryPoint.userData
-		}
-		else if (VehicalState.Sitting.name == csc) {
+		} else if ("Sitting" == csc) {
 			let ovd = (this.charState as VehicalState.Sitting)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		} else if (VehicalState.SwitchingSeats.name == csc) {
+		} else if ("SwitchingSeats" == csc) {
 			let ovd = (this.charState as VehicalState.SwitchingSeats)
 			vehicalState['vehical'] = ovd.fromSeat.vehicle.uID
 			vehicalState['fromSeat'] = ovd.fromSeat.seatPointObject.userData

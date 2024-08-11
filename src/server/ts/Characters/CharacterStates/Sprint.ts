@@ -7,6 +7,7 @@ import {
 import { Character } from '../Character'
 
 export class Sprint extends CharacterStateBase {
+	state = 'Sprint'
 	constructor(character: Character) {
 		super(character)
 		// bind function

@@ -8,6 +8,7 @@ import { ICharacterAI } from '../../Interfaces/ICharacterAI'
 import { PathNode } from '../../World/PathNode'
 
 export class FollowPath extends FollowTarget implements ICharacterAI {
+	state = 'FollowPath'
 	public nodeRadius: number
 	public reverse: boolean = false
 

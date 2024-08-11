@@ -6,6 +6,7 @@ import { Vehicle } from '../../Vehicles/Vehicle'
 import { Character } from '../Character'
 
 export class FollowTarget extends CharacterAIBase implements ICharacterAI {
+	state = 'FollowTarget'
 	public character: Character
 	public isTargetReached: boolean
 

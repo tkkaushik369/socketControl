@@ -4,6 +4,7 @@ import { Character } from '../Character'
 import { CharacterAIBase } from './CharacterAIBase'
 
 export class RandomBehaviour extends CharacterAIBase implements ICharacterAI {
+	state = 'RandomBehaviour'
 	public character: Character
 	private randomFrequency: number
 

@@ -12,6 +12,7 @@ import { SeatType } from '../../../Enums/SeatType'
 import * as Utils from '../../../Core/FunctionLibrary'
 
 export class CloseVehicleDoorInside extends CharacterStateBase {
+	state = 'CloseVehicleDoorInside'
 	public seat: VehicleSeat
 	private hasClosedDoor: boolean = false
 

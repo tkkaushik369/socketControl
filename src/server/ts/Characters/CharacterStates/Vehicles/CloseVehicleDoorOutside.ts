@@ -8,6 +8,7 @@ import { Idle } from '../Idle'
 import * as Utils from '../../../Core/FunctionLibrary'
 
 export class CloseVehicleDoorOutside extends CharacterStateBase {
+	state = 'CloseVehicleDoorOutside'
 	public seat: VehicleSeat
 	private hasClosedDoor: boolean = false
 

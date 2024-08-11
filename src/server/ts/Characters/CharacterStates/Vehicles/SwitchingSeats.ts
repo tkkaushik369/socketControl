@@ -14,6 +14,7 @@ import { Space } from '../../../Enums/Space'
 import * as Utils from '../../../Core/FunctionLibrary'
 
 export class SwitchingSeats extends CharacterStateBase {
+	state = 'SwitchingSeats'
 	public fromSeat: VehicleSeat
 	public toSeat: VehicleSeat
 

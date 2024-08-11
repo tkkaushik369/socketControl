@@ -6,6 +6,7 @@ import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { CloseVehicleDoorInside } from './_VehicleStateLibrary'
 
 export class Driving extends CharacterStateBase {
+	state = 'Driving'
 	public seat: VehicleSeat
 
 	constructor(character: Character, seat: VehicleSeat) {

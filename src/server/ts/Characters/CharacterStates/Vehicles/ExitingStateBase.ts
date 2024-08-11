@@ -9,6 +9,7 @@ import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { Vehicle } from '../../../Vehicles/Vehicle'
 
 export abstract class ExitingStateBase extends CharacterStateBase {
+	state = 'ExitingStateBase'
 	public vehicle: Vehicle
 	public seat: VehicleSeat
 	protected startPosition: THREE.Vector3 = new THREE.Vector3()
