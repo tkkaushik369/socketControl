@@ -759,7 +759,11 @@ export default class AppClient {
 	}
 
 	private ForSocketLoop() {
-		if (this.worldClient.player !== null) this.io.emit("update"/* , this.worldClient.player.Out() */)
+		if (this.worldClient.player !== null) {
+			this.worldClient.player.ping = Date.now() - this.worldClient.player.timeStamp
+			this.worldClient.player.timeStamp = Date.now()
+			this.io.emit("update", this.worldClient.player.Out())
+		}
 	}
 }
 

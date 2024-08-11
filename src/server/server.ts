@@ -52,7 +52,7 @@ class AppServer {
 			socket.on("disconnect", () => this.OnDisConnect(socket))
 			socket.on("controls", (controls: { type: ControlsTypes, data: { [id: string]: any } }) => this.OnControls(socket, controls))
 			socket.on("scenario", (scenarioName: string) => this.OnScenario(socket, scenarioName))
-			socket.on("update", (/* message: any */) => this.OnUpdate(socket/* , message */))
+			socket.on("update", (message: any) => this.OnUpdate(socket, message))
 		})
 	}
 
@@ -77,7 +77,6 @@ class AppServer {
 	}
 
 	private OnDisConnect(socket: Socket) {
-		
 		if (this.worldServer.users[socket.id] !== undefined) {
 			let char = this.worldServer.users[socket.id].character
 			if (char !== null) {
@@ -86,7 +85,7 @@ class AppServer {
 				let myInterval = setInterval(() => {
 					if (tiems-- <= 0) {
 						clearInterval(myInterval)
-						
+
 						console.log(`Client disconnected: ${socket.id} <- ${this.worldServer.users[socket.id].uID}`)
 						this.io.emit("removeClient", socket.id)
 						this.worldServer.users[socket.id].removeUser()
@@ -111,9 +110,10 @@ class AppServer {
 		this.io.emit("scenario", scenarioName)
 	}
 
-	private OnUpdate(socket: Socket/* , message: any */) {
+	private OnUpdate(socket: Socket, message: any) {
 		if (this.worldServer.users[socket.id] !== undefined) {
-			this.worldServer.users[socket.id].ping = Date.now() - this.worldServer.users[socket.id].timeStamp
+			this.worldServer.users[socket.id].timeStamp = message.timeStamp
+			this.worldServer.users[socket.id].ping = message.ping
 		}
 	}
 
