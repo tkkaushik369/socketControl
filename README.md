@@ -1,4 +1,9 @@
 # Multiplayer Game
+Demo                                         | Demo Debug
+:-------------------------------------------:|:-------------------------------------------------:
+![images/demo.png](images/demo.png)          | ![images/demo_debug.png](images/demo_debug.png)
+Player 1                                         | Player 2
+![images/Player_1.png](images/Player_1.png)  | ![images/Player_2.png](images/Player_2.png)
 
 **Multiplayer Game** is a real-time, browser-based 3D game built with [Three.js](https://threejs.org/), [Cannon-es](https://github.com/pmndrs/cannon-es), and [Socket.io](https://socket.io/). This project demonstrates how to create an interactive multiplayer environment where players can connect, interact, and compete within a dynamic 3D world.
 
