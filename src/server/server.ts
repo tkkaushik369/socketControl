@@ -17,7 +17,7 @@ import { Player } from './ts/Core/Player'
 import { WorldServer } from './ts/World/WorldServer'
 import { ControlsTypes } from './ts/Enums/ControlsTypes'
 
-const port: number = 3000
+const port: number = process.env.PORT || 3000;
 const privateHost: boolean = false
 
 class AppServer {
