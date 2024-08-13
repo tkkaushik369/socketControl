@@ -7,7 +7,7 @@ import * as Utils from '../Core/FunctionLibrary'
 
 export class CharacterSpawnPoint implements ISpawnPoint {
 	private object: THREE.Object3D
-	private userData: { [id: string]: any }
+	public userData: { [id: string]: any }
 
 	constructor(object: THREE.Object3D, userData: { [id: string]: any }) {
 		// bind functions

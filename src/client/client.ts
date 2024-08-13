@@ -126,11 +126,14 @@ export default class AppClient {
 
 		let lp = new LDrawLoader()
 		this.worldClient.vehicles.forEach((vehi) => {
+			console.log(vehi.uID)
 			if (vehi.uID == 'legocar') {
 				vehi.remove(vehi.modelContainer)
 				vehi.modelContainer = new THREE.Group()
 				lp.load('./models/car.mpd', (obj) => {
 					let scale = 0.01
+					obj.castShadow = true
+					obj.receiveShadow = true
 					obj.scale.set(scale, scale, scale)
 					obj.position.set(0, -0.22, 0)
 					obj.rotateX(Math.PI)
@@ -279,7 +282,7 @@ export default class AppClient {
 			this.worldClient.player = new Player(message.sID, this.worldClient, this.worldClient.camera, this.worldClient.renderer.domElement)
 			this.worldClient.player.setUID("Player_" + message.count)
 			this.sID = this.worldClient.player.sID
-			
+
 			// Initialization
 			this.worldClient.player.inputManager.controlsCallBack = this.ForControls
 			this.worldClient.player.cameraOperator.camera.add(AttachModels.makeCamera())
@@ -287,14 +290,14 @@ export default class AppClient {
 			this.worldClient.player.cameraOperator.camera.visible = false
 			this.worldClient.scene.add(this.worldClient.player.cameraOperator.camera)
 			this.worldClient.player.addUser()
-			
+
 			console.log(`Username: ${this.worldClient.player.uID}`)
 			this.worldClient.users[this.worldClient.player.sID] = this.worldClient.player
 
 			this.worldClient.characters.forEach((char) => {
 				AttachModels.makeCharacter(char, (char === this.worldClient.player!.character) ? callBack : null)
 			})
-			
+
 			this.MapLoader()
 		}
 
@@ -352,7 +355,12 @@ export default class AppClient {
 					}
 
 					this.worldClient.timeScaleTarget = messages[id].data.timeScaleTarget
+					// this.worldClient.effectController.elevation = messages[id].data.sun.elevation
+					// this.worldClient.effectController.azimuth = messages[id].data.sun.azimuth
+					this.worldClient.sunGuiChanged()
+					console.log(JSON.stringify(messages[id].data.sun))
 
+					// if (this.sID !== messages[id].sID) {
 					this.worldClient.users[id].cameraOperator.camera.position.set(
 						messages[id].data.cameraPosition.x,
 						messages[id].data.cameraPosition.y,
@@ -364,6 +372,7 @@ export default class AppClient {
 						messages[id].data.cameraQuaternion.z,
 						messages[id].data.cameraQuaternion.w,
 					)
+					// }
 					break
 				}
 				case MessageTypes.Character: {

@@ -13,7 +13,7 @@ import path from 'path'
 import http from 'http'
 import { Server, Socket } from 'socket.io'
 import * as Utils from './ts/Core/FunctionLibrary'
-import { Player } from './ts/Core/Player'
+import { Player, PlayerSetMesssage } from './ts/Core/Player'
 import { WorldServer } from './ts/World/WorldServer'
 import { ControlsTypes } from './ts/Enums/ControlsTypes'
 
@@ -47,9 +47,7 @@ class AppServer {
 		this.io = new Server(this.server)
 		this.worldServer = new WorldServer(this.ForSocketLoop)
 
-		// this.worldServer.maps['test']();
-		// this.worldServer.maps['sketchbook']();
-		this.worldServer.launchMap('sketchbook', false, true)
+		this.worldServer.launchMap(Object.keys(this.worldServer.maps)[0], false, true)
 
 		this.io.on("connection", (socket: Socket) => {
 			this.OnConnect(socket)
@@ -65,12 +63,14 @@ class AppServer {
 		console.log(`Client Connected: ${socket.id}`)
 		this.worldServer.users[socket.id] = new Player(socket.id, this.worldServer, Utils.defaultCamera(), null)
 
-		socket.emit("setID", {
+		const playerSetMessage: PlayerSetMesssage = {
 			sID: this.worldServer.users[socket.id].sID,
-			count: (this.uid++).toString(),
+			count: this.uid++,
 			lastScenarioID: this.worldServer.lastScenarioID,
 			lastMapID: this.worldServer.lastMapID,
-		}, (userName: string, anime: { [id: string]: number }) => {
+		}
+
+		socket.emit("setID", playerSetMessage, (userName: string, anime: { [id: string]: number }) => {
 			this.worldServer.users[socket.id].setUID(userName)
 			this.worldServer.users[socket.id].addUser()
 			if (this.worldServer) {
@@ -137,6 +137,8 @@ class AppServer {
 			if ((this.worldServer.users[id] !== undefined) && (this.worldServer.users[id].uID != null)) {
 				this.worldServer.users[id].timeStamp = Date.now()
 				this.worldServer.users[id].data.timeScaleTarget = this.worldServer.timeScaleTarget
+				this.worldServer.users[id].data.sun.elevation = this.worldServer.subConf.elevation
+				this.worldServer.users[id].data.sun.azimuth = this.worldServer.subConf.azimuth
 				let dataClient = this.worldServer.users[id].Out()
 				data[id] = dataClient
 			}

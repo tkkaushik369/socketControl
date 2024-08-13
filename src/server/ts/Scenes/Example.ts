@@ -17,7 +17,7 @@ export class Example extends BaseScene {
 		{ // world
 			{ // physics
 				{ // box
-					const cube = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xaa00aa, transparent: true, opacity: 0.5 }))
+					const cube = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xaa00aa }))
 					const cubePhy = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0xaa00aa }))
 					cube.scale.set(60, 0.2, 60)
 					cubePhy.scale.copy(cube.scale).divideScalar(2)

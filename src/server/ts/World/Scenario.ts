@@ -4,6 +4,7 @@ import { VehicleSpawnPoint } from './VehicleSpawnPoint'
 import { CharacterSpawnPoint } from './CharacterSpawnPoint'
 import { WorldBase } from '../World/WorldBase'
 import { Character } from '../Characters/Character'
+import { Vehicle } from '../Vehicles/Vehicle'
 
 export class Scenario {
 	public name: string
@@ -88,7 +89,13 @@ export class Scenario {
 
 	public launch(world: WorldBase): void {
 		this.spawnPoints.forEach((sp) => {
-			sp.spawn(world)
+			let ent: Character | Vehicle = sp.spawn(world)
+			if (ent !== null) {
+				ent.castShadow = true
+				ent.receiveShadow = true
+			} else {
+				console.log("Unknown Spawn: ", sp.userData)
+			}
 		})
 
 		if (!this.spawnAlways) {

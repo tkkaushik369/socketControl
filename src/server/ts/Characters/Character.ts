@@ -80,7 +80,6 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public player: Player | null
 	public world: WorldBase | null
 	public charState: ICharacterState
-	public cs: { name: string, duration: number } = { name: '', duration: 0 }
 	public behaviour: ICharacterAI | null
 
 	// Vehicles
@@ -552,11 +551,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 
 	public setAnimation(clipName: string, fadeIn: number): number {
 		let clip = THREE.AnimationClip.findByName(this.animations, clipName)
-		this.cs = {
-			name: clipName,
-			duration: fadeIn
-		}
-
+		
 		if (this.mixer !== null) {
 			let action = this.mixer.clipAction(clip)
 			if (action === null) {
@@ -1010,7 +1005,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			let ovd = (this.charState as VehicalState.CloseVehicleDoorOutside)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-		} else if ("Driving" ===csc) {
+		} else if ("Driving" === csc) {
 			let ovd = (this.charState as VehicalState.Driving)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
@@ -1032,7 +1027,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
 			vehicalState['entryPoint'] = ovd.entryPoint.userData
-		} else if ("Sitting" ===csc) {
+		} else if ("Sitting" === csc) {
 			let ovd = (this.charState as VehicalState.Sitting)
 			vehicalState['vehical'] = ovd.seat.vehicle.uID
 			vehicalState['seat'] = ovd.seat.seatPointObject.userData
@@ -1062,7 +1057,6 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 					controlledObject: ctrlObjAi,
 				},
 				charState: csc,
-				cs: this.cs,
 				vehicalState: vehicalState,
 				physicsEnabled: this.physicsEnabled,
 				characterPosition: {

@@ -18,7 +18,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 	public firstAINode: string | null
 
 	private object: THREE.Object3D
-	private userData: { [id: string]: any }
+	public userData: { [id: string]: any }
 
 	constructor(object: THREE.Object3D) {
 		this.object = object
@@ -45,8 +45,8 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 		}
 	}
 
-	public spawn(world: WorldBase) {
-		if (this.type === null) return
+	public async spawn(world: WorldBase): Promise<Vehicle | null> {
+		if (this.type === null) return null
 		const type: string = this.type
 		let caller = (model: any): Vehicle => {
 			let vehicle: Vehicle = this.getNewVehicleByType(model)
@@ -68,10 +68,11 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 				world.add(character)
 				character.teleportToVehicle(vehicle, vehicle.seats[0])
 
-				if (this.driver === 'player') {
+				/* if (this.driver === 'player') {
 					character.takeControl()
 				}
-				else if (this.driver === 'ai') {
+				else */
+				if (this.driver === 'ai') {
 					if (this.firstAINode !== null) {
 						let nodeFound = false
 						for (const pathName in world.paths) {
@@ -108,6 +109,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			let model = new Example().getVehical(type, this.subtype)
 			return caller(model)
 		}
+		return null
 	}
 
 	private getNewVehicleByType(model: any): Vehicle {

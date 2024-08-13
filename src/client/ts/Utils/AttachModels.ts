@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
 import { Character } from '../../../server/ts/Characters/Character'
 import { Idle } from '../../../server/ts/Characters/CharacterStates/_CharacterStateLibrary'
 
@@ -72,13 +72,13 @@ export class AttachModels {
 
 	public static makeCharacter(character: Character, callBack: Function | null = null) {
 		const loadingManager = new GLTFLoader()
-		loadingManager.load('models/boxman.glb', (gltf: any) => {
+		loadingManager.load('models/boxman.glb', (gltf: GLTF) => {
 			let anim: { [id: string]: number } = {}
 			character.setModel(gltf)
 			character.animations.forEach((anime) => {
 				anim[anime.name] = anime.duration
 			})
-			console.log(anim)
+			// console.log(anim)
 			if (character.world !== null) {
 				character.world.characters.forEach((char) => {
 					char.allAnim = anim

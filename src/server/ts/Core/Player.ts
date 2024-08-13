@@ -8,6 +8,13 @@ import { CharacterSpawnPoint } from '../World/CharacterSpawnPoint'
 import { Character } from '../Characters/Character'
 import _ from 'lodash'
 
+export type PlayerSetMesssage = {
+	sID: string,
+	count: number,
+	lastScenarioID: string,
+	lastMapID: string,
+}
+
 export class Player implements INetwork {
 	sID: string
 	world: WorldBase
@@ -18,6 +25,10 @@ export class Player implements INetwork {
 	ping: number
 
 	data: {
+		sun: {
+			elevation: number, // 0 to 90
+			azimuth: number, // -180 to 180
+		},
 		timeScaleTarget: number,
 		cameraPosition: { x: number; y: number; z: number }
 		cameraQuaternion: { x: number; y: number; z: number, w: number }
@@ -53,6 +64,7 @@ export class Player implements INetwork {
 		this.character = null
 
 		this.data = {
+			sun: { elevation: 0, azimuth: 0 },
 			timeScaleTarget: 1,
 			cameraPosition: { x: 0, y: 0, z: 0 },
 			cameraQuaternion: { x: 0, y: 0, z: 0, w: 0 },
@@ -98,6 +110,10 @@ export class Player implements INetwork {
 			ping: this.ping,
 
 			data: {
+				sun: {
+					elevation: this.data.sun.elevation,
+					azimuth: this.data.sun.azimuth
+				},
 				timeScaleTarget: this.data.timeScaleTarget,
 				cameraPosition: this.data.cameraPosition,
 				cameraQuaternion: this.data.cameraQuaternion,

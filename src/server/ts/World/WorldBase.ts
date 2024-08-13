@@ -14,7 +14,8 @@ import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { Character } from '../Characters/Character'
 import { Vehicle } from '../Vehicles/Vehicle'
 import { VehicleSeat } from '../Vehicles/VehicleSeat'
-import { Example } from "../Scenes/Example";
+import { Example } from "../Scenes/Example"
+import { MapConfig } from './MapConfig'
 
 export abstract class WorldBase {
 	public physicsFrameRate: number
@@ -25,6 +26,10 @@ export abstract class WorldBase {
 	private sinceLastFrame: number
 	public timeScaleTarget: number
 
+	public subConf = {
+		elevation: 60,
+		azimuth: 45,
+	}
 	public dirLight: THREE.DirectionalLight
 
 	public scene: THREE.Scene
@@ -96,14 +101,10 @@ export abstract class WorldBase {
 		this.lastScenarioID = null
 		this.isMapGlb = false
 		this.mapLoadFinishCallBack = null
-		this.maps = {
-			'sketchbook': () => {
-				this.launchMap('sketchbook', true, true)
-			},
-			'test': () => {
-				this.launchMap('test', true, true)
-			},
-		}
+		this.maps = {}
+		MapConfig.forEach((mc) => {
+			this.maps[mc.name] = () => { this.launchMap(mc.name, mc.isCallback, mc.isLaunched) }
+		})
 		this.lastMapID = null
 		this.characters = []
 		this.vehicles = []
@@ -127,7 +128,7 @@ export abstract class WorldBase {
 			// Client
 			Pointer_Lock: true,
 			Mouse_Sensitivity: 0.2,
-			Debug_Physics: true,
+			Debug_Physics: false,
 			Debug_Physics_Wireframe: true,
 			Debug_Physics_MeshOpacity: 1,
 			Debug_Physics_MeshEdges: false,
@@ -145,9 +146,11 @@ export abstract class WorldBase {
 
 		// Lights
 		this.dirLight = new THREE.DirectionalLight(0xffffff, 1)
-		this.dirLight.position.set(1000, 1000, 1000)
+		this.dirLight.castShadow = true
+		this.dirLight.position.set(100, 100, 100)
 		this.scene.add(this.dirLight)
-		this.scene.add(this.dirLight.target)
+		this.scene.add(new THREE.DirectionalLightHelper(this.dirLight, 1, 0xffffff))
+		// this.scene.add(this.dirLight.target)
 
 		// World
 		this.world = new CANNON.World();
@@ -239,7 +242,7 @@ export abstract class WorldBase {
 				belowSeaLevel = position.y < 14.989
 				break
 			}
-			case 'test': {
+			default: {
 				let equi = new THREE.Vector3().copy(this.boxSize)
 				equi = equi.multiplyScalar(2)
 				inside = position.x > -equi.x && position.x < equi.x &&
@@ -482,6 +485,10 @@ export abstract class WorldBase {
 				char.charState.update(timeStep)
 				if (char.mixer !== null) char.mixer.update(timeStep)
 			})
+			/* if (this.player !== null) {
+				this.player.inputManager.update(timeStep, unscaledTimeStep)
+				this.player.cameraOperator.update(timeStep, unscaledTimeStep)
+			} */
 		}
 
 		// Lerp time scale
@@ -489,6 +496,11 @@ export abstract class WorldBase {
 
 		// Measuring logic time
 		this.logicDelta = this.worldClock.getDelta()
+
+		// Sun Update
+		this.subConf.elevation += (Math.sign(this.subConf.azimuth)) * this.timeScaleTarget * 0.1
+		if ((this.subConf.elevation >= 90) || (this.subConf.elevation <= 0))
+			this.subConf.azimuth = -this.subConf.azimuth
 
 		// Frame limiting
 		let interval = 1 / 60
