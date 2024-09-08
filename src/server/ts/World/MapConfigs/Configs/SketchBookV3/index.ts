@@ -2,7 +2,7 @@ import { MapConfigType, MapConfigFOType } from '../..'
 
 export const SketchBookV3Config: MapConfigType = {
 	name: 'sketchbook v0.3',
-	mapCaller: 'world_v3.glb',
+	mapCaller: 'world_v3.1.glb',
 	isCallback: true,
 	isLaunched: true,
 	characters: [],
