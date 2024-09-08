@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
-import { BaseScene } from './BaseScene'
-import { Utility } from '../Core/Utility'
+import { BaseScene } from '../../../BaseScene'
+import { Utility } from '../../../../Core/Utility'
 
 export class Example extends BaseScene {
 	constructor() {
@@ -287,7 +287,7 @@ export class Example extends BaseScene {
 					}
 
 					{
-						/* {
+						{
 							let spawnPlayer = new THREE.Object3D()
 							spawnPlayer.userData = {
 								name: "user",
@@ -297,7 +297,7 @@ export class Example extends BaseScene {
 							spawnPlayer.position.set(5, 15, 5)
 
 							scenario1.add(spawnPlayer)
-						} */
+						}
 						{
 							let spawnCharAI = new THREE.Object3D()
 							spawnCharAI.userData = {
@@ -478,6 +478,45 @@ export class Example extends BaseScene {
 			{
 				const lower = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 2.4), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
 				body.add(lower)
+			}
+		}
+		{
+			// head lights
+			{
+				const left = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.1), new THREE.MeshLambertMaterial({ color: 0xffffff }))
+				left.position.set(-0.4, 0.08, 1.2)
+				left.rotateX(-Math.PI / 2)
+				const light = new THREE.SpotLight(0xffffff, 2, 15)
+				light.name = 'leftlight'
+				light.userData = {
+					data: 'light'
+				}
+				light.position.copy(left.position)
+				light.power = 100
+				light.angle = 30 * (Math.PI / 180)
+				light.castShadow = true
+				light.target.position.copy(light.position).add(new THREE.Vector3(0, 0, 1))
+				body.add(light);
+				body.add(light.target);
+				body.add(left)
+			}
+			{
+				const right = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.1), new THREE.MeshLambertMaterial({ color: 0xffffff }))
+				right.position.set(0.4, 0.08, 1.2)
+				right.rotateX(-Math.PI / 2)
+				const light = new THREE.SpotLight(0xffffff, 2, 15)
+				light.name = 'rightlight'
+				light.userData = {
+					data: 'light'
+				}
+				light.position.copy(right.position)
+				light.power = 100
+				light.angle = 30 * (Math.PI / 180)
+				light.castShadow = true
+				light.target.position.copy(light.position).add(new THREE.Vector3(0, 0, 1))
+				body.add(light)
+				body.add(light.target)
+				body.add(right)
 			}
 		}
 		{ // sceats

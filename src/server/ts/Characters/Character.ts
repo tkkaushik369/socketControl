@@ -71,7 +71,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public rayResult: CANNON.RaycastResult = new CANNON.RaycastResult()
 	public rayHasHit: boolean = false
 	public rayCastLength: number = 0.57
-	public raySafeOffset: number = 0.03
+	public raySafeOffset: number = 0.05
 	public wantsToJump: boolean = false
 	public initJumpSpeed: number = -1
 	public groundImpactData: GroundImpactData = new GroundImpactData()
@@ -243,8 +243,11 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.mixer = new THREE.AnimationMixer(gltf.scene)
 	}
 
-	public setAnimations(animations: []): void {
+	public setAnimations(animations: any[]): void {
 		this.animations = animations
+		this.animations.forEach((anim) => {
+			this.allAnim[anim.name] = anim.duration
+		})
 	}
 
 	public setArcadeVelocityInfluence(x: number, y: number = x, z: number = x): void {
@@ -562,7 +565,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 
 			return action.getClip().duration
 		}
-		let duration: number = 1.0
+		let duration: number = 0
 		if (this.allAnim[clipName] !== undefined)
 			duration = this.allAnim[clipName]
 		return duration
@@ -895,7 +898,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			body.velocity.y = newVelocity.y
 			body.velocity.z = newVelocity.z
 			// Ground character
-			if (character.world !== null) body.position.y = character.rayResult.hitPointWorld.y + character.rayCastLength + (newVelocity.y / character.world.physicsFrameRate)
+			if (character.world !== null) body.position.y = character.rayResult.hitPointWorld.y + character.rayCastLength + (newVelocity.y * character.world.physicsFrameTime)
 		}
 		else {
 			// If we're in air

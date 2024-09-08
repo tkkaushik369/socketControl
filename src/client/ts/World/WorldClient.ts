@@ -13,7 +13,6 @@ import { AttachModels } from '../Utils/AttachModels'
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { CSM } from 'three/examples/jsm/csm/CSM'
 import { Sky } from 'three/examples/jsm/objects/Sky'
-import { Water } from 'three/examples/jsm/objects/Water'
 import { Ocean } from './Ocean'
 
 export class WorldClient extends WorldBase {
@@ -34,26 +33,6 @@ export class WorldClient extends WorldBase {
 	private csm: CSM
 
 	private oceans: Ocean[] = []
-	/* private waters: Water[] = []
-	private helipadMeshes: THREE.Mesh[] = []
-	private helipadBodies: CANNON.Body[] = []
-	private waves = {
-		A: {
-			direction: 0,
-			steepness: 0.1,
-			wavelength: 10,
-		},
-		B: {
-			direction: 30,
-			steepness: 0.1,
-			wavelength: 70,
-		},
-		C: {
-			direction: 60,
-			steepness: 0.1,
-			wavelength: 3,
-		},
-	} */
 
 	public stats: Stats
 	public networkStats: Stats.Panel
@@ -100,7 +79,7 @@ export class WorldClient extends WorldBase {
 		this.renderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
 		this.renderer.autoClear = false
 		this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-		this.renderer.toneMappingExposure = 0.6
+		this.renderer.toneMappingExposure = 0.5
 		this.renderer.shadowMap.enabled = true
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
 		if (this.scene.fog !== null)
@@ -122,10 +101,10 @@ export class WorldClient extends WorldBase {
 		this.sky = new Sky()
 		this.sky.scale.setScalar(450000)
 		this.effectController = {
-			turbidity: 20,
-			rayleigh: 0.9,
-			mieCoefficient: 0.015,
-			mieDirectionalG: 0.75,
+			turbidity: 10,
+			rayleigh: 0.750,
+			mieCoefficient: 0.005,
+			mieDirectionalG: 0.7,
 			elevation: 60,
 			azimuth: 45,
 			exposure: this.renderer.toneMappingExposure
@@ -246,11 +225,12 @@ export class WorldClient extends WorldBase {
 	}
 
 	public getGLTF(path: string, callback: Function) {
-		super.getGLTF(path, callback)
+		const resPath = super.getGLTF(path, callback)
 		const loader = new GLTFLoader()
-		loader.load(path, (gltf: GLTF) => {
+		loader.load(resPath, (gltf: GLTF) => {
 			callback(gltf)
 		})
+		return resPath
 	}
 
 	public loadScene(gltf: any, isLaunmch: boolean = true) {
@@ -260,83 +240,8 @@ export class WorldClient extends WorldBase {
 				if (child.type === 'Mesh') {
 					this.csm.setupMaterial(child.material);
 
-					if (child.material.name === 'ocean') {
-						// child.visible = false
+					if (child.material.name === 'ocean') { // only sketchbook
 						this.oceans.push(new Ocean(child, this))
-
-						/* const boxGeometry = new THREE.BoxGeometry(5, 1, 5)
-						const numHelipads = 10
-						this.helipadMeshes = []
-						this.helipadBodies = []
-						const material = new THREE.MeshStandardMaterial({})
-						for (let i = 0; i < numHelipads; i++) {
-							const box = new THREE.Mesh(boxGeometry, material)
-							box.position.set(Math.random() * 500 - 250, 0, Math.random() * 500 - 250)
-							box.receiveShadow = true
-							this.scene.add(box)
-							this.helipadMeshes.push(box)
-							const shape = new CANNON.Box(new CANNON.Vec3(2.5, 0.5, 2.5))
-							const body = new CANNON.Body({ mass: 0 })
-							body.addShape(shape)
-							body.position.x = this.helipadMeshes[i].position.x
-							body.position.y = this.helipadMeshes[i].position.y
-							body.position.z = this.helipadMeshes[i].position.z
-							this.world.addBody(body)
-							this.helipadBodies.push(body)
-						}
-
-						const water = new Water((child as THREE.Mesh).geometry, {
-							textureWidth: 512,
-							textureHeight: 512,
-							waterNormals: new THREE.TextureLoader().load(
-								'./images/waternormals.jpg',
-								function (texture) {
-									texture.wrapS = texture.wrapT = THREE.RepeatWrapping
-								}
-							),
-							sunDirection: new THREE.Vector3(),
-							sunColor: 0xffffff,
-							waterColor: 0x001e0f,
-							distortionScale: 8,
-							fog: this.scene.fog !== undefined,
-						})
-						water.rotation.x = -Math.PI / 2
-						water.material.onBeforeCompile = (shader) => {
-							shader.uniforms.offsetX = { value: 0 }
-							shader.uniforms.offsetZ = { value: 0 }
-							shader.uniforms.waveA = {
-								value: [
-									Math.sin((this.waves.A.direction * Math.PI) / 180),
-									Math.cos((this.waves.A.direction * Math.PI) / 180),
-									this.waves.A.steepness,
-									this.waves.A.wavelength,
-								],
-							}
-							shader.uniforms.waveB = {
-								value: [
-									Math.sin((this.waves.B.direction * Math.PI) / 180),
-									Math.cos((this.waves.B.direction * Math.PI) / 180),
-									this.waves.B.steepness,
-									this.waves.B.wavelength,
-								],
-							}
-							shader.uniforms.waveC = {
-								value: [
-									Math.sin((this.waves.C.direction * Math.PI) / 180),
-									Math.cos((this.waves.C.direction * Math.PI) / 180),
-									this.waves.C.steepness,
-									this.waves.C.wavelength,
-								],
-							}
-							shader.vertexShader =
-								'\n                uniform mat4 textureMatrix;\n                uniform float time;\n\n                varying vec4 mirrorCoord;\n                varying vec4 worldPosition;\n\n                #include <common>\n                #include <fog_pars_vertex>\n                #include <shadowmap_pars_vertex>\n                #include <logdepthbuf_pars_vertex>\n\n                uniform vec4 waveA;\n                uniform vec4 waveB;\n                uniform vec4 waveC;\n\n                uniform float offsetX;\n                uniform float offsetZ;\n\n                vec3 GerstnerWave (vec4 wave, vec3 p) {\n                    float steepness = wave.z;\n                    float wavelength = wave.w;\n                    float k = 2.0 * PI / wavelength;\n                    float c = sqrt(9.8 / k);\n                    vec2 d = normalize(wave.xy);\n                    float f = k * (dot(d, vec2(p.x, p.y)) - c * time);\n                    float a = steepness / k;\n\n                    return vec3(\n                        d.x * (a * cos(f)),\n                        d.y * (a * cos(f)),\n                        a * sin(f)\n                    );\n                }\n\n                void main() {\n\n                    mirrorCoord = modelMatrix * vec4( position, 1.0 );\n                    worldPosition = mirrorCoord.xyzw;\n                    mirrorCoord = textureMatrix * mirrorCoord;\n                    vec4 mvPosition =  modelViewMatrix * vec4( position, 1.0 );\n                    \n                    vec3 gridPoint = position.xyz;\n                    vec3 tangent = vec3(1, 0, 0);\n                    vec3 binormal = vec3(0, 0, 1);\n                    vec3 p = gridPoint;\n                    gridPoint.x += offsetX;//*2.0;\n                    gridPoint.y -= offsetZ;//*2.0;\n                    p += GerstnerWave(waveA, gridPoint);\n                    p += GerstnerWave(waveB, gridPoint);\n                    p += GerstnerWave(waveC, gridPoint);\n                    gl_Position = projectionMatrix * modelViewMatrix * vec4( p.x, p.y, p.z, 1.0);\n\n                    #include <beginnormal_vertex>\n                    #include <defaultnormal_vertex>\n                    #include <logdepthbuf_vertex>\n                    #include <fog_vertex>\n                    #include <shadowmap_vertex>\n                }'
-							shader.uniforms.size.value = 10.0
-							// waterCompiled = true
-						}
-						// water.position.copy(child.position)
-						water.quaternion.copy(child.quaternion)
-						this.scene.add(water)
-						this.waters.push(water) */
 					}
 				}
 			}
@@ -450,16 +355,7 @@ export class WorldClient extends WorldBase {
 
 	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
 		super.launchMap(mapID, isCallback, isLaunched)
-		/* this.helipadMeshes.forEach((mesh) => {
-			this.scene.remove(mesh)
-		})
-		this.helipadBodies.forEach((body) => {
-			this.world.removeBody(body)
-		}) */
 		this.oceans = []
-		/* this.waters = []
-		this.helipadMeshes = []
-		this.helipadBodies = [] */
 	}
 
 	private animate() {
@@ -467,58 +363,7 @@ export class WorldClient extends WorldBase {
 		this.oceans.forEach((ocean) => {
 			ocean.update(this.timeScaleTarget * 1.0 / 60.0)
 		})
-		/* this.waters.forEach((water) => {
-			water.material.uniforms['time'].value += this.timeScaleTarget * 1.0 / 60.0
-			const t = water.material.uniforms['time'].value
-			this.helipadMeshes.forEach((b, i) => {
-				const waves: { [id: string]: any } = this.waves
-				function getWaveInfo(x: number, z: number, time: number) {
-					const pos = new THREE.Vector3()
-					const tangent = new THREE.Vector3(1, 0, 0)
-					const binormal = new THREE.Vector3(0, 0, 1)
-					Object.keys(waves).forEach((wave) => {
-						const w = waves[wave]
-						const k = (Math.PI * 2) / w.wavelength
-						const c = Math.sqrt(9.8 / k)
-						const d = new THREE.Vector2(
-							Math.sin((w.direction * Math.PI) / 180),
-							-Math.cos((w.direction * Math.PI) / 180)
-						)
-						const f = k * (d.dot(new THREE.Vector2(x, z)) - c * time)
-						const a = w.steepness / k
-						pos.x += d.y * (a * Math.cos(f))
-						pos.y += a * Math.sin(f)
-						pos.z += d.x * (a * Math.cos(f))
-						tangent.x += -d.x * d.x * (w.steepness * Math.sin(f))
-						tangent.y += d.x * (w.steepness * Math.cos(f))
-						tangent.z += -d.x * d.y * (w.steepness * Math.sin(f))
-						binormal.x += -d.x * d.y * (w.steepness * Math.sin(f))
-						binormal.y += d.y * (w.steepness * Math.cos(f))
-						binormal.z += -d.y * d.y * (w.steepness * Math.sin(f))
-					})
-					const normal = binormal.cross(tangent).normalize()
-					return {
-						position: pos,
-						normal: normal,
-					}
-				}
-				const waveInfo = getWaveInfo(b.position.x, b.position.z, t);
-				b.position.y = waveInfo.position.y
-				const quat = new THREE.Quaternion().setFromEuler(
-					new THREE.Euler(waveInfo.normal.x, waveInfo.normal.y, waveInfo.normal.z)
-				)
-				let delta = this.timeScaleTarget * 1.0 / 60.0
-				b.quaternion.rotateTowards(quat, (delta) * 0.5)
-				this.helipadBodies[i].quaternion.set(
-					b.quaternion.x,
-					b.quaternion.y,
-					b.quaternion.z,
-					b.quaternion.w
-				)
-				this.helipadBodies[i].position.set(b.position.x, b.position.y, b.position.z)
-			})
-		}) */
-
+		
 
 		if (this.updateAnimationCallback !== null) this.updateAnimationCallback()
 		this.stats.update()

@@ -69,28 +69,4 @@ export class AttachModels {
 
 		return particles
 	}
-
-	public static makeCharacter(character: Character, callBack: Function | null = null) {
-		const loadingManager = new GLTFLoader()
-		loadingManager.load('models/boxman.glb', (gltf: GLTF) => {
-			let anim: { [id: string]: number } = {}
-			character.setModel(gltf)
-			character.animations.forEach((anime) => {
-				anim[anime.name] = anime.duration
-			})
-			// console.log(anim)
-			if (character.world !== null) {
-				character.world.characters.forEach((char) => {
-					char.allAnim = anim
-				})
-			}
-			character.charState = new Idle(character)
-			character.charState.onInputChange()
-			if (character.player !== null) {
-				if (callBack !== null) {
-					callBack(character.player.uID, anim)
-				}
-			}
-		})
-	}
 }

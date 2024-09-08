@@ -14,10 +14,9 @@ import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { Character } from '../Characters/Character'
 import { Vehicle } from '../Vehicles/Vehicle'
 import { VehicleSeat } from '../Vehicles/VehicleSeat'
-import { Example } from "../Scenes/Example"
-import { MapConfig } from './MapConfig'
-// import { Water } from 'three/examples/jsm/objects/Water'
+import { MapConfig, MapConfigType } from './MapConfigs'
 import { Water } from './Water'
+import { BaseScene } from './BaseScene'
 
 export abstract class WorldBase {
 	public physicsFrameRate: number
@@ -32,7 +31,6 @@ export abstract class WorldBase {
 		elevation: 60,
 		azimuth: 45,
 	}
-
 	public scene: THREE.Scene
 	public world: CANNON.World
 	public users: { [id: string]: Player } = {}
@@ -43,12 +41,14 @@ export abstract class WorldBase {
 	public scenarios: Scenario[]
 	public scenariosCalls: { [id: string]: any }
 	public lastScenarioID: string | null
-	public isMapGlb: boolean
 	public mapLoadFinishCallBack: Function | null
 	public maps: { [id: string]: any }
+	private mapAnimation: any[]
+	private mapMixer: THREE.AnimationMixer | null
 	public lastMapID: string | null
 	public characters: Character[]
 	public vehicles: Vehicle[]
+	public waters: Water[]
 
 	public sceneObjects: THREE.Object3D[]
 	public worldObjects: CANNON.Body[]
@@ -65,9 +65,6 @@ export abstract class WorldBase {
 	public launchMapCallback: Function | null
 	public launchScenarioCallback: Function | null
 	public boxSize: THREE.Vector3 = new THREE.Vector3()
-
-	public helipadMeshes: THREE.Mesh[]
-	public helipadBodies: CANNON.Body[]
 
 	constructor() {
 		// bind functions
@@ -103,15 +100,19 @@ export abstract class WorldBase {
 		this.paths = []
 		this.scenarios = []
 		this.lastScenarioID = null
-		this.isMapGlb = false
 		this.mapLoadFinishCallBack = null
 		this.maps = {}
-		MapConfig.forEach((mc) => {
-			this.maps[mc.name] = () => { this.launchMap(mc.name, mc.isCallback, mc.isLaunched) }
+		Object.keys(MapConfig).forEach((mn) => {
+			this.maps[MapConfig[mn].name] = () => {
+				this.launchMap(MapConfig[mn].name, MapConfig[mn].isCallback, MapConfig[mn].isLaunched)
+			}
 		})
+		this.mapAnimation = []
+		this.mapMixer = null
 		this.lastMapID = null
 		this.characters = []
 		this.vehicles = []
+		this.waters = []
 
 		this.sceneObjects = []
 		this.worldObjects = []
@@ -151,51 +152,26 @@ export abstract class WorldBase {
 
 		// World
 		this.world = new CANNON.World();
-		this.world.gravity.set(0, -9.81, 0);
+		this.world.gravity.set(0, -10.0, 0);
 		this.world.broadphase = new CANNON.SAPBroadphase(this.world);
-		(this.world.solver as CANNON.GSSolver).iterations = 10;
+
+		const solver = new CANNON.GSSolver()
+		solver.iterations = 50
+		solver.tolerance = 0.0001
+
+		this.world.solver = solver
 		this.world.allowSleep = true;
 
-		setInterval(this.update, this.physicsFrameTime * 1000)
+		this.world.defaultContactMaterial.contactEquationStiffness = 1e7
+		this.world.defaultContactMaterial.contactEquationRelaxation = 5
 
-		if (false) {
-			let body = new CANNON.Body({ mass: 1 })
-			body.addShape(new CANNON.Sphere(1))
-			body.position.set(10, 10, -1)
-			this.world.addBody(body)
-		}
-		if (true) {
-			const boxGeometry = new THREE.BoxGeometry(5, 1, 5)
-			const numHelipads = 10
-			this.helipadMeshes = []
-			this.helipadBodies = []
-			const material = new THREE.MeshStandardMaterial({})
-			for (let i = 0; i < numHelipads; i++) {
-				const box = new THREE.Mesh(boxGeometry, material)
-				box.position.set(Math.random() * 500 - 250, 0, Math.random() * 500 - 250)
-				box.receiveShadow = true
-				this.addSceneObject(box)
-				this.helipadMeshes.push(box)
-				const shape = new CANNON.Box(new CANNON.Vec3(2.5, 0.5, 2.5))
-				const body = new CANNON.Body({ mass: 0 })
-				body.addShape(shape)
-				body.position.x = this.helipadMeshes[i].position.x
-				body.position.y = this.helipadMeshes[i].position.y
-				body.position.z = this.helipadMeshes[i].position.z
-				this.addWorldObject(body)
-				this.helipadBodies.push(body)
-			}
-
-			let geometry = new THREE.PlaneGeometry(100, 100, 100, 100)
-			let water = new Water(geometry, { side: THREE.DoubleSide })
-			water.rotateX(-Math.PI / 2)
-			water.position.set(0, 20, 0)
-			water.visible = false
-			this.scene.add(water)
-		}
+		// setInterval(this.update, this.physicsFrameTime * 1000)
+		setTimeout(this.update, this.physicsFrameTime * 1000)
 	}
 
-	public getGLTF(path: string, callback: Function) { }
+	public getGLTF(path: string, callback: Function) {
+		return this.isClient ? ('./models/' + path) : ('./dist/server/models/' + path + '.json')
+	}
 
 	public add(worldEntity: IWorldEntity): void {
 		worldEntity.addToWorld(this)
@@ -344,26 +320,40 @@ export abstract class WorldBase {
 	}
 
 	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
+		const onSceneCollect = (map: MapConfigType, gltf: any) => {
+			this.lastMapID = map.name
+			this.mapAnimation = gltf.animations
+			this.mapMixer = new THREE.AnimationMixer(gltf.scene)
+			if (this.mapAnimation.length > 0) {
+				let clip = THREE.AnimationClip.findByName(this.mapAnimation, 'idle')
+				if (clip === null) clip = THREE.AnimationClip.findByName(this.mapAnimation, this.mapAnimation[0].name)
+				if (clip !== null) {
+					let action = this.mapMixer.clipAction(clip)
+					this.mapMixer.stopAllAction()
+					action.fadeIn(0.3)
+					action.play()
+				}
+			}
+			this.loadScene(gltf, isLaunched)
+			if (this.mapLoadFinishCallBack) this.mapLoadFinishCallBack()
+		}
 		if (isCallback) {
 			if (this.launchMapCallback !== null) {
 				this.launchMapCallback(mapID)
 			}
 		} else {
-			if (false) mapID
-			else if (mapID == 'sketchbook') {
-				this.getGLTF(this.isClient ? './models/world.glb' : './dist/server/models/world.glb.json', (gltf: any) => {
-					this.isMapGlb = true
-					this.lastMapID = 'sketchbook'
-					this.loadScene(gltf, isLaunched)
-					if (this.mapLoadFinishCallBack) this.mapLoadFinishCallBack()
-				})
-			}
-			else if (mapID == 'test') {
-				console.log("test")
-				this.isMapGlb = false
-				this.lastMapID = 'test'
-				this.loadScene(new Example().getScene(), isLaunched)
-				if (this.mapLoadFinishCallBack) this.mapLoadFinishCallBack()
+			if (MapConfig[mapID] !== undefined) {
+				const map = MapConfig[mapID]
+				if (map.name == mapID) {
+					if (map.mapCaller instanceof BaseScene) {
+						const gltf = map.mapCaller.getScene()
+						onSceneCollect(map, gltf)
+					} else {
+						this.getGLTF(map.mapCaller, (gltf: any) => {
+							onSceneCollect(map, gltf)
+						})
+					}
+				}
 			}
 		}
 	}
@@ -376,6 +366,33 @@ export abstract class WorldBase {
 			if (child.hasOwnProperty('userData')) {
 				if (child.type === 'Mesh') {
 					Utility.setupMeshProperties(child)
+
+					if (child.material.name === 'ocean') {
+						if (true) {
+							const width = 100, length = 100
+							const water = new Water(new THREE.PlaneGeometry(width, length, 100, 100), {
+								textureWidth: width,
+								textureHeight: length,
+								/* waterNormals: new THREE.TextureLoader().load(
+									'./images/waternormals.jpg',
+									function (texture) {
+										texture.wrapS = texture.wrapT = THREE.RepeatWrapping
+									}
+								), */
+								sunDirection: new THREE.Vector3(),
+								sunColor: 0xffffff,
+								waterColor: 0x001e0f,
+								distortionScale: 8,
+								fog: this.scene.fog !== undefined,
+								side: THREE.DoubleSide
+							});
+							water.uID = "test"
+							water.rotateX(-Math.PI / 2)
+							water.position.set(110, 25, -160)
+							water.addFloaters(8)
+							this.add(water)
+						}
+					}
 				}
 
 				if (child.userData.hasOwnProperty('data')) {
@@ -448,9 +465,7 @@ export abstract class WorldBase {
 			// Spawn players
 			Object.keys(this.users).forEach((sID) => {
 				if (this.users[sID].spawnPoint !== null) {
-					this.users[sID].character = this.users[sID].spawnPoint.spawn(this)
-					this.users[sID].character.player = this.users[sID]
-					this.users[sID].character.takeControl()
+					this.users[sID].addUser()
 				}
 			})
 		}
@@ -486,10 +501,16 @@ export abstract class WorldBase {
 				}
 				this.scenarios[i].spawnPoints = []
 				_.pull(this.scenarios, this.scenarios[i])
-				i++
+				i--
+			}
+
+			for (let i = 0; i < this.waters.length; i++) {
+				this.remove(this.waters[i])
+				i--
 			}
 			this.characters = []
 			this.vehicles = []
+			this.waters = []
 			this.scenarios = []
 		}
 	}
@@ -501,7 +522,7 @@ export abstract class WorldBase {
 		let timeStep = unscaledTimeStep * this.settings.Time_Scale
 		timeStep = Math.min(timeStep, 1 / 30)
 
-		this.updatePhysics(timeStep)
+		this.updatePhysics(timeStep, unscaledTimeStep)
 
 		// Update registred objects
 		if (!this.isClient) {
@@ -511,11 +532,15 @@ export abstract class WorldBase {
 				char.charState.update(timeStep)
 				if (char.mixer !== null) char.mixer.update(timeStep)
 			})
+			this.vehicles.forEach((vehi) => {
+				vehi.update(timeStep)
+			})
 			/* if (this.player !== null) {
 				this.player.inputManager.update(timeStep, unscaledTimeStep)
 				this.player.cameraOperator.update(timeStep, unscaledTimeStep)
 			} */
 		}
+		if (this.mapMixer !== null) this.mapMixer.update(timeStep)
 
 		// Lerp time scale
 		this.settings.Time_Scale = THREE.MathUtils.lerp(this.settings.Time_Scale, this.timeScaleTarget, 0.2)
@@ -533,10 +558,13 @@ export abstract class WorldBase {
 		this.sinceLastFrame += this.requestDelta + this.logicDelta
 		this.sinceLastFrame %= interval
 
-		if (this.updatePhysicsCallback !== null) this.updatePhysicsCallback()
+		if (this.updatePhysicsCallback !== null)
+			this.updatePhysicsCallback()
+		
+		setTimeout(this.update)
 	}
 
-	private updatePhysics(timeStep: number) {
+	private updatePhysics(timeStep: number, unscaledTimeStep: number) {
 		if (this.doPhysics) {
 			this.world.step(this.physicsFrameTime, timeStep)
 		}

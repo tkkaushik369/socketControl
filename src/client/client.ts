@@ -17,7 +17,6 @@ import { Airplane } from '../server/ts/Vehicles/Airplane'
 import * as CharState from '../server/ts/Characters/CharacterStates/_CharacterStateLibrary'
 import * as VehicalState from '../server/ts/Characters/CharacterStates/Vehicles/_VehicleStateLibrary'
 import _ from 'lodash'
-import { Example } from '../server/ts/Scenes/Example'
 
 if (navigator.userAgent.includes('QtWebEngine')) {
 	document.body.classList.add('bodyTransparent')
@@ -115,7 +114,6 @@ export default class AppClient {
 							'./images/uv-test-bw.jpg',
 						);
 						let mat = new THREE.MeshStandardMaterial({ map: texture });
-						console.log(obj.hasOwnProperty("isMesh"));
 						(obj as THREE.Mesh).material = mat
 						// this.worldClient.scene.add(new VertexNormalsHelper(obj, 0.1, 0x00ff00))
 					}
@@ -126,7 +124,6 @@ export default class AppClient {
 
 		let lp = new LDrawLoader()
 		this.worldClient.vehicles.forEach((vehi) => {
-			console.log(vehi.uID)
 			if (vehi.uID == 'legocar') {
 				vehi.remove(vehi.modelContainer)
 				vehi.modelContainer = new THREE.Group()
@@ -294,10 +291,7 @@ export default class AppClient {
 			console.log(`Username: ${this.worldClient.player.uID}`)
 			this.worldClient.users[this.worldClient.player.sID] = this.worldClient.player
 
-			this.worldClient.characters.forEach((char) => {
-				AttachModels.makeCharacter(char, (char === this.worldClient.player!.character) ? callBack : null)
-			})
-
+			callBack(this.worldClient.player.uID)
 			this.MapLoader()
 		}
 
@@ -342,8 +336,6 @@ export default class AppClient {
 						player.attachments.push(player.cameraOperator.camera)
 						this.worldClient.scene.add(player.cameraOperator.camera)
 						player.addUser()
-						if (player.character !== null)
-							AttachModels.makeCharacter(player.character)
 
 						console.log("New User: " + player.uID)
 						this.worldClient.users[player.sID] = player
@@ -739,9 +731,40 @@ export default class AppClient {
 						}
 					})
 					break
+				} case MessageTypes.Decoration: {
+					this.worldClient.waters.forEach((water) => {
+						if (water.uID === messages[id].uID) {
+							water.material.uniforms['time'].value = messages[id].data.time
+							for (let i = 0; i < messages[id].data.floaters.length; i++) {
+								water.floatingBodies[i].position.set(
+									messages[id].data.floaters[i].position.x,
+									messages[id].data.floaters[i].position.y,
+									messages[id].data.floaters[i].position.z,
+								)
+								water.floatingBodies[i].quaternion.set(
+									messages[id].data.floaters[i].quaternion.x,
+									messages[id].data.floaters[i].quaternion.y,
+									messages[id].data.floaters[i].quaternion.z,
+									messages[id].data.floaters[i].quaternion.w,
+								)
+								water.floatingMeshes[i].position.set(
+									messages[id].data.floaters[i].position.x,
+									messages[id].data.floaters[i].position.y,
+									messages[id].data.floaters[i].position.z,
+								)
+								water.floatingMeshes[i].quaternion.set(
+									messages[id].data.floaters[i].quaternion.x,
+									messages[id].data.floaters[i].quaternion.y,
+									messages[id].data.floaters[i].quaternion.z,
+									messages[id].data.floaters[i].quaternion.w,
+								)
+							}
+						}
+					})
+					break
 				}
 				default: {
-					console.log("Unknown Message: ", messages[id].uID)
+					console.log("Unknown Message: ", messages[id].msgType)
 					break
 				}
 			}
@@ -758,18 +781,10 @@ export default class AppClient {
 
 	private OnScenario(scenarioName: string) {
 		this.worldClient.launchScenario(scenarioName, false)
-
-		this.worldClient.characters.forEach((char) => {
-			AttachModels.makeCharacter(char, null)
-		})
 	}
 
 	private OnMap(mapName: string) {
 		let caller = () => {
-			this.worldClient.characters.forEach((char) => {
-				AttachModels.makeCharacter(char, null)
-			})
-
 			this.MapLoader()
 		}
 		this.worldClient.mapLoadFinishCallBack = caller

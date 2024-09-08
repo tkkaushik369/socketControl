@@ -4,7 +4,7 @@ import { InputManager } from './InputManager'
 import { INetwork } from '../Interfaces/INetwork'
 import { MessageTypes } from '../Enums/MessagesTypes'
 import { CameraOperator } from '../Core/CameraOperator'
-import { CharacterSpawnPoint } from '../World/CharacterSpawnPoint'
+import { CharacterSpawnPoint } from '../World/SpawnPoints/CharacterSpawnPoint'
 import { Character } from '../Characters/Character'
 import _ from 'lodash'
 
@@ -46,6 +46,9 @@ export class Player implements INetwork {
 	constructor(sID: string, world: WorldBase, camera: THREE.PerspectiveCamera, domElement: HTMLElement | null) {
 		// bind functions
 		this.setUID = this.setUID.bind(this)
+		this.setSpawn = this.setSpawn.bind(this)
+		this.addUser = this.addUser.bind(this)
+		this.removeUser = this.removeUser.bind(this)
 		this.Out = this.Out.bind(this)
 
 		// init
@@ -73,31 +76,49 @@ export class Player implements INetwork {
 
 	public setUID(uID: string) {
 		this.uID = uID
+		// this.setSpawn(new THREE.Vector3(0, 17, -5))
+		this.world.scenarios.forEach((sc => {
+			if (this.world.lastScenarioID === sc.name) {
+				if (sc.playerPosition !== null) {
+					this.setSpawn(sc.playerPosition)
+				}
+			}
+		}))
+	}
 
+	public setSpawn(pos: THREE.Vector3, deg?: number) {
 		let spawnPlayer = new THREE.Object3D()
 		spawnPlayer.userData = {
-			name: uID + "_character",
+			name: this.uID + "_character",
 			data: "spawn",
 			type: "player",
 		}
-		spawnPlayer.position.set(0, 17, -5)
-
+		spawnPlayer.position.copy(pos)
+		if (deg !== undefined) {
+			const angle = deg * (Math.PI / 180)
+			const dist = 1
+			spawnPlayer.rotateY(angle)
+			spawnPlayer.position.x += Math.cos(angle) * dist
+			spawnPlayer.position.y -= 2
+			spawnPlayer.position.z -= Math.sin(angle) * dist
+		}
 		this.spawnPoint = new CharacterSpawnPoint(spawnPlayer, spawnPlayer.userData)
 	}
 
 	public addUser() {
 		if ((this.world === null) || (this.spawnPoint === null)) return
 		this.character = this.spawnPoint.spawn(this.world)
-		this.character.player = this
-		this.character.takeControl()
+		if (this.character !== null) {
+			this.character.player = this
+			this.character.takeControl()
+		}
 	}
 	public removeUser() {
 		if (this.world === null) return
 		if (this.character !== null) {
-			this.world.removeSceneObject(this.character)
 			this.world.remove(this.character)
-			this.character.removeFromWorld(this.world)
-			_.pull(this.world.characters, this.character)
+			this.character.player = null
+			this.character = null
 		}
 	}
 

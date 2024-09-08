@@ -5,5 +5,5 @@ export interface INetwork {
 	msgType: MessageTypes
 	timeStamp: number
 	ping: number
-	Out(): void
+	Out(): { [id: string]: any }
 }

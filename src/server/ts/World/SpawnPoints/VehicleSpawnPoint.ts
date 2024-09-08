@@ -1,15 +1,16 @@
 import * as THREE from 'three'
-import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
-import { WorldBase } from '../World/WorldBase'
-import { Vehicle } from '../Vehicles/Vehicle'
-import { Helicopter } from '../Vehicles/Helicopter'
-import { Airplane } from '../Vehicles/Airplane'
-import { Car } from '../Vehicles/Car'
-import { Utility } from '../Core/Utility'
-import { Character } from '../Characters/Character'
-import { FollowPath } from '../Characters/CharacterAI/FollowPath'
+import { ISpawnPoint } from '../../Interfaces/ISpawnPoint'
+import { WorldBase } from '../WorldBase'
+import { Vehicle } from '../../Vehicles/Vehicle'
+import { Helicopter } from '../../Vehicles/Helicopter'
+import { Airplane } from '../../Vehicles/Airplane'
+import { Car } from '../../Vehicles/Car'
+import { Utility } from '../../Core/Utility'
+import { Character } from '../../Characters/Character'
+import { FollowPath } from '../../Characters/CharacterAI/FollowPath'
 
-import { Example } from '../Scenes/Example'
+import { MapConfig } from '../MapConfigs'
+import { BaseScene } from '../BaseScene'
 
 export class VehicleSpawnPoint implements ISpawnPoint {
 	public type: string | null
@@ -46,6 +47,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 	}
 
 	public async spawn(world: WorldBase): Promise<Vehicle | null> {
+		if (world.lastMapID === null) return null
 		if (this.type === null) return null
 		const type: string = this.type
 		let caller = (model: any): Vehicle => {
@@ -64,33 +66,36 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 
 			if (this.driver !== null) {
 				let character = new Character()
-				character.uID = vehicle.uID + "_driver"
+				world.getGLTF('boxman.glb', (gltf: any) => {
+					character.setModel(gltf)
+					character.uID = vehicle.uID + "_driver"
+				})
 				world.add(character)
-				character.teleportToVehicle(vehicle, vehicle.seats[0])
 
-				/* if (this.driver === 'player') {
-					character.takeControl()
+				if (this.driver === 'player') {
+					vehicle.materials.forEach((mat) => {
+						const material = (mat as THREE.MeshPhongMaterial)
+						// console.log(vehicle.hasOwnProperty('isMesh'))
+						// material.wireframe = true
+						// material.color = new THREE.Color(0xe5a00d)
+						// console.log(this.object)
+					})
+					// character.teleportToVehicle(vehicle, vehicle.seats[0])
+					// character.takeControl()
 				}
-				else */
-				if (this.driver === 'ai') {
+				else if (this.driver === 'ai') {
+					character.teleportToVehicle(vehicle, vehicle.seats[0])
 					if (this.firstAINode !== null) {
 						let nodeFound = false
-						for (const pathName in world.paths) {
-							if (world.paths.hasOwnProperty(pathName)) {
-								const path = world.paths[pathName]
-								for (const nodeName in path.nodes) {
-									if (Object.prototype.hasOwnProperty.call(path.nodes, nodeName)) {
-										const node = path.nodes[nodeName]
-
-										if (node.object.name === this.firstAINode) {
-											character.setBehaviour(new FollowPath(character, node, 10))
-											nodeFound = true
-										}
-									}
+						world.paths.forEach((path) => {
+							Object.keys(path.nodes).forEach((nodeName) => {
+								const node = path.nodes[nodeName]
+								if (node.object.name === this.firstAINode) {
+									character.setBehaviour(new FollowPath(character, node, 10))
+									nodeFound = true
 								}
-							}
-						}
-
+							})
+						})
 						if (!nodeFound) {
 							console.error('Path node ' + this.firstAINode + 'not found.')
 						}
@@ -100,14 +105,24 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			return vehicle
 		}
 
-		if (world.isMapGlb) {
-			world.getGLTF(((world.isClient) ? './models/' : './dist/server/models/') + type + ((world.isClient) ? '.glb' : '.glb.json'), (gltf: any) => {
-				let model = gltf
-				return caller(model)
-			})
-		} else {
-			let model = new Example().getVehical(type, this.subtype)
-			return caller(model)
+		if (MapConfig[world.lastMapID] !== undefined) {
+			console.log(type, this.subtype)
+			for (let j = 0; j < MapConfig[world.lastMapID].vehicles.length; j++) {
+				const vehi = MapConfig[world.lastMapID].vehicles[j]
+				if ((type == vehi.type) && (this.subtype == vehi.subtype)) {
+					if (vehi.objCaller instanceof BaseScene) {
+						// let model = vehi.objCaller.getVehical(type, this.subtype)
+						let model = new (vehi.objCaller as any).constructor().getVehical(type, this.subtype)
+						return caller(model)
+					} else {
+						world.getGLTF(vehi.objCaller, (gltf: any) => {
+							let model = gltf
+							return caller(model)
+						})
+					}
+					break
+				}
+			}
 		}
 		return null
 	}
