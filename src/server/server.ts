@@ -106,7 +106,7 @@ class AppServer {
 		if (this.worldServer.users[socket.id] !== undefined) {
 			this.worldServer.users[socket.id].inputManager.setControls(controls)
 			controls['sID'] = socket.id;
-			this.io.emit('controls', controls)
+			this.io/* .volatile */.emit('controls', controls)
 		}
 	}
 
@@ -158,7 +158,7 @@ class AppServer {
 			data[vehi.uID] = vehi.Out()
 		})
 
-		this.io.emit("players", data)
+		this.io/* .volatile */.emit("players", data)
 	}
 
 	public Start() {

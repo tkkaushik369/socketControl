@@ -64,6 +64,7 @@ export function setupMeshProperties(child: any): void {
 		mat.aoMap = child.material.aoMap
 		mat.transparent = child.material.transparent
 		// mat.skinning = child.material.skinning
+		// mat.shadowSide = THREE.FrontSide
 		child.material = mat
 	}
 }

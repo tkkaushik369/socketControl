@@ -357,8 +357,8 @@ export default class AppClient {
 					this.worldClient.timeScaleTarget = messages[id].data.timeScaleTarget
 					// this.worldClient.effectController.elevation = messages[id].data.sun.elevation
 					// this.worldClient.effectController.azimuth = messages[id].data.sun.azimuth
-					this.worldClient.sunGuiChanged()
-					console.log(JSON.stringify(messages[id].data.sun))
+					// this.worldClient.sunGuiChanged()
+					// console.log(JSON.stringify(messages[id].data.sun))
 
 					// if (this.sID !== messages[id].sID) {
 					this.worldClient.users[id].cameraOperator.camera.position.set(
@@ -778,7 +778,7 @@ export default class AppClient {
 
 	private ForControls(controls: { type: ControlsTypes, data: { [id: string]: any } }) {
 		if (this.worldClient.player !== null) {
-			this.io.emit("controls", controls)
+			this.io/* .volatile */.emit("controls", controls)
 			this.worldClient.player.inputManager.setControls(controls)
 		}
 	}
@@ -795,7 +795,7 @@ export default class AppClient {
 		if (this.worldClient.player !== null) {
 			this.worldClient.player.ping = Date.now() - this.worldClient.player.timeStamp
 			this.worldClient.player.timeStamp = Date.now()
-			this.io.emit("update", this.worldClient.player.Out())
+			this.io/* .volatile */.emit("update", this.worldClient.player.Out())
 		}
 	}
 }

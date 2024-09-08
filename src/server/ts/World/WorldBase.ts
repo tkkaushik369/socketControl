@@ -16,6 +16,8 @@ import { Vehicle } from '../Vehicles/Vehicle'
 import { VehicleSeat } from '../Vehicles/VehicleSeat'
 import { Example } from "../Scenes/Example"
 import { MapConfig } from './MapConfig'
+// import { Water } from 'three/examples/jsm/objects/Water'
+import { Water } from './Water'
 
 export abstract class WorldBase {
 	public physicsFrameRate: number
@@ -30,7 +32,6 @@ export abstract class WorldBase {
 		elevation: 60,
 		azimuth: 45,
 	}
-	public dirLight: THREE.DirectionalLight
 
 	public scene: THREE.Scene
 	public world: CANNON.World
@@ -64,6 +65,9 @@ export abstract class WorldBase {
 	public launchMapCallback: Function | null
 	public launchScenarioCallback: Function | null
 	public boxSize: THREE.Vector3 = new THREE.Vector3()
+
+	public helipadMeshes: THREE.Mesh[]
+	public helipadBodies: CANNON.Body[]
 
 	constructor() {
 		// bind functions
@@ -134,6 +138,7 @@ export abstract class WorldBase {
 			Debug_Physics_MeshEdges: false,
 			Debug_FPS: true,
 			Debug_Helper: true,
+			PostProcess: true,
 		}
 		this.scenariosCalls = {}
 
@@ -143,14 +148,6 @@ export abstract class WorldBase {
 		// Scene
 		this.scene = new THREE.Scene()
 		this.scene.fog = fog
-
-		// Lights
-		this.dirLight = new THREE.DirectionalLight(0xffffff, 1)
-		this.dirLight.castShadow = true
-		this.dirLight.position.set(100, 100, 100)
-		this.scene.add(this.dirLight)
-		this.scene.add(new THREE.DirectionalLightHelper(this.dirLight, 1, 0xffffff))
-		// this.scene.add(this.dirLight.target)
 
 		// World
 		this.world = new CANNON.World();
@@ -166,6 +163,35 @@ export abstract class WorldBase {
 			body.addShape(new CANNON.Sphere(1))
 			body.position.set(10, 10, -1)
 			this.world.addBody(body)
+		}
+		if (true) {
+			const boxGeometry = new THREE.BoxGeometry(5, 1, 5)
+			const numHelipads = 10
+			this.helipadMeshes = []
+			this.helipadBodies = []
+			const material = new THREE.MeshStandardMaterial({})
+			for (let i = 0; i < numHelipads; i++) {
+				const box = new THREE.Mesh(boxGeometry, material)
+				box.position.set(Math.random() * 500 - 250, 0, Math.random() * 500 - 250)
+				box.receiveShadow = true
+				this.addSceneObject(box)
+				this.helipadMeshes.push(box)
+				const shape = new CANNON.Box(new CANNON.Vec3(2.5, 0.5, 2.5))
+				const body = new CANNON.Body({ mass: 0 })
+				body.addShape(shape)
+				body.position.x = this.helipadMeshes[i].position.x
+				body.position.y = this.helipadMeshes[i].position.y
+				body.position.z = this.helipadMeshes[i].position.z
+				this.addWorldObject(body)
+				this.helipadBodies.push(body)
+			}
+
+			let geometry = new THREE.PlaneGeometry(100, 100, 100, 100)
+			let water = new Water(geometry, { side: THREE.DoubleSide })
+			water.rotateX(-Math.PI / 2)
+			water.position.set(0, 20, 0)
+			water.visible = false
+			this.scene.add(water)
 		}
 	}
 
@@ -499,7 +525,7 @@ export abstract class WorldBase {
 
 		// Sun Update
 		this.subConf.elevation += (Math.sign(this.subConf.azimuth)) * this.timeScaleTarget * 0.1
-		if ((this.subConf.elevation >= 90) || (this.subConf.elevation <= 0))
+		if ((this.subConf.elevation >= 90) || (this.subConf.elevation <= -90))
 			this.subConf.azimuth = -this.subConf.azimuth
 
 		// Frame limiting

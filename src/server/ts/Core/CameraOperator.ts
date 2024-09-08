@@ -174,7 +174,6 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	public inputReceiverInit() {
 		this.target.copy(this.camera.position)
 		this.setRadius(0, true)
-		this.world.dirLight.target = this.camera
 
 		if (this.world.updateControlsCallBack !== null) {
 			this.world.updateControlsCallBack([

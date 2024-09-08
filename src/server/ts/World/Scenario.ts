@@ -90,10 +90,7 @@ export class Scenario {
 	public launch(world: WorldBase): void {
 		this.spawnPoints.forEach((sp) => {
 			let ent: Character | Vehicle = sp.spawn(world)
-			if (ent !== null) {
-				ent.castShadow = true
-				ent.receiveShadow = true
-			} else {
+			if (ent=== null) {
 				console.log("Unknown Spawn: ", sp.userData)
 			}
 		})

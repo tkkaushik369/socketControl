@@ -489,11 +489,8 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		}
 		if (this.player !== null) {
 			this.setFirstPersonView(false)
-			// this.player.cameraOperator.setRadius(1.6, true)
+			this.player.cameraOperator.setRadius(1.6, true)
 			this.player.cameraOperator.followMode = false
-		}
-		if (this.world !== null) {
-			this.world.dirLight.target = this
 		}
 
 		this.displayControls()
