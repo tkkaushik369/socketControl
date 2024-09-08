@@ -3,6 +3,7 @@ import * as CANNON from 'cannon-es'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
 import { Utility } from '../../../server/ts/Core/Utility'
@@ -26,6 +27,7 @@ export class WorldClient extends WorldBase {
 	private clientClock: THREE.Clock
 
 	private renderPass: RenderPass
+	private fxaaPass: ShaderPass
 	private outputPass: OutputPass
 	private outlinePass: OutlinePass
 	private composer: EffectComposer
@@ -82,7 +84,7 @@ export class WorldClient extends WorldBase {
 		this.renderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
 		this.renderer.autoClear = false
 		this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-		this.renderer.toneMappingExposure = 0.5
+		this.renderer.toneMappingExposure = 0.7
 		this.renderer.shadowMap.enabled = true
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
 		if (this.scene.fog !== null)
@@ -97,17 +99,23 @@ export class WorldClient extends WorldBase {
 		this.clientClock = new THREE.Clock()
 
 		// Ambient Light
-		this.scene.add(new THREE.AmbientLight(0x666666));
+		// this.scene.add(new THREE.AmbientLight(0xaacccc));
+		const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.0)
+		hemiLight.color.setHSL(0.59, 0.4, 0.6)
+		hemiLight.groundColor.setHSL(0.095, 0.2, 0.75)
+		hemiLight.position.set(0, 50, 0)
+		this.scene.add(hemiLight)
+
 
 		// Sky
 		this.sun = new THREE.Vector3()
 		this.sky = new Sky()
 		this.sky.scale.setScalar(450000)
 		this.effectController = {
-			turbidity: 10,
+			turbidity: 1,
 			rayleigh: 0.750,
-			mieCoefficient: 0.005,
-			mieDirectionalG: 0.7,
+			mieCoefficient: 0.1,
+			mieDirectionalG: 0.9,
 			elevation: 60,
 			azimuth: 45,
 			exposure: this.renderer.toneMappingExposure
@@ -117,7 +125,7 @@ export class WorldClient extends WorldBase {
 		// Shadows
 		this.csm = new CSM({
 			maxFar: 500,
-			lightIntensity: 2,
+			lightIntensity: 2.5,
 			cascades: 3,
 			shadowBias: 0,
 			mode: 'practical',
@@ -140,6 +148,11 @@ export class WorldClient extends WorldBase {
 			this.renderPass = new RenderPass(this.scene, this.camera);
 			// this.renderPass.clearAlpha = 0;
 			const pixelRatio = this.renderer.getPixelRatio();
+
+			//
+			this.fxaaPass = new ShaderPass(FXAAShader)
+			this.fxaaPass.material['uniforms'].resolution.value.x = 1 / (window.innerWidth * pixelRatio)
+			this.fxaaPass.material['uniforms'].resolution.value.y = 1 / (window.innerHeight * pixelRatio)
 
 			//
 			this.outputPass = new OutputPass();
@@ -165,6 +178,7 @@ export class WorldClient extends WorldBase {
 			this.outlinePass.usePatternTexture = true
 
 			this.composer.addPass(this.renderPass);
+			this.composer.addPass(this.fxaaPass);
 			this.composer.addPass(this.outputPass);
 			// this.composer.addPass(this.outlinePass)
 		}
@@ -282,6 +296,9 @@ export class WorldClient extends WorldBase {
 		this.camera.updateProjectionMatrix()
 
 		this.renderer.setSize(width, height)
+		const pixelRatio = this.renderer.getPixelRatio()
+
+		this.fxaaPass.uniforms['resolution'].value.set(1 / (width * pixelRatio), 1 / (height * pixelRatio))
 		this.composer.setSize(width, height)
 	}
 

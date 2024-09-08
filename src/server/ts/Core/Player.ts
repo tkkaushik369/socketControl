@@ -79,7 +79,7 @@ export class Player implements INetwork {
 
 	public setUID(uID: string) {
 		this.uID = uID
-		// this.setSpawn(new THREE.Vector3(0, 17, -5))
+		this.setSpawn(new THREE.Vector3(0, 17, -5))
 		this.world.scenarios.forEach((sc => {
 			if (this.world.lastScenarioID === sc.name) {
 				if (sc.playerPosition !== null) {

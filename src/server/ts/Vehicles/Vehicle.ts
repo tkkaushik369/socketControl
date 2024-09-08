@@ -87,7 +87,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		})
 
 		this.wheels.forEach((wheel) => {
-			handlingSetup.chassisConnectionPointLocal.set(wheel.position.x, wheel.position.y + 0.3, wheel.position.z)
+			handlingSetup.chassisConnectionPointLocal.set(wheel.position.x, wheel.position.y + 0.2, wheel.position.z)
 			const index = this.rayCastVehicle.addWheel(handlingSetup)
 			wheel.rayCastWheelInfoIndex = index
 		})
