@@ -101,6 +101,7 @@ export class Car extends Vehicle implements IControllable {
 
 	public update(timeStep: number): void {
 		super.update(timeStep)
+		if (this.world === null || this.world.isClient) return
 
 		const tiresHaveContact = this.rayCastVehicle.numWheelsOnGround > 0
 
