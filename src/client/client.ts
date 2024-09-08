@@ -778,7 +778,7 @@ export default class AppClient {
 
 	private ForControls(controls: { type: ControlsTypes, data: { [id: string]: any } }) {
 		if (this.worldClient.player !== null) {
-			this.io/* .volatile */.emit("controls", controls)
+			this.io.emit("controls", controls)
 			this.worldClient.player.inputManager.setControls(controls)
 		}
 	}
@@ -795,7 +795,7 @@ export default class AppClient {
 		if (this.worldClient.player !== null) {
 			this.worldClient.player.ping = Date.now() - this.worldClient.player.timeStamp
 			this.worldClient.player.timeStamp = Date.now()
-			this.io/* .volatile */.emit("update", this.worldClient.player.Out())
+			this.io.emit("update", this.worldClient.player.Out())
 		}
 	}
 }

@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"target": "ES2019",
+		"module": "commonjs",
+		"outDir": "../../dist/electronApp",
+		"esModuleInterop": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true
+	},
+	"include": [
+		"**/*.ts"
+	]
+}

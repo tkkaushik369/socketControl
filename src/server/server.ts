@@ -83,21 +83,27 @@ class AppServer {
 	}
 
 	private OnDisConnect(socket: Socket) {
-		if (this.worldServer.users[socket.id] !== undefined) {
-			let char = this.worldServer.users[socket.id].character
+		const user = this.worldServer.users[socket.id]
+		const char = user.character
+		if (user !== undefined)
+			delete this.worldServer.users[socket.id]
+		const onFinish = () => {
+			console.log(`Client disconnected: ${socket.id} <- ${user.uID}`)
+			this.io.volatile.emit("removeClient", socket.id)
+			user.removeUser()
+		}
+		if (user !== undefined) {
 			if (char !== null) {
-				char.exitVehicle()
-				let tiems = 300
-				let myInterval = setInterval(() => {
-					if (tiems-- <= 0) {
-						clearInterval(myInterval)
-
-						console.log(`Client disconnected: ${socket.id} <- ${this.worldServer.users[socket.id].uID}`)
-						this.io.emit("removeClient", socket.id)
-						this.worldServer.users[socket.id].removeUser()
-						delete this.worldServer.users[socket.id]
-					}
-				}, 15);
+				if (char.controlledObject !== null) {
+					char.exitVehicle()
+					let tiems = 300
+					let myInterval = setInterval(() => {
+						if (tiems-- <= 0) {
+							clearInterval(myInterval)
+							onFinish()
+						}
+					}, 15);
+				} else onFinish()
 			}
 		}
 	}
@@ -106,7 +112,7 @@ class AppServer {
 		if (this.worldServer.users[socket.id] !== undefined) {
 			this.worldServer.users[socket.id].inputManager.setControls(controls)
 			controls['sID'] = socket.id;
-			this.io/* .volatile */.emit('controls', controls)
+			this.io.emit('controls', controls)
 		}
 	}
 
@@ -158,7 +164,7 @@ class AppServer {
 			data[vehi.uID] = vehi.Out()
 		})
 
-		this.io/* .volatile */.emit("players", data)
+		this.io.emit("players", data)
 	}
 
 	public Start() {
