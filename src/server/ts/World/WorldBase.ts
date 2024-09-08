@@ -3,7 +3,7 @@ import * as CANNON from 'cannon-es'
 import * as _ from 'lodash'
 import { Player } from '../Core/Player'
 import { IUpdatable } from '../Interfaces/IUpdatable'
-import * as Utils from '../Core/FunctionLibrary'
+import { Utility } from '../Core/Utility'
 import { BoxCollider } from '../Physics/Colliders/BoxCollider'
 import { TrimeshCollider } from '../Physics/Colliders/TrimeshCollider'
 import { CollisionGroups } from '../Enums/CollisionGroups'
@@ -375,7 +375,7 @@ export abstract class WorldBase {
 		gltf.scene.traverse((child: any) => {
 			if (child.hasOwnProperty('userData')) {
 				if (child.type === 'Mesh') {
-					Utils.setupMeshProperties(child)
+					Utility.setupMeshProperties(child)
 				}
 
 				if (child.userData.hasOwnProperty('data')) {
@@ -383,8 +383,8 @@ export abstract class WorldBase {
 						if (child.userData.hasOwnProperty('type')) {
 							if (child.userData.type === 'box') {
 								let phys = new BoxCollider({ size: new THREE.Vector3(child.scale.x, child.scale.y, child.scale.z) })
-								phys.body.position.copy(Utils.cannonVector(child.position))
-								phys.body.quaternion.copy(Utils.cannonQuat(child.quaternion))
+								phys.body.position.copy(Utility.cannonVector(child.position))
+								phys.body.quaternion.copy(Utility.cannonQuat(child.quaternion))
 								phys.body.updateAABB()
 
 								phys.body.shapes.forEach((shape) => {
@@ -567,7 +567,7 @@ export abstract class WorldBase {
 				let worldPos = new THREE.Vector3()
 				if (vehicle.spawnPoint !== null) vehicle.spawnPoint.getWorldPosition(worldPos)
 				worldPos.y += 1
-				this.outOfBoundsRespawn(vehicle.rayCastVehicle.chassisBody, Utils.cannonVector(worldPos))
+				this.outOfBoundsRespawn(vehicle.rayCastVehicle.chassisBody, Utility.cannonVector(worldPos))
 			}
 		})
 	}

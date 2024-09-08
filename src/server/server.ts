@@ -12,7 +12,7 @@ import express from 'express'
 import path from 'path'
 import http from 'http'
 import { Server, Socket } from 'socket.io'
-import * as Utils from './ts/Core/FunctionLibrary'
+import { Utility } from './ts/Core/Utility'
 import { Player, PlayerSetMesssage } from './ts/Core/Player'
 import { WorldServer } from './ts/World/WorldServer'
 import { ControlsTypes } from './ts/Enums/ControlsTypes'
@@ -61,7 +61,7 @@ class AppServer {
 
 	private OnConnect(socket: Socket) {
 		console.log(`Client Connected: ${socket.id}`)
-		this.worldServer.users[socket.id] = new Player(socket.id, this.worldServer, Utils.defaultCamera(), null)
+		this.worldServer.users[socket.id] = new Player(socket.id, this.worldServer, Utility.defaultCamera(), null)
 
 		const playerSetMessage: PlayerSetMesssage = {
 			sID: this.worldServer.users[socket.id].sID,

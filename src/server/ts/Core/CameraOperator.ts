@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import * as _ from 'lodash'
-import * as Utils from './FunctionLibrary'
+import { Utility } from './Utility'
 import { IUpdatable } from '../Interfaces/IUpdatable'
 import { IInputReceiver } from '../Interfaces/IInputReceiver'
 import { WorldBase } from '../World/WorldBase'
@@ -202,9 +202,9 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 		let speedFast = this.movementSpeed * (this.actions.fast.isPressed ? timeStep * 600 : timeStep * 60)
 		let speedSlow = this.movementSpeed * (this.actions.slow.isPressed ? timeStep * 59 : timeStep * 6);
 
-		const up = Utils.getUp(this.camera)
-		const right = Utils.getRight(this.camera)
-		const forward = Utils.getBack(this.camera)
+		const up = Utility.getUp(this.camera)
+		const right = Utility.getRight(this.camera)
+		const forward = Utility.getBack(this.camera)
 
 		this.upVelocity = THREE.MathUtils.lerp(this.upVelocity, +this.actions.up.isPressed - +this.actions.down.isPressed, 0.3)
 		this.forwardVelocity = THREE.MathUtils.lerp(this.forwardVelocity, +this.actions.forward.isPressed - +this.actions.back.isPressed, 0.3)

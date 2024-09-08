@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { Vehicle } from './Vehicle'
-import * as Utils from '../Core/FunctionLibrary'
+import { Utility } from '../Core/Utility'
 import { VehicleSeat } from './VehicleSeat'
 import { Side } from '../Enums/Side'
 
@@ -37,7 +37,7 @@ export class VehicleDoor {
 		this.vehicle = seat.vehicle
 		this.doorObject = object
 
-		const side = Utils.detectRelativeSide(this.seat.seatPointObject, this.doorObject)
+		const side = Utility.detectRelativeSide(this.seat.seatPointObject, this.doorObject)
 		if (side === Side.Left) this.sideMultiplier = -1
 		else if (side === Side.Right) this.sideMultiplier = 1
 		else this.sideMultiplier = 0
@@ -74,11 +74,11 @@ export class VehicleDoor {
 			this.doorObject.getWorldPosition(this.doorWorldPos)
 
 			// Get acceleration
-			let vehicleVel = Utils.threeVector(this.vehicle.rayCastVehicle.chassisBody.velocity)
+			let vehicleVel = Utility.threeVector(this.vehicle.rayCastVehicle.chassisBody.velocity)
 			let vehicleVelDiff = vehicleVel.clone().sub(this.lastVehicleVel)
 
 			// Get vectors
-			const quat = Utils.threeQuat(this.vehicle.rayCastVehicle.chassisBody.quaternion)
+			const quat = Utility.threeQuat(this.vehicle.rayCastVehicle.chassisBody.quaternion)
 			const back = new THREE.Vector3(0, 0, -1).applyQuaternion(quat)
 			const up = new THREE.Vector3(0, 1, 0).applyQuaternion(quat)
 
@@ -93,7 +93,7 @@ export class VehicleDoor {
 			// Measure angle difference
 			let v1 = trailerPos.clone().sub(this.doorWorldPos).normalize()
 			let v2 = trailerPushedPos.clone().sub(this.doorWorldPos).normalize()
-			let angle = Utils.getSignedAngleBetweenVectors(v1, v2, up)
+			let angle = Utility.getSignedAngleBetweenVectors(v1, v2, up)
 
 			// Apply door velocity
 			this.doorVelocity += this.sideMultiplier * angle * 0.05
@@ -140,7 +140,7 @@ export class VehicleDoor {
 		this.lastVehicleVel = new THREE.Vector3()
 
 		// Get vectors
-		const quat = Utils.threeQuat(this.vehicle.rayCastVehicle.chassisBody.quaternion)
+		const quat = Utility.threeQuat(this.vehicle.rayCastVehicle.chassisBody.quaternion)
 		const back = new THREE.Vector3(0, 0, -1).applyQuaternion(quat)
 		this.lastTrailerPos.copy(back.add(this.doorWorldPos))
 	}

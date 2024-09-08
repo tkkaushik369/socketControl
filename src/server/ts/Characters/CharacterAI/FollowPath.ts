@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
-import * as Utils from '../../Core/FunctionLibrary'
+import { Utility } from '../../Core/Utility'
 
 import { Character } from '../Character'
 import { FollowTarget } from './FollowTarget'
@@ -62,8 +62,8 @@ export class FollowPath extends FollowTarget implements ICharacterAI {
 			this.targetNode.object.getWorldPosition(worldPos)
 			worldPos.y += 3
 			if (this.character.controlledObject !== null) {
-				this.character.controlledObject.collision.position = Utils.cannonVector(worldPos)
-				this.character.controlledObject.collision.interpolatedPosition = Utils.cannonVector(worldPos)
+				this.character.controlledObject.collision.position = Utility.cannonVector(worldPos)
+				this.character.controlledObject.collision.interpolatedPosition = Utility.cannonVector(worldPos)
 				this.character.controlledObject.collision.angularVelocity = new CANNON.Vec3()
 				this.character.controlledObject.collision.quaternion.copy(this.character.controlledObject.collision.initQuaternion)
 			}

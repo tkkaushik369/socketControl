@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import { BaseScene } from './BaseScene'
-import * as Utils from '../Core/FunctionLibrary'
+import { Utility } from '../Core/Utility'
 
 export class Example extends BaseScene {
 	constructor() {
@@ -102,7 +102,7 @@ export class Example extends BaseScene {
 						t = !t
 					}
 
-					geometry.setAttribute('position', new THREE.BufferAttribute(Utils.vertInx(indices, vertices), 3))
+					geometry.setAttribute('position', new THREE.BufferAttribute(Utility.vertInx(indices, vertices), 3))
 					geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
 					geometry.computeVertexNormals()
 
@@ -186,7 +186,7 @@ export class Example extends BaseScene {
 						}
 					}
 
-					geometry.setAttribute('position', new THREE.BufferAttribute(Utils.vertInx(indices, vertices), 3))
+					geometry.setAttribute('position', new THREE.BufferAttribute(Utility.vertInx(indices, vertices), 3))
 					geometry.computeVertexNormals()
 
 					const material1 = new THREE.MeshBasicMaterial({ color: 0xb0b000 });

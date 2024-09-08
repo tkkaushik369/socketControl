@@ -6,7 +6,7 @@ import * as _ from 'lodash'
 import { KeyBinding } from '../Core/KeyBinding'
 import { VehicleSeat } from './VehicleSeat'
 import { Wheel } from './Wheel'
-import * as Utils from '../Core/FunctionLibrary'
+import { Utility } from '../Core/Utility'
 import { CollisionGroups } from '../Enums/CollisionGroups'
 import { SwitchingSeats } from '../Characters/CharacterStates/Vehicles/_VehicleStateLibrary'
 import { EntityType } from '../Enums/EntityType'
@@ -120,8 +120,8 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 			let transform = (this.rayCastVehicle.wheelInfos[i] as CANNON.WheelInfo).worldTransform
 
 			let wheelObject = this.wheels[i].wheelObject
-			wheelObject.position.copy(Utils.threeVector(transform.position))
-			wheelObject.quaternion.copy(Utils.threeQuat(transform.quaternion))
+			wheelObject.position.copy(Utility.threeVector(transform.position))
+			wheelObject.quaternion.copy(Utility.threeQuat(transform.quaternion))
 
 			// let upAxisWorld = new CANNON.Vec3()
 			// this.rayCastVehicle.getVehicleAxisWorld(this.rayCastVehicle.indexUpAxis, upAxisWorld) // getVehicleAxisWorld(axisIndex: number, result: Vec3): void;
@@ -344,7 +344,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	public readVehicleData(gltf: any): void {
 		gltf.scene.traverse((child: any) => {
 			if (child.isMesh) {
-				Utils.setupMeshProperties(child)
+				Utility.setupMeshProperties(child)
 
 				if (child.material !== undefined) {
 					this.materials.push(child.material)

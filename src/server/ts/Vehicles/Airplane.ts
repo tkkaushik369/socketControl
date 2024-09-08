@@ -5,7 +5,7 @@ import { Vehicle } from './Vehicle'
 import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { KeyBinding } from '../Core/KeyBinding'
 import { SpringSimulator } from '../Physics/SpringSimulation/SpringSimulator'
-import * as Utils from '../Core/FunctionLibrary'
+import { Utility } from '../Core/Utility'
 import { EntityType } from '../Enums/EntityType'
 import { WorldBase } from '../World/WorldBase'
 import { MessageTypes } from '../Enums/MessagesTypes'
@@ -178,14 +178,14 @@ export class Airplane extends Vehicle implements IWorldEntity {
 	}
 
 	public physicsPreStep(body: CANNON.Body, plane: Airplane): void {
-		let quat = Utils.threeQuat(body.quaternion)
+		let quat = Utility.threeQuat(body.quaternion)
 		let right = new THREE.Vector3(1, 0, 0).applyQuaternion(quat)
 		let up = new THREE.Vector3(0, 1, 0).applyQuaternion(quat)
 		let forward = new THREE.Vector3(0, 0, 1).applyQuaternion(quat)
 
 		const velocity = new CANNON.Vec3().copy(this.collision.velocity)
 		let velLength1 = body.velocity.length()
-		const currentSpeed = velocity.dot(Utils.cannonVector(forward))
+		const currentSpeed = velocity.dot(Utility.cannonVector(forward))
 
 		// Rotation controls influence
 		let flightModeInfluence = currentSpeed / 10
@@ -198,7 +198,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		// Rotation stabilization
 		let lookVelocity = body.velocity.clone()
 		lookVelocity.normalize()
-		let rotStabVelocity = new THREE.Quaternion().setFromUnitVectors(forward, Utils.threeVector(lookVelocity))
+		let rotStabVelocity = new THREE.Quaternion().setFromUnitVectors(forward, Utility.threeVector(lookVelocity))
 		rotStabVelocity.x *= 0.3
 		rotStabVelocity.y *= 0.3
 		rotStabVelocity.z *= 0.3

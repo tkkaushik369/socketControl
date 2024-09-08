@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
 import * as _ from 'lodash'
-import * as Utils from '../Core/FunctionLibrary'
+import { Utility } from '../Core/Utility'
 
 import { KeyBinding } from '../Core/KeyBinding'
 import { VectorSpringSimulator } from '../Physics/SpringSimulation/VectorSpringSimulator'
@@ -302,7 +302,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	}
 
 	public resetOrientation(): void {
-		const forward = Utils.getForward(this)
+		const forward = Utility.getForward(this)
 		this.setOrientation(forward, true)
 	}
 
@@ -337,7 +337,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public readCharacterData(gltf: any): void {
 		gltf.scene.traverse((child: any) => {
 			if (child.isMesh) {
-				Utils.setupMeshProperties(child)
+				Utility.setupMeshProperties(child)
 				if (child.material !== undefined) {
 					this.materials.push(child.material)
 				}
@@ -475,8 +475,8 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		} else {
 			let newPos = new THREE.Vector3()
 			this.getWorldPosition(newPos)
-			this.characterCapsule.body.position.copy(Utils.cannonVector(newPos))
-			this.characterCapsule.body.interpolatedPosition.copy(Utils.cannonVector(newPos))
+			this.characterCapsule.body.position.copy(Utility.cannonVector(newPos))
+			this.characterCapsule.body.interpolatedPosition.copy(Utility.cannonVector(newPos))
 		}
 
 		this.updateMatrixWorld()
@@ -581,7 +581,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public springRotation(timeStep: number): void {
 		// Spring rotation
 		// Figure out angle between current and target orientation
-		let angle = Utils.getSignedAngleBetweenVectors(this.orientation, this.orientationTarget)
+		let angle = Utility.getSignedAngleBetweenVectors(this.orientation, this.orientationTarget)
 
 		// Simulator
 		this.rotationSimulator.target = angle
@@ -606,7 +606,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		const localDirection = this.getLocalMovementDirection()
 		const flatViewVector = new THREE.Vector3(this.viewVector.x, 0, this.viewVector.z).normalize()
 
-		return Utils.appplyVectorMatrixXZ(flatViewVector, localDirection)
+		return Utility.appplyVectorMatrixXZ(flatViewVector, localDirection)
 	}
 
 	public setCameraRelativeOrientationTarget(): void {
@@ -845,7 +845,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		// Take local velocity
 		let arcadeVelocity = new THREE.Vector3().copy(character.velocity).multiplyScalar(character.moveSpeed)
 		// Turn local into global
-		arcadeVelocity = Utils.appplyVectorMatrixXZ(character.orientation, arcadeVelocity)
+		arcadeVelocity = Utility.appplyVectorMatrixXZ(character.orientation, arcadeVelocity)
 
 		let newVelocity = new THREE.Vector3()
 
@@ -853,12 +853,12 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		if (character.arcadeVelocityIsAdditive) {
 			newVelocity.copy(simulatedVelocity)
 
-			let globalVelocityTarget = Utils.appplyVectorMatrixXZ(character.orientation, character.velocityTarget)
+			let globalVelocityTarget = Utility.appplyVectorMatrixXZ(character.orientation, character.velocityTarget)
 			let add = new THREE.Vector3().copy(arcadeVelocity).multiply(character.arcadeVelocityInfluence)
 
-			if (Math.abs(simulatedVelocity.x) < Math.abs(globalVelocityTarget.x * character.moveSpeed) || Utils.haveDifferentSigns(simulatedVelocity.x, arcadeVelocity.x)) { newVelocity.x += add.x }
-			if (Math.abs(simulatedVelocity.y) < Math.abs(globalVelocityTarget.y * character.moveSpeed) || Utils.haveDifferentSigns(simulatedVelocity.y, arcadeVelocity.y)) { newVelocity.y += add.y }
-			if (Math.abs(simulatedVelocity.z) < Math.abs(globalVelocityTarget.z * character.moveSpeed) || Utils.haveDifferentSigns(simulatedVelocity.z, arcadeVelocity.z)) { newVelocity.z += add.z }
+			if (Math.abs(simulatedVelocity.x) < Math.abs(globalVelocityTarget.x * character.moveSpeed) || Utility.haveDifferentSigns(simulatedVelocity.x, arcadeVelocity.x)) { newVelocity.x += add.x }
+			if (Math.abs(simulatedVelocity.y) < Math.abs(globalVelocityTarget.y * character.moveSpeed) || Utility.haveDifferentSigns(simulatedVelocity.y, arcadeVelocity.y)) { newVelocity.y += add.y }
+			if (Math.abs(simulatedVelocity.z) < Math.abs(globalVelocityTarget.z * character.moveSpeed) || Utility.haveDifferentSigns(simulatedVelocity.z, arcadeVelocity.z)) { newVelocity.z += add.z }
 		}
 		else {
 			newVelocity = new THREE.Vector3(
@@ -877,7 +877,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			if ((character.rayResult.body) && (character.rayResult.body.mass > 0)) {
 				let pointVelocity = new CANNON.Vec3()
 				character.rayResult.body.getVelocityAtWorldPoint(character.rayResult.hitPointWorld, pointVelocity)
-				newVelocity.add(Utils.threeVector(pointVelocity))
+				newVelocity.add(Utility.threeVector(pointVelocity))
 			}
 
 			// Measure the normal vector offset from direct "up" vector
@@ -916,7 +916,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 				// Flatten velocity
 				body.velocity.y = 0
 				let speed = Math.max(character.velocitySimulator.position.length() * 4, character.initJumpSpeed)
-				body.velocity = Utils.cannonVector(character.orientation.clone().multiplyScalar(speed))
+				body.velocity = Utility.cannonVector(character.orientation.clone().multiplyScalar(speed))
 			}
 			else if (character.rayResult.body !== null) {
 				// Moving objects compensation

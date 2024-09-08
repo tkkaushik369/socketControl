@@ -11,7 +11,7 @@ import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { Side } from '../../../Enums/Side'
 import { SeatType } from '../../../Enums/SeatType'
 import { EntityType } from '../../../Enums/EntityType'
-import * as Utils from '../../../Core/FunctionLibrary'
+import { Utility } from '../../../Core/Utility'
 import { SpringSimulator } from '../../../Physics/SpringSimulation/SpringSimulator'
 import { Vehicle } from '../../../Vehicles/Vehicle'
 
@@ -42,7 +42,7 @@ export class EnteringVehicle extends CharacterStateBase {
 		this.seat = seat
 		this.entryPoint = entryPoint
 
-		const side = Utils.detectRelativeSide(this.entryPoint, seat.seatPointObject)
+		const side = Utility.detectRelativeSide(this.entryPoint, seat.seatPointObject)
 		this.animData = this.getEntryAnimations(this.seat.vehicle.entityType)
 		this.playAnimation(this.animData[side], 0.1)
 
@@ -86,7 +86,7 @@ export class EnteringVehicle extends CharacterStateBase {
 			}
 
 			let factor = THREE.MathUtils.clamp(this.timer / (this.animationLength - this.animData.end_early), 0, 1)
-			let sineFactor = Utils.easeInOutSine(factor)
+			let sineFactor = Utility.easeInOutSine(factor)
 			this.factorSimulator.simulate(timeStep)
 
 			let currentPosOffset = new THREE.Vector3().lerpVectors(this.initialPositionOffset, new THREE.Vector3(), this.factorSimulator.position)

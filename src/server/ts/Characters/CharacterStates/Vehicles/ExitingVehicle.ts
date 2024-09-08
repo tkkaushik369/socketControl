@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import * as Utils from '../../../Core/FunctionLibrary'
+import { Utility } from '../../../Core/Utility'
 
 import { Character } from '../../Character'
 import { Side } from '../../../Enums/Side'
@@ -28,7 +28,7 @@ export class ExitingVehicle extends ExitingStateBase {
 		this.endPosition.copy(this.exitPoint.position)
 		this.endPosition.y += 0.52
 
-		const side = Utils.detectRelativeSide(seat.seatPointObject, this.exitPoint)
+		const side = Utility.detectRelativeSide(seat.seatPointObject, this.exitPoint)
 		if (side === Side.Left) {
 			this.playAnimation('stand_up_left', 0.1)
 		}
@@ -70,7 +70,7 @@ export class ExitingVehicle extends ExitingStateBase {
 
 			// Position
 			let factor = this.timer / this.animationLength
-			let smoothFactor = Utils.easeInOutSine(factor)
+			let smoothFactor = Utility.easeInOutSine(factor)
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, smoothFactor)
 			this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 

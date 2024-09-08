@@ -1,4 +1,4 @@
-import * as Utils from '../../Core/FunctionLibrary'
+import { Utility } from '../../Core/Utility'
 import {
 	DropIdle,
 	DropRolling,
@@ -125,7 +125,7 @@ export abstract class CharacterStateBase implements ICharacterState {
 
 	public setAppropriateStartWalkState(): void {
 		let range = Math.PI
-		let angle = Utils.getSignedAngleBetweenVectors(this.character.orientation, this.character.getCameraRelativeMovementVector())
+		let angle = Utility.getSignedAngleBetweenVectors(this.character.orientation, this.character.getCameraRelativeMovementVector())
 
 		if (angle > range * 0.8) {
 			this.character.setState(new StartWalkBackLeft(this.character))

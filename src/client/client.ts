@@ -2,7 +2,7 @@ import './css/main.css'
 import * as THREE from 'three'
 import { LDrawLoader } from 'three/examples/jsm/loaders/LDrawLoader'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
-import * as Utils from '../server/ts/Core/FunctionLibrary'
+import { Utility } from '../server/ts/Core/Utility'
 import { io, Socket } from 'socket.io-client'
 import { WorldClient } from './ts/World/WorldClient'
 import { Player } from '../server/ts/Core/Player'
@@ -251,7 +251,7 @@ export default class AppClient {
 					/* if (vehi.seats.length > 0) {
 						this.worldClient.scene.remove(vehi.seats[0].seatPointObject)
 						let offset = new THREE.Object3D()
-						Utils.setDefaults(offset.userData, vehi.seats[0].seatPointObject.userData)
+						Utility.setDefaults(offset.userData, vehi.seats[0].seatPointObject.userData)
 						this.worldClient.scene.add(offset)
 						vehi.seats[0].seatPointObject = chair
 						offset.attach(chair)
@@ -335,7 +335,7 @@ export default class AppClient {
 			switch (messages[id].msgType) {
 				case MessageTypes.Player: {
 					if (this.worldClient.users[id] === undefined) {
-						const player = new Player(messages[id].sID, this.worldClient, Utils.defaultCamera(), null)
+						const player = new Player(messages[id].sID, this.worldClient, Utility.defaultCamera(), null)
 						// Initialization
 						player.setUID(messages[id].uID)
 						player.cameraOperator.camera.add(AttachModels.makeCamera())
@@ -436,9 +436,9 @@ export default class AppClient {
 								// VehicalStates
 								else if ("CloseVehicleDoorInside" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
-									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									let vehi = Utility.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
-										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										let vehiSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.seat)
 										seat = vehiSeat
 									}
 									if (seat !== null) {
@@ -448,9 +448,9 @@ export default class AppClient {
 									}
 								} else if ("CloseVehicleDoorOutside" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
-									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									let vehi = Utility.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
-										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										let vehiSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.seat)
 										seat = vehiSeat
 									}
 									if (seat !== null) {
@@ -460,9 +460,9 @@ export default class AppClient {
 									}
 								} else if ("Driving" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
-									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									let vehi = Utility.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
-										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										let vehiSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.seat)
 										seat = vehiSeat
 									}
 									if (seat !== null) {
@@ -473,11 +473,11 @@ export default class AppClient {
 								} else if ("EnteringVehicle" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let entryPoint: THREE.Object3D | null = null
-									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									let vehi = Utility.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
-										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										let vehiSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.seat)
 										if (vehiSeat !== null) {
-											let ep = Utils.getEntryPoint(vehiSeat, messages[id].data.vehicalState.entryPoint)
+											let ep = Utility.getEntryPoint(vehiSeat, messages[id].data.vehicalState.entryPoint)
 											seat = vehiSeat
 											entryPoint = ep
 										}
@@ -489,9 +489,9 @@ export default class AppClient {
 									}
 								} else if ("ExitingAirplane" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
-									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									let vehi = Utility.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
-										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										let vehiSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.seat)
 										seat = vehiSeat
 									}
 									if (seat !== null) {
@@ -501,9 +501,9 @@ export default class AppClient {
 									}
 								} else if ("ExitingVehicle" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
-									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									let vehi = Utility.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
-										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										let vehiSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.seat)
 										seat = vehiSeat
 									}
 									if (seat !== null) {
@@ -514,11 +514,11 @@ export default class AppClient {
 								} else if ("OpenVehicleDoor" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
 									let entryPoint: THREE.Object3D | null = null
-									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									let vehi = Utility.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
-										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										let vehiSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.seat)
 										if (vehiSeat !== null) {
-											let ep = Utils.getEntryPoint(vehiSeat, messages[id].data.vehicalState.entryPoint)
+											let ep = Utility.getEntryPoint(vehiSeat, messages[id].data.vehicalState.entryPoint)
 											seat = vehiSeat
 											entryPoint = ep
 										}
@@ -530,9 +530,9 @@ export default class AppClient {
 									}
 								} else if ("Sitting" === messages[id].data.charState) {
 									let seat: VehicleSeat | null = null
-									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									let vehi = Utility.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
-										let vehiSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.seat)
+										let vehiSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.seat)
 										seat = vehiSeat
 									}
 									if (seat !== null) {
@@ -543,10 +543,10 @@ export default class AppClient {
 								} else if ("SwitchingSeats" === messages[id].data.charState) {
 									let fromSeat: VehicleSeat | null = null
 									let toSeat: VehicleSeat | null = null
-									let vehi = Utils.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
+									let vehi = Utility.getVehical(this.worldClient, messages[id].data.vehicalState.vehical)
 									if (vehi !== null) {
-										fromSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.fromSeat)
-										toSeat = Utils.getSeat(vehi, messages[id].data.vehicalState.toSeat)
+										fromSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.fromSeat)
+										toSeat = Utility.getSeat(vehi, messages[id].data.vehicalState.toSeat)
 									}
 									if ((fromSeat !== null) && (toSeat !== null)) {
 										char.setState(new VehicalState.SwitchingSeats(char, fromSeat, toSeat), false)

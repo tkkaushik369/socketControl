@@ -5,7 +5,7 @@ import { Vehicle } from '../Vehicles/Vehicle'
 import { Helicopter } from '../Vehicles/Helicopter'
 import { Airplane } from '../Vehicles/Airplane'
 import { Car } from '../Vehicles/Car'
-import * as Utils from '../Core/FunctionLibrary'
+import { Utility } from '../Core/Utility'
 import { Character } from '../Characters/Character'
 import { FollowPath } from '../Characters/CharacterAI/FollowPath'
 
@@ -59,7 +59,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			this.object.getWorldQuaternion(worldQuat)
 
 			vehicle.setPosition(worldPos.x, worldPos.y + 1, worldPos.z)
-			vehicle.collision.quaternion.copy(Utils.cannonQuat(worldQuat))
+			vehicle.collision.quaternion.copy(Utility.cannonQuat(worldQuat))
 			world.add(vehicle)
 
 			if (this.driver !== null) {

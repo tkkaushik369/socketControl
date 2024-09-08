@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
-import * as Utils from '../../Core/FunctionLibrary'
+import { Utility } from '../../Core/Utility'
 import { ICollider } from '../../Interfaces/ICollider'
 import { threeToCannon, ShapeType } from 'three-to-cannon';
 
@@ -19,7 +19,7 @@ export class TrimeshCollider implements ICollider {
 			rotation: mesh.quaternion,
 			friction: 0.3
 		}
-		options = Utils.setDefaults(options, defaults)
+		options = Utility.setDefaults(options, defaults)
 		this.options = options
 
 		// Add phys sphere
@@ -49,7 +49,7 @@ export class TrimeshCollider implements ICollider {
 				vertices.push(vertBuff[i])
 			}
 
-			bufferGeometry.setAttribute('position', new THREE.BufferAttribute(Utils.vertInx(indices, vertices), 3))
+			bufferGeometry.setAttribute('position', new THREE.BufferAttribute(Utility.vertInx(indices, vertices), 3))
 			bufferGeometry.computeVertexNormals()
 		}
 

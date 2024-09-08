@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { SimulatorBase } from './SimulatorBase'
 import { SimulationFrame } from './SimulationFrame'
-import { spring } from '../../Core/FunctionLibrary'
+import { Utility } from '../../Core/Utility'
 
 export class SpringSimulator extends SimulatorBase {
 	public position: number
@@ -46,6 +46,6 @@ export class SpringSimulator extends SimulatorBase {
 	 * Gets another simulation frame
 	 */
 	public getFrame(isLastFrame: boolean): SimulationFrame {
-		return spring(this.lastFrame().position, this.target, this.lastFrame().velocity, this.mass, this.damping)
+		return Utility.spring(this.lastFrame().position, this.target, this.lastFrame().velocity, this.mass, this.damping)
 	}
 }

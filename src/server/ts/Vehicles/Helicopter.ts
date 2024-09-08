@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
-import * as Utils from '../Core/FunctionLibrary'
+import { Utility } from '../Core/Utility'
 
 import { Vehicle } from './Vehicle'
 import { IControllable } from '../Interfaces/IControllable'
@@ -85,7 +85,7 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 	}
 
 	public physicsPreStep(body: CANNON.Body, heli: Helicopter): void {
-		let quat = Utils.threeQuat(body.quaternion)
+		let quat = Utility.threeQuat(body.quaternion)
 		let right = new THREE.Vector3(1, 0, 0).applyQuaternion(quat)
 		let globalUp = new THREE.Vector3(0, 1, 0)
 		let up = new THREE.Vector3(0, 1, 0).applyQuaternion(quat)

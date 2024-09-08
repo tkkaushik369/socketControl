@@ -7,7 +7,7 @@ import { EnteringVehicle } from './_VehicleStateLibrary'
 import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { Side } from '../../../Enums/Side'
-import * as Utils from '../../../Core/FunctionLibrary'
+import { Utility } from '../../../Core/Utility'
 import { SpringSimulator } from '../../../Physics/SpringSimulation/SpringSimulator'
 
 export class OpenVehicleDoor extends CharacterStateBase {
@@ -34,7 +34,7 @@ export class OpenVehicleDoor extends CharacterStateBase {
 		this.seat = seat
 		this.entryPoint = entryPoint
 
-		const side = Utils.detectRelativeSide(entryPoint, seat.seatPointObject)
+		const side = Utility.detectRelativeSide(entryPoint, seat.seatPointObject)
 		if (side === Side.Left) {
 			this.playAnimation('open_door_standing_left', 0.1)
 		}

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import * as Utils from '../../../Core/FunctionLibrary'
+import { Utility } from '../../../Core/Utility'
 
 import { Falling } from '../_CharacterStateLibrary'
 import { ExitingStateBase } from './_VehicleStateLibrary'
@@ -18,7 +18,7 @@ export class ExitingAirplane extends ExitingStateBase {
 		this.endPosition.copy(this.startPosition)
 		this.endPosition.y += 1
 
-		const quat = Utils.threeQuat(seat.vehicle.collision.quaternion)
+		const quat = Utility.threeQuat(seat.vehicle.collision.quaternion)
 		const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(quat)
 		this.exitPoint = new THREE.Object3D()
 		this.exitPoint.lookAt(forward)
@@ -38,7 +38,7 @@ export class ExitingAirplane extends ExitingStateBase {
 		else {
 			let beginningCutoff = 0.3
 			let factor = THREE.MathUtils.clamp(((this.timer / this.animationLength) - beginningCutoff) * (1 / (1 - beginningCutoff)), 0, 1)
-			let smoothFactor = Utils.easeOutQuad(factor)
+			let smoothFactor = Utility.easeOutQuad(factor)
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, smoothFactor)
 			this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 

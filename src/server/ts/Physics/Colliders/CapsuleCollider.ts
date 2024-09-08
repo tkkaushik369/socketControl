@@ -1,6 +1,6 @@
 import * as CANNON from 'cannon-es'
 import * as THREE from 'three'
-import * as Utils from '../../Core/FunctionLibrary'
+import { Utility } from '../../Core/Utility'
 import { ICollider } from '../../Interfaces/ICollider'
 
 export class CapsuleCollider implements ICollider {
@@ -16,7 +16,7 @@ export class CapsuleCollider implements ICollider {
 			segments: 8,
 			friction: 0.3
 		}
-		options = Utils.setDefaults(options, defaults)
+		options = Utility.setDefaults(options, defaults)
 		this.options = options
 
 		let mat = new CANNON.Material('capsuleMat')

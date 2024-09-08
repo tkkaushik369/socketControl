@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { SimulatorBase } from './SimulatorBase'
 import { SimulationFrameVector } from './SimulationFrameVector'
-import { springV } from '../../Core/FunctionLibrary'
+import { Utility } from '../../Core/Utility'
 
 export class VectorSpringSimulator extends SimulatorBase {
 	public position: THREE.Vector3
@@ -64,7 +64,7 @@ export class VectorSpringSimulator extends SimulatorBase {
 		let newSpring = new SimulationFrameVector(this.lastFrame().position.clone(), this.lastFrame().velocity.clone())
 
 		// Calculate new Spring
-		springV(newSpring.position, this.target, newSpring.velocity, this.mass, this.damping)
+		Utility.springV(newSpring.position, this.target, newSpring.velocity, this.mass, this.damping)
 
 		// Return new Spring
 		return newSpring

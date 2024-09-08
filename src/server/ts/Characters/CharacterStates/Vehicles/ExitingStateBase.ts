@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import * as Utils from '../../../Core/FunctionLibrary'
+import { Utility } from '../../../Core/Utility'
 
 import {
 	CharacterStateBase,
@@ -54,7 +54,7 @@ export abstract class ExitingStateBase extends CharacterStateBase {
 	}
 
 	public updateEndRotation(): void {
-		const forward = Utils.getForward(this.exitPoint)
+		const forward = Utility.getForward(this.exitPoint)
 		forward.y = 0
 		forward.normalize()
 

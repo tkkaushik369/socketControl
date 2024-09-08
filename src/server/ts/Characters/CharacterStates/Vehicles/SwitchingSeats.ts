@@ -11,7 +11,7 @@ import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { Side } from '../../../Enums/Side'
 import { SeatType } from '../../../Enums/SeatType'
 import { Space } from '../../../Enums/Space'
-import * as Utils from '../../../Core/FunctionLibrary'
+import { Utility } from '../../../Core/Utility'
 
 export class SwitchingSeats extends CharacterStateBase {
 	state = 'SwitchingSeats'
@@ -37,7 +37,7 @@ export class SwitchingSeats extends CharacterStateBase {
 		character.leaveSeat()
 		this.character.occupySeat(toSeat)
 
-		const right = Utils.getRight(fromSeat.seatPointObject, Space.Local)
+		const right = Utility.getRight(fromSeat.seatPointObject, Space.Local)
 		const viewVector = toSeat.seatPointObject.position.clone().sub(fromSeat.seatPointObject.position).normalize()
 		const side = right.dot(viewVector) > 0 ? Side.Left : Side.Right
 
@@ -70,7 +70,7 @@ export class SwitchingSeats extends CharacterStateBase {
 		}
 		else {
 			let factor = this.timer / this.animationLength
-			let sineFactor = Utils.easeInOutSine(factor)
+			let sineFactor = Utility.easeInOutSine(factor)
 
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, sineFactor)
 			this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)

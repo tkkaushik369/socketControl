@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { SimulatorBase } from './SimulatorBase'
 import { SimulationFrame } from './SimulationFrame'
-import { spring } from '../../Core/FunctionLibrary'
+import { Utility } from '../../Core/Utility'
 
 export class RelativeSpringSimulator extends SimulatorBase {
 	public position: number
@@ -65,6 +65,6 @@ export class RelativeSpringSimulator extends SimulatorBase {
 			this.lastLerp = this.lastLerp - this.lastFrame().position
 		}
 
-		return spring(newFrame.position, this.target, newFrame.velocity, this.mass, this.damping)
+		return Utility.spring(newFrame.position, this.target, newFrame.velocity, this.mass, this.damping)
 	}
 }

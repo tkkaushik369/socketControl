@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { ICharacterAI } from '../../Interfaces/ICharacterAI'
 import { CharacterAIBase } from '../../Characters/CharacterAI/CharacterAIBase'
-import * as Utils from '../../Core/FunctionLibrary'
+import { Utility } from '../../Core/Utility'
 import { Vehicle } from '../../Vehicles/Vehicle'
 import { Character } from '../Character'
 
@@ -54,9 +54,9 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 				let forward = new THREE.Vector3(0, 0, 1).applyQuaternion(this.character.controlledObject.quaternion)
 				viewVector.y = 0
 				viewVector.normalize()
-				let angle = Utils.getSignedAngleBetweenVectors(forward, viewVector)
+				let angle = Utility.getSignedAngleBetweenVectors(forward, viewVector)
 
-				let goingForward = forward.dot(Utils.threeVector(this.character.controlledObject.collision.velocity)) > 0
+				let goingForward = forward.dot(Utility.threeVector(this.character.controlledObject.collision.velocity)) > 0
 				let speed = this.character.controlledObject.collision.velocity.length()
 
 				if (this.character.controlledObject !== null) {

@@ -5,7 +5,7 @@ import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { Side } from '../../../Enums/Side'
 import { Idle } from '../Idle'
-import * as Utils from '../../../Core/FunctionLibrary'
+import { Utility } from '../../../Core/Utility'
 
 export class CloseVehicleDoorOutside extends CharacterStateBase {
 	state = 'CloseVehicleDoorOutside'
@@ -22,7 +22,7 @@ export class CloseVehicleDoorOutside extends CharacterStateBase {
 		this.canFindVehiclesToEnter = false
 
 		if (this.seat.door !== null) {
-			const side = Utils.detectRelativeSide(this.seat.seatPointObject, this.seat.door.doorObject)
+			const side = Utility.detectRelativeSide(this.seat.seatPointObject, this.seat.door.doorObject)
 			if (side === Side.Left) {
 				this.playAnimation('close_door_standing_right', 0.1)
 			}

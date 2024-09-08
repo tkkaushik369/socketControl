@@ -3,7 +3,7 @@ import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
 import { WorldBase } from './WorldBase'
 import { Character } from '../Characters/Character'
 import { RandomBehaviour } from '../Characters/CharacterAI/RandomBehaviour'
-import * as Utils from '../Core/FunctionLibrary'
+import { Utility } from '../Core/Utility'
 
 export class CharacterSpawnPoint implements ISpawnPoint {
 	private object: THREE.Object3D
@@ -27,7 +27,7 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 		this.object.getWorldPosition(worldPos)
 		player.setPosition(worldPos.x, worldPos.y, worldPos.z)
 
-		let forward = Utils.getForward(this.object)
+		let forward = Utility.getForward(this.object)
 		player.setOrientation(forward, true)
 
 		world.add(player)

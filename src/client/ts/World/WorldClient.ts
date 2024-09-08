@@ -4,7 +4,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
-import * as Utils from '../../../server/ts/Core/FunctionLibrary'
+import { Utility } from '../../../server/ts/Core/Utility'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { WorldBase } from '../../../server/ts/World/WorldBase'
@@ -109,7 +109,7 @@ export class WorldClient extends WorldBase {
 		this.renderer.setAnimationLoop(this.animate)
 
 		// Camera
-		this.camera = Utils.defaultCamera()
+		this.camera = Utility.defaultCamera()
 
 		// Clock
 		this.clientClock = new THREE.Clock()

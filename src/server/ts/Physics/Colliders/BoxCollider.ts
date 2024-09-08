@@ -1,6 +1,6 @@
 import * as CANNON from 'cannon-es'
 import * as THREE from 'three'
-import * as Utils from '../../Core/FunctionLibrary'
+import { Utility } from '../../Core/Utility'
 import { ICollider } from '../../Interfaces/ICollider'
 
 export class BoxCollider implements ICollider {
@@ -15,7 +15,7 @@ export class BoxCollider implements ICollider {
 			size: new THREE.Vector3(0.3, 0.3, 0.3),
 			friction: 0.3
 		}
-		options = Utils.setDefaults(options, defaults)
+		options = Utility.setDefaults(options, defaults)
 		this.debugModel = null
 		this.options = options
 
