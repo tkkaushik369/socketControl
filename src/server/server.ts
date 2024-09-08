@@ -143,8 +143,8 @@ class AppServer {
 			if ((this.worldServer.users[id] !== undefined) && (this.worldServer.users[id].uID != null)) {
 				this.worldServer.users[id].timeStamp = Date.now()
 				this.worldServer.users[id].data.timeScaleTarget = this.worldServer.timeScaleTarget
-				this.worldServer.users[id].data.sun.elevation = this.worldServer.subConf.elevation
-				this.worldServer.users[id].data.sun.azimuth = this.worldServer.subConf.azimuth
+				this.worldServer.users[id].data.sun.elevation = this.worldServer.sunConf.elevation
+				this.worldServer.users[id].data.sun.azimuth = this.worldServer.sunConf.azimuth
 				let dataClient = this.worldServer.users[id].Out()
 				data[id] = dataClient
 			}
@@ -162,6 +162,13 @@ class AppServer {
 			vehi.ping = Date.now() - vehi.timeStamp
 			vehi.timeStamp = Date.now()
 			data[vehi.uID] = vehi.Out()
+		})
+
+		// WorldData
+		this.worldServer.waters.forEach((water) => {
+			water.ping = Date.now() - water.timeStamp
+			water.timeStamp = Date.now()
+			data[water.uID] = water.Out()
 		})
 
 		this.io.emit("players", data)

@@ -101,7 +101,7 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	}
 
 	public update(timestep: number, unscaledTimeStep: number) {
-		if (this.world.isClient) return
+		if (this.world.isClient && this.world.settings.SyncCamera) return
 		if (this.followMode === true) {
 			this.camera.position.y = THREE.MathUtils.clamp(this.camera.position.y, this.target.y, Number.POSITIVE_INFINITY)
 			this.camera.lookAt(this.target)

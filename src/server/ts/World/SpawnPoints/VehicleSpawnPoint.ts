@@ -106,7 +106,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 		}
 
 		if (MapConfig[world.lastMapID] !== undefined) {
-			console.log(type, this.subtype)
+			// console.log(type, this.subtype)
 			for (let j = 0; j < MapConfig[world.lastMapID].vehicles.length; j++) {
 				const vehi = MapConfig[world.lastMapID].vehicles[j]
 				if ((type == vehi.type) && (this.subtype == vehi.subtype)) {

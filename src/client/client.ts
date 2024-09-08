@@ -346,25 +346,31 @@ export default class AppClient {
 						break
 					}
 
+					// World Time Scale
 					this.worldClient.timeScaleTarget = messages[id].data.timeScaleTarget
-					// this.worldClient.effectController.elevation = messages[id].data.sun.elevation
-					// this.worldClient.effectController.azimuth = messages[id].data.sun.azimuth
-					// this.worldClient.sunGuiChanged()
-					// console.log(JSON.stringify(messages[id].data.sun))
 
-					// if (this.sID !== messages[id].sID) {
-					this.worldClient.users[id].cameraOperator.camera.position.set(
-						messages[id].data.cameraPosition.x,
-						messages[id].data.cameraPosition.y,
-						messages[id].data.cameraPosition.z,
-					)
-					this.worldClient.users[id].cameraOperator.camera.quaternion.set(
-						messages[id].data.cameraQuaternion.x,
-						messages[id].data.cameraQuaternion.y,
-						messages[id].data.cameraQuaternion.z,
-						messages[id].data.cameraQuaternion.w,
-					)
-					// }
+					if (this.worldClient.settings.SyncSun) {
+						this.worldClient.effectController.elevation = messages[id].data.sun.elevation
+						this.worldClient.effectController.azimuth = messages[id].data.sun.azimuth
+						this.worldClient.sunConf.elevation = this.worldClient.effectController.elevation
+						this.worldClient.sunConf.azimuth = this.worldClient.effectController.azimuth
+						this.worldClient.sunGuiChanged()
+						// console.log(JSON.stringify(messages[id].data.sun))
+					}
+
+					if ((this.sID !== messages[id].sID) || this.worldClient.settings.SyncCamera) {
+						this.worldClient.users[id].cameraOperator.camera.position.set(
+							messages[id].data.cameraPosition.x,
+							messages[id].data.cameraPosition.y,
+							messages[id].data.cameraPosition.z,
+						)
+						this.worldClient.users[id].cameraOperator.camera.quaternion.set(
+							messages[id].data.cameraQuaternion.x,
+							messages[id].data.cameraQuaternion.y,
+							messages[id].data.cameraQuaternion.z,
+							messages[id].data.cameraQuaternion.w,
+						)
+					}
 					break
 				}
 				case MessageTypes.Character: {
@@ -731,7 +737,8 @@ export default class AppClient {
 						}
 					})
 					break
-				} case MessageTypes.Decoration: {
+				}
+				case MessageTypes.Decoration: {
 					this.worldClient.waters.forEach((water) => {
 						if (water.uID === messages[id].uID) {
 							water.material.uniforms['time'].value = messages[id].data.time
@@ -772,7 +779,7 @@ export default class AppClient {
 	}
 
 	private OnControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {
-		if (controls.sID === this.sID) return
+		if ((controls.sID === this.sID) && this.worldClient.settings.SyncInputs) return
 		let user = this.worldClient.users[controls.sID]
 		if (user !== undefined) {
 			user.inputManager.setControls(controls)
@@ -794,7 +801,8 @@ export default class AppClient {
 	private ForControls(controls: { type: ControlsTypes, data: { [id: string]: any } }) {
 		if (this.worldClient.player !== null) {
 			this.io.emit("controls", controls)
-			this.worldClient.player.inputManager.setControls(controls)
+			if (this.worldClient.settings.SyncInputs)
+				this.worldClient.player.inputManager.setControls(controls)
 		}
 	}
 

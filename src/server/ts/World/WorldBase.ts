@@ -27,7 +27,7 @@ export abstract class WorldBase {
 	private sinceLastFrame: number
 	public timeScaleTarget: number
 
-	public subConf = {
+	public sunConf = {
 		elevation: 60,
 		azimuth: 45,
 	}
@@ -140,6 +140,9 @@ export abstract class WorldBase {
 			Debug_FPS: true,
 			Debug_Helper: true,
 			PostProcess: true,
+			SyncSun: false,
+			SyncInputs: true,
+			SyncCamera: true,
 		}
 		this.scenariosCalls = {}
 
@@ -165,8 +168,8 @@ export abstract class WorldBase {
 		this.world.defaultContactMaterial.contactEquationStiffness = 1e7
 		this.world.defaultContactMaterial.contactEquationRelaxation = 5
 
-		// setInterval(this.update, this.physicsFrameTime * 1000)
-		setTimeout(this.update, this.physicsFrameTime * 1000)
+		setInterval(this.update, this.physicsFrameTime * 1000)
+		// setTimeout(this.update, this.physicsFrameTime * 1000)
 	}
 
 	public getGLTF(path: string, callback: Function) {
@@ -527,6 +530,11 @@ export abstract class WorldBase {
 		// Update registred objects
 		if (!this.isClient) {
 			this.updatables.forEach((entity) => { entity.update(timeStep, unscaledTimeStep) })
+		
+			// Sun Update
+			this.sunConf.elevation += (Math.sign(this.sunConf.azimuth)) * this.timeScaleTarget * 0.1
+			if ((this.sunConf.elevation >= 90) || (this.sunConf.elevation <= -90))
+				this.sunConf.azimuth = -this.sunConf.azimuth
 		} else {
 			this.characters.forEach((char) => {
 				char.charState.update(timeStep)
@@ -535,10 +543,10 @@ export abstract class WorldBase {
 			this.vehicles.forEach((vehi) => {
 				vehi.update(timeStep)
 			})
-			/* if (this.player !== null) {
+			if ((this.player !== null) && !this.settings.SyncCamera) {
 				this.player.inputManager.update(timeStep, unscaledTimeStep)
 				this.player.cameraOperator.update(timeStep, unscaledTimeStep)
-			} */
+			}
 		}
 		if (this.mapMixer !== null) this.mapMixer.update(timeStep)
 
@@ -548,11 +556,6 @@ export abstract class WorldBase {
 		// Measuring logic time
 		this.logicDelta = this.worldClock.getDelta()
 
-		// Sun Update
-		this.subConf.elevation += (Math.sign(this.subConf.azimuth)) * this.timeScaleTarget * 0.1
-		if ((this.subConf.elevation >= 90) || (this.subConf.elevation <= -90))
-			this.subConf.azimuth = -this.subConf.azimuth
-
 		// Frame limiting
 		let interval = 1 / 60
 		this.sinceLastFrame += this.requestDelta + this.logicDelta
@@ -561,7 +564,7 @@ export abstract class WorldBase {
 		if (this.updatePhysicsCallback !== null)
 			this.updatePhysicsCallback()
 		
-		setTimeout(this.update)
+		// setTimeout(this.update, this.requestDelta + this.logicDelta)
 	}
 
 	private updatePhysics(timeStep: number, unscaledTimeStep: number) {

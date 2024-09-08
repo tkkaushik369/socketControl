@@ -38,6 +38,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	public materials: THREE.Material[] = []
 	public spawnPoint: THREE.Object3D | null
 	public modelContainer: THREE.Group
+	public lights: THREE.SpotLight[]
 
 	private firstPerson: boolean = false
 
@@ -54,6 +55,9 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		this.drive = "awd"
 		this.camera = null
 		this.controllingCharacter = null
+
+		this.lights = []
+
 		if (handlingSetup === undefined) handlingSetup = {}
 		handlingSetup.chassisConnectionPointLocal = new CANNON.Vec3()
 		handlingSetup.axleLocal = new CANNON.Vec3(-1, 0, 0)
@@ -98,6 +102,13 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	}
 
 	public update(timeStep: number): void {
+		if (this.world === null) return
+		if (this.world.isClient) {
+			const world = this.world as WorldBase
+			this.lights.forEach((li) => { li.power = (world.sunConf.elevation > 3) ? 1 : 200 })
+			return
+		}
+
 		this.position.set(
 			this.collision.interpolatedPosition.x,
 			this.collision.interpolatedPosition.y,
@@ -204,9 +215,9 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 			if (this.controllingCharacter.player !== null) {
 				if ((this.world !== null) && (this.world.player !== null) && (this.world.player.uID === this.controllingCharacter.player.uID))
 					this.controllingCharacter.modelContainer.visible = !value
-				// this.controllingCharacter.player.cameraOperator.followMode = value
+				this.controllingCharacter.player.cameraOperator.followMode = value
 				if (value) {
-					this.controllingCharacter.player.cameraOperator.setRadius(0, true)
+					this.controllingCharacter.player.cameraOperator.setRadius(0.04, true)
 				}
 				else {
 					this.controllingCharacter.player.cameraOperator.setRadius(3, true)
@@ -308,7 +319,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 	public addToWorld(world: WorldBase): void {
 		if (_.includes(world.vehicles, this)) {
-			console.warn('Adding character to a world in which it already exists.')
+			console.warn('Adding vehicle to a world in which it already exists.')
 		}
 		else if (this.rayCastVehicle === undefined) {
 			console.error('Trying to create vehicle without raycastVehicleComponent')
@@ -327,7 +338,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 	public removeFromWorld(world: WorldBase): void {
 		if (!_.includes(world.vehicles, this)) {
-			console.warn('Removing character from a world in which it isn\'t present.')
+			console.warn('Removing vehicle from a world in which it isn\'t present.')
 		}
 		else {
 			this.world = null
@@ -380,6 +391,9 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 					}
 					if (child.userData.data === 'navmesh') {
 						child.visible = false
+					}
+					if (child.userData.data === 'light') {
+						this.lights.push(child)
 					}
 				}
 			}

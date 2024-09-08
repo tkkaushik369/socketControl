@@ -36,6 +36,7 @@ export class Player implements INetwork {
 
 	inputManager: InputManager
 	cameraOperator: CameraOperator
+	camHelper: THREE.CameraHelper 
 
 	spawnPoint: CharacterSpawnPoint | null
 	character: Character | null
@@ -61,6 +62,8 @@ export class Player implements INetwork {
 		this.ping = 0
 		this.inputManager = new InputManager(this, this.world, domElement)
 		this.cameraOperator = new CameraOperator(this, this.world, camera, domElement ? this.world.settings.Mouse_Sensitivity : 0.2)
+		this.camHelper = new THREE.CameraHelper(this.cameraOperator.camera)
+		this.camHelper.visible = false
 		this.attachments = []
 
 		this.spawnPoint = null
@@ -112,6 +115,7 @@ export class Player implements INetwork {
 			this.character.player = this
 			this.character.takeControl()
 		}
+		this.world.scene.add(this.camHelper)
 	}
 	public removeUser() {
 		if (this.world === null) return
@@ -120,6 +124,7 @@ export class Player implements INetwork {
 			this.character.player = null
 			this.character = null
 		}
+		this.world.scene.remove(this.camHelper)
 	}
 
 	Out() {

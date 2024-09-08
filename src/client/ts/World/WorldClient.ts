@@ -1,9 +1,10 @@
 import * as THREE from 'three'
-import * as CANNON from 'cannon-es'	
+import * as CANNON from 'cannon-es'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
 import { Utility } from '../../../server/ts/Core/Utility'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
@@ -14,6 +15,7 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { CSM } from 'three/examples/jsm/csm/CSM'
 import { Sky } from 'three/examples/jsm/objects/Sky'
 import { Ocean } from './Ocean'
+import _ from 'lodash'
 
 export class WorldClient extends WorldBase {
 
@@ -25,6 +27,7 @@ export class WorldClient extends WorldBase {
 
 	private renderPass: RenderPass
 	private outputPass: OutputPass
+	private outlinePass: OutlinePass
 	private composer: EffectComposer
 
 	private sky: Sky
@@ -146,8 +149,24 @@ export class WorldClient extends WorldBase {
 			const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { samples: 4, type: THREE.HalfFloatType });
 			this.composer = new EffectComposer(this.renderer, renderTarget)
 
+			//
+			this.outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.scene, this.camera)
+			this.outlinePass.edgeStrength = 2.0
+			this.outlinePass.edgeGlow = 0.0
+			this.outlinePass.edgeThickness = 0.5
+			this.outlinePass.pulsePeriod = 0.0
+			const textureLoader = new THREE.TextureLoader();
+			textureLoader.load('/images/tri_pattern.jpg', (texture) => {
+				this.outlinePass.patternTexture = texture;
+				texture.wrapS = THREE.RepeatWrapping;
+				texture.wrapT = THREE.RepeatWrapping;
+			})
+			this.outlinePass.selectedObjects = []
+			this.outlinePass.usePatternTexture = true
+
 			this.composer.addPass(this.renderPass);
 			this.composer.addPass(this.outputPass);
+			// this.composer.addPass(this.outlinePass)
 		}
 
 		// Stats
@@ -165,22 +184,22 @@ export class WorldClient extends WorldBase {
 		// cannonSettings.add(this.settings, 'Debug_Physics_Wireframe').onChange(this.debugPhysicsWireframeFunc)
 		cannonSettings.add(this.settings, 'Debug_Physics_MeshOpacity', 0, 1).listen().onChange(this.debugPhysicsOpacityFunc)
 		cannonSettings.add(this.settings, 'Debug_Physics_MeshEdges').onChange(this.debugPhysicsEdgesFunc)
-		cannonSettings.open()
+		cannonSettings.close()
 
-		let debugSettings = folderSettings.addFolder('Cannon Renderer')
+		let debugSettings = folderSettings.addFolder('Helpers')
 		debugSettings.add(this.settings, 'Debug_FPS').onChange(this.toggleStatsFunc)
 		debugSettings.add(this.settings, 'Debug_Helper').onChange(this.toggleHelpersFunc)
-		debugSettings.open()
+		debugSettings.close()
 
 		let postProcess = folderSettings.addFolder('Post Process')
 		postProcess.add(this.settings, 'PostProcess')
-		postProcess.open()
-		
+		postProcess.close()
+
 		let inputFolder = folderSettings.addFolder('Input')
 		inputFolder.add(this.settings, 'Pointer_Lock').onChange(this.pointLockFunc)
 		inputFolder.add(this.settings, 'Mouse_Sensitivity', 0.01, 0.5, 0.01).onChange(this.mouseSensitivityFunc).name("Mouse")
 		inputFolder.add(this.settings, 'Time_Scale', 0, 1).listen().onChange(this.timeScaleFunc).disable(true)
-		inputFolder.open()
+		inputFolder.close()
 		folderSettings.close()
 
 		let sunFolder = folderSettings.addFolder('Sun')
@@ -188,9 +207,16 @@ export class WorldClient extends WorldBase {
 		sunFolder.add(this.effectController, 'rayleigh', 0.0, 4, 0.001).onChange(this.sunGuiChanged)
 		sunFolder.add(this.effectController, 'mieCoefficient', 0.0, 0.1, 0.001).onChange(this.sunGuiChanged)
 		sunFolder.add(this.effectController, 'mieDirectionalG', 0.0, 1, 0.001).onChange(this.sunGuiChanged)
-		sunFolder.add(this.effectController, 'elevation', 0, 90, 0.1).onChange(this.sunGuiChanged)
+		sunFolder.add(this.effectController, 'elevation', -90, 90, 0.1).onChange(this.sunGuiChanged)
 		sunFolder.add(this.effectController, 'azimuth', - 180, 180, 0.1).onChange(this.sunGuiChanged)
 		sunFolder.add(this.effectController, 'exposure', 0, 1, 0.0001).onChange(this.sunGuiChanged)
+		sunFolder.close()
+
+		// Sync Server
+		let syncFolder = folderSettings.addFolder('SYNC')
+		syncFolder.add(this.settings, 'SyncSun')
+		syncFolder.add(this.settings, 'SyncInputs')
+		syncFolder.add(this.settings, 'SyncCamera')
 
 		// Maps
 		this.mapGUIFolder = this.gui.addFolder('Maps')
@@ -363,7 +389,22 @@ export class WorldClient extends WorldBase {
 		this.oceans.forEach((ocean) => {
 			ocean.update(this.timeScaleTarget * 1.0 / 60.0)
 		})
-		
+
+		{
+			this.outlinePass.selectedObjects = []
+			Object.keys(this.users).forEach((sID) => {
+				const user = this.users[sID]
+				if (user.character !== null) {
+					if (user.character.controlledObject !== null) {
+						if (!_.includes(this.outlinePass.selectedObjects, user.character.controlledObject))
+							this.outlinePass.selectedObjects.push(user.character.controlledObject)
+					} else {
+						if (!_.includes(this.outlinePass.selectedObjects, user.character))
+							this.outlinePass.selectedObjects.push(user.character)
+					}
+				}
+			})
+		}
 
 		if (this.updateAnimationCallback !== null) this.updateAnimationCallback()
 		this.stats.update()
