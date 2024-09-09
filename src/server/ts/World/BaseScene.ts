@@ -21,9 +21,15 @@ export abstract class BaseScene {
 	
 	heli: THREE.Mesh
 	heliAnimations: any[]
+
+	legoheli: THREE.Mesh
+	legoheliAnimations: any[]
 	
 	airplane: THREE.Mesh
 	airplaneAnimations: any[]
+
+	legoairplane: THREE.Mesh
+	legoairplaneAnimations: any[]
 
 	constructor() {
 		this.scene = new THREE.Scene()
@@ -37,9 +43,15 @@ export abstract class BaseScene {
 		
 		this.heli = new THREE.Mesh()
 		this.heliAnimations = []
+
+		this.legoheli = new THREE.Mesh()
+		this.legoheliAnimations = []
 		
 		this.airplane = new THREE.Mesh()
 		this.airplaneAnimations = []
+
+		this.legoairplane = new THREE.Mesh()
+		this.legoairplaneAnimations = []
 	}
 
 	getScene(): SceneType {
@@ -62,12 +74,14 @@ export abstract class BaseScene {
 			case 'heli': {
 				switch (subtype) {
 					case 'heli_test': return { scene: this.heli, animations: this.heliAnimations }
+					case 'lego': return { scene: this.legoheli, animations: this.legoheliAnimations }
 					default: return { scene: this.heli, animations: this.heliAnimations }
 				}
 			}
 			case 'airplane': {
 				switch (subtype) {
 					case 'airplane_test': return{ scene: this.airplane, animations: this.airplaneAnimations }
+					case 'lego': return{ scene: this.legoairplane, animations: this.legoairplaneAnimations }
 					default: return { scene: this.airplane, animations: this.airplaneAnimations }
 				}
 			}

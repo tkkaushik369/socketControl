@@ -140,7 +140,7 @@ export abstract class WorldBase {
 			Debug_FPS: true,
 			Debug_Helper: true,
 			PostProcess: true,
-			SyncSun: false,
+			SyncSun: true,
 			SyncInputs: true,
 			SyncCamera: true,
 		}
@@ -168,12 +168,12 @@ export abstract class WorldBase {
 		this.world.defaultContactMaterial.contactEquationStiffness = 1e7
 		this.world.defaultContactMaterial.contactEquationRelaxation = 5
 
-		setInterval(this.update, this.physicsFrameTime * 1000)
-		// setTimeout(this.update, this.physicsFrameTime * 1000)
+		// setInterval(this.update, this.physicsFrameTime * 1000)
+		setTimeout(this.update, this.physicsFrameTime * 1000)
 	}
 
 	public getGLTF(path: string, callback: Function) {
-		return this.isClient ? ('./models/' + path) : ('./dist/server/models/' + path + '.json')
+		return this.isClient ? ('./models/' + path) : ('./dist/client/models/' + path + '.json')
 	}
 
 	public add(worldEntity: IWorldEntity): void {
@@ -455,7 +455,6 @@ export abstract class WorldBase {
 			}
 		} else {
 			this.lastScenarioID = scenarioID
-
 			this.clearEntities(false)
 
 			// Launch default scenario
@@ -464,13 +463,6 @@ export abstract class WorldBase {
 					scenario.launch(this)
 				}
 			}
-
-			// Spawn players
-			Object.keys(this.users).forEach((sID) => {
-				if (this.users[sID].spawnPoint !== null) {
-					this.users[sID].addUser()
-				}
-			})
 		}
 	}
 
@@ -564,7 +556,7 @@ export abstract class WorldBase {
 		if (this.updatePhysicsCallback !== null)
 			this.updatePhysicsCallback()
 		
-		// setTimeout(this.update, this.requestDelta + this.logicDelta)
+		setTimeout(this.update, this.requestDelta + this.logicDelta)
 	}
 
 	private updatePhysics(timeStep: number, unscaledTimeStep: number) {

@@ -71,7 +71,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public rayResult: CANNON.RaycastResult = new CANNON.RaycastResult()
 	public rayHasHit: boolean = false
 	public rayCastLength: number = 0.57
-	public raySafeOffset: number = 0.05
+	public raySafeOffset: number = 0.03
 	public wantsToJump: boolean = false
 	public initJumpSpeed: number = -1
 	public groundImpactData: GroundImpactData = new GroundImpactData()
@@ -241,6 +241,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.setAnimations(gltf.animations)
 		this.modelContainer.add(gltf.scene)
 		this.mixer = new THREE.AnimationMixer(gltf.scene)
+		this.setState(new Idle(this))
 	}
 
 	public setAnimations(animations: any[]): void {

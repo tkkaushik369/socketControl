@@ -121,7 +121,7 @@ export default class AppClient {
 			}
 		})
 
-
+		// return
 		let lp = new LDrawLoader()
 		this.worldClient.vehicles.forEach((vehi) => {
 			if (vehi.uID == 'legocar') {
@@ -268,6 +268,298 @@ export default class AppClient {
 						stearing.position.set(0, 0, 0)
 						stearing.rotation.x += 0.0001
 					}
+				})
+			}
+			if (vehi.uID == 'legoheli') {
+				vehi.remove(vehi.modelContainer)
+				vehi.modelContainer = new THREE.Group()
+				lp.load('./models/heli.mpd', (obj) => {
+					let scale = 0.01
+					obj.castShadow = true
+					obj.receiveShadow = true
+					obj.scale.set(scale, scale, scale)
+					obj.position.set(0, -0.34, 0)
+					obj.rotateX(Math.PI)
+					vehi.modelContainer.add(obj)
+					vehi.add(vehi.modelContainer)
+
+					/* let wheels: THREE.Object3D[] = []
+					let isfl = true
+					let isfr = true
+					let isbl = true
+					let isbr = true
+					let wheelFL: any = null
+					let wheelFR: any = null
+					let wheelBL: any = null
+					let wheelBR: any = null
+					let owFL: any = null
+					let owFR: any = null
+					let owBL: any = null
+					let owBR: any = null
+					let chair: any = null
+					let stearing: any = null
+					obj.traverse((o) => {
+						if (o.hasOwnProperty('userData')) {
+							if (o.userData.hasOwnProperty('keywords')) {
+								if (_.includes(o.userData.keywords, 'Tire')) {
+									wheels.push(o)
+								}
+								if (_.includes(o.userData.keywords, 'chair')) {
+									chair = o
+								}
+							}
+							if (o.userData.hasOwnProperty('fileName')) {
+								if (o.userData.fileName === "parts/3828.dat") {
+									stearing = o
+								}
+							}
+						}
+					})
+
+					vehi.wheels.forEach((wheel) => {
+						let fl = "wheel_fl"
+						let fr = "wheel_fr"
+						let bl = "wheel_bl"
+						let br = "wheel_br"
+						if (wheel.wheelObject.userData.name == fl) {
+							if (isfl) {
+								wheelFL = wheel
+								owFL = wheels[0]
+								isfl = false
+							}
+						}
+						if (wheel.wheelObject.userData.name == fr) {
+							if (isfr) {
+								wheelFR = wheel
+								owFR = wheels[1]
+								isfr = false
+							}
+						}
+						if (wheel.wheelObject.userData.name == bl) {
+							if (isbl) {
+								wheelBL = wheel
+								owBL = wheels[2]
+								isbl = false
+							}
+						}
+						if (wheel.wheelObject.userData.name == br) {
+							if (isbr) {
+								wheelBR = wheel
+								owBR = wheels[3]
+								isbr = false
+							}
+						}
+					})
+
+					if ((wheelFL !== null) && (owFL !== null)) {
+						this.worldClient.scene.remove(wheelFL.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelFL.wheelObject = offset
+						offset.attach(owFL)
+						owFL.position.set(0, 0, 0)
+						owFL.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					if ((wheelFR !== null) && (owFR !== null)) {
+						this.worldClient.scene.remove(wheelFR.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelFR.wheelObject = offset
+						offset.attach(owFR)
+						owFR.position.set(0, 0, 0)
+						owFR.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					if ((wheelBL !== null) && (owBL !== null)) {
+						this.worldClient.scene.remove(wheelBL.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelBL.wheelObject = offset
+						offset.attach(owBL)
+						owBL.position.set(0, 0, 0)
+						owBL.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					if ((wheelBR !== null) && (owBR !== null)) {
+						this.worldClient.scene.remove(wheelBR.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelBR.wheelObject = offset
+						offset.attach(owBR)
+						owBR.position.set(0, 0, 0)
+						owBR.rotation.set(0, Math.PI / 2, 0)
+					} */
+
+					/* if (vehi.seats.length > 0) {
+						this.worldClient.scene.remove(vehi.seats[0].seatPointObject)
+						let offset = new THREE.Object3D()
+						Utility.setDefaults(offset.userData, vehi.seats[0].seatPointObject.userData)
+						this.worldClient.scene.add(offset)
+						vehi.seats[0].seatPointObject = chair
+						offset.attach(chair)
+						chair.position.set(0, 0, 0)
+						chair.rotation.set(0, Math.PI / 2, 0)
+					} */
+
+					/* let stterObj = (vehi as Car).steeringWheel
+					if ((stterObj !== null) && (stearing !== null)) {
+						// this.worldClient.scene.remove(stterObj)
+						let offset = new THREE.Object3D()
+						vehi.add(offset);
+						(vehi as Car).steeringWheel = offset
+						offset.position.set(0, 0.228, 0.3)
+						offset.rotation.set(Math.PI / 5, 0, 0)
+						offset.attach(stearing)
+						stearing.position.set(0, 0, 0)
+						stearing.rotation.x += 0.0001
+					} */
+				})
+			}
+			if (vehi.uID == 'legoairplane') {
+				vehi.remove(vehi.modelContainer)
+				vehi.modelContainer = new THREE.Group()
+				lp.load('./models/airplane.mpd', (obj) => {
+					let scale = 0.01
+					obj.castShadow = true
+					obj.receiveShadow = true
+					obj.scale.set(scale, scale, scale)
+					obj.position.set(0, -0.22, 0)
+					obj.rotateX(Math.PI)
+					vehi.modelContainer.add(obj)
+					vehi.add(vehi.modelContainer)
+
+					/* let wheels: THREE.Object3D[] = []
+					let isfl = true
+					let isfr = true
+					let isbl = true
+					let isbr = true
+					let wheelFL: any = null
+					let wheelFR: any = null
+					let wheelBL: any = null
+					let wheelBR: any = null
+					let owFL: any = null
+					let owFR: any = null
+					let owBL: any = null
+					let owBR: any = null
+					let chair: any = null
+					let stearing: any = null
+					obj.traverse((o) => {
+						if (o.hasOwnProperty('userData')) {
+							if (o.userData.hasOwnProperty('keywords')) {
+								if (_.includes(o.userData.keywords, 'Tire')) {
+									wheels.push(o)
+								}
+								if (_.includes(o.userData.keywords, 'chair')) {
+									chair = o
+								}
+							}
+							if (o.userData.hasOwnProperty('fileName')) {
+								if (o.userData.fileName === "parts/3828.dat") {
+									stearing = o
+								}
+							}
+						}
+					})
+
+					vehi.wheels.forEach((wheel) => {
+						let fl = "wheel_fl"
+						let fr = "wheel_fr"
+						let bl = "wheel_bl"
+						let br = "wheel_br"
+						if (wheel.wheelObject.userData.name == fl) {
+							if (isfl) {
+								wheelFL = wheel
+								owFL = wheels[0]
+								isfl = false
+							}
+						}
+						if (wheel.wheelObject.userData.name == fr) {
+							if (isfr) {
+								wheelFR = wheel
+								owFR = wheels[1]
+								isfr = false
+							}
+						}
+						if (wheel.wheelObject.userData.name == bl) {
+							if (isbl) {
+								wheelBL = wheel
+								owBL = wheels[2]
+								isbl = false
+							}
+						}
+						if (wheel.wheelObject.userData.name == br) {
+							if (isbr) {
+								wheelBR = wheel
+								owBR = wheels[3]
+								isbr = false
+							}
+						}
+					})
+
+					if ((wheelFL !== null) && (owFL !== null)) {
+						this.worldClient.scene.remove(wheelFL.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelFL.wheelObject = offset
+						offset.attach(owFL)
+						owFL.position.set(0, 0, 0)
+						owFL.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					if ((wheelFR !== null) && (owFR !== null)) {
+						this.worldClient.scene.remove(wheelFR.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelFR.wheelObject = offset
+						offset.attach(owFR)
+						owFR.position.set(0, 0, 0)
+						owFR.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					if ((wheelBL !== null) && (owBL !== null)) {
+						this.worldClient.scene.remove(wheelBL.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelBL.wheelObject = offset
+						offset.attach(owBL)
+						owBL.position.set(0, 0, 0)
+						owBL.rotation.set(0, Math.PI / 2, 0)
+					}
+
+					if ((wheelBR !== null) && (owBR !== null)) {
+						this.worldClient.scene.remove(wheelBR.wheelObject)
+						let offset = new THREE.Object3D()
+						this.worldClient.scene.add(offset)
+						wheelBR.wheelObject = offset
+						offset.attach(owBR)
+						owBR.position.set(0, 0, 0)
+						owBR.rotation.set(0, Math.PI / 2, 0)
+					} */
+
+					/* if (vehi.seats.length > 0) {
+						this.worldClient.scene.remove(vehi.seats[0].seatPointObject)
+						let offset = new THREE.Object3D()
+						Utility.setDefaults(offset.userData, vehi.seats[0].seatPointObject.userData)
+						this.worldClient.scene.add(offset)
+						vehi.seats[0].seatPointObject = chair
+						offset.attach(chair)
+						chair.position.set(0, 0, 0)
+						chair.rotation.set(0, Math.PI / 2, 0)
+					} */
+
+					/* let stterObj = (vehi as Car).steeringWheel
+					if ((stterObj !== null) && (stearing !== null)) {
+						// this.worldClient.scene.remove(stterObj)
+						let offset = new THREE.Object3D()
+						vehi.add(offset);
+						(vehi as Car).steeringWheel = offset
+						offset.position.set(0, 0.228, 0.3)
+						offset.rotation.set(Math.PI / 5, 0, 0)
+						offset.attach(stearing)
+						stearing.position.set(0, 0, 0)
+						stearing.rotation.x += 0.0001
+					} */
 				})
 			}
 		})

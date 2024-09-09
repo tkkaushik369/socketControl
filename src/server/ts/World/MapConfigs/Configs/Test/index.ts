@@ -1,4 +1,4 @@
-import { MapConfigType } from '../../'
+import { MapConfigType, MapConfigFOType } from '../../'
 import { TestScene } from "./TestScene";
 
 export const TestConfig: MapConfigType = {
@@ -10,3 +10,11 @@ export const TestConfig: MapConfigType = {
 	characters: [],
 	vehicles: [],
 }
+
+const character: MapConfigFOType = {
+	objCaller: 'boxman.glb',
+	type: 'character',
+	subtype: null,
+}
+
+TestConfig.characters.push(character)

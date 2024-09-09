@@ -139,13 +139,14 @@ export class Scenario {
 			}
 		})
 
-		// Set Spawn Players
+		// Spawn Players
 		const playerPosition: THREE.Vector3 | null = this.playerPosition
 		if (!this.spawnAlways && (playerPosition !== null)) {
 			Object.keys(world.users).forEach((sID) => {
-				world.users[sID].setSpawn(playerPosition, this.isPlayerPositionNearVehical ? (this.initialCameraAngle + 180) : 0)
+				world.users[sID].setSpawn(playerPosition, this.isPlayerPositionNearVehical, this.isPlayerPositionNearVehical ? (this.initialCameraAngle + 180) : 0)
 				world.users[sID].cameraOperator.theta = this.initialCameraAngle
 				world.users[sID].cameraOperator.phi = 15
+				world.users[sID].addUser()
 			})
 		}
 		this.world = world

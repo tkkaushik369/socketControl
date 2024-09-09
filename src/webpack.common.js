@@ -32,22 +32,19 @@ module.exports = {
 	},
 	plugins: [
 		new CopyPlugin({
-			patterns: [{
-				from: path.resolve(__dirname, "./client/index.html"),
-				to: path.resolve(__dirname, "../dist/client"),
-			},
-			{
-				from: path.resolve(__dirname, "./client/images"),
-				to: path.resolve(__dirname, "../dist/client/images"),
-			},
-			{
-				from: path.resolve(__dirname, "./client/models"),
-				to: path.resolve(__dirname, "../dist/client/models"),
-			},
-			{
-				from: path.resolve(__dirname, "./server/models"),
-				to: path.resolve(__dirname, "../dist/server/models"),
-			},
+			patterns: [
+				{
+					from: path.resolve(__dirname, "./client/index.html"),
+					to: path.resolve(__dirname, "../dist/client"),
+				},
+				{
+					from: path.resolve(__dirname, "./client/images"),
+					to: path.resolve(__dirname, "../dist/client/images"),
+				},
+				{
+					from: path.resolve(__dirname, "./client/models"),
+					to: path.resolve(__dirname, "../dist/client/models"),
+				},
 			],
 		}),
 	],

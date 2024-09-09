@@ -9,6 +9,12 @@ export const SketchBookV4Config: MapConfigType = {
 	vehicles: [],
 }
 
+const character: MapConfigFOType = {
+	objCaller: 'boxman.glb',
+	type: 'character',
+	subtype: null,
+}
+
 const car: MapConfigFOType = {
 	objCaller: 'car.glb',
 	type: 'car',
@@ -25,7 +31,7 @@ const airplane: MapConfigFOType = {
 	subtype: null,
 }
 
-
+SketchBookV4Config.characters.push(character)
 SketchBookV4Config.vehicles.push(car)
 SketchBookV4Config.vehicles.push(heli)
 SketchBookV4Config.vehicles.push(airplane)

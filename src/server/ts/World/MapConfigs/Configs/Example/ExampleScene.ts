@@ -12,7 +12,9 @@ export class Example extends BaseScene {
 		this.makeCar = this.makeCar.bind(this)
 		this.makeLegoCar = this.makeLegoCar.bind(this)
 		this.makeHeli = this.makeHeli.bind(this)
+		this.makeLegoHeli = this.makeLegoHeli.bind(this)
 		this.makeAirPlane = this.makeAirPlane.bind(this)
+		this.makeLegoAirPlane = this.makeLegoAirPlane.bind(this)
 
 		{ // world
 			{ // physics
@@ -361,15 +363,41 @@ export class Example extends BaseScene {
 					}
 
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(14, 3, 8)
-						spawnVehical.userData = {
-							data: "spawn",
-							type: "car",
-							subtype: "lego",
-							name: "legocar",
+						{
+							let spawnVehical = new THREE.Object3D()
+							spawnVehical.position.set(14, 3, 8)
+							spawnVehical.userData = {
+								data: "spawn",
+								type: "car",
+								subtype: "lego",
+								name: "legocar",
+							}
+							scenario2.add(spawnVehical)
 						}
-						scenario2.add(spawnVehical)
+
+						{
+							let spawnVehical = new THREE.Object3D()
+							spawnVehical.position.set(14, 3, 12)
+							spawnVehical.userData = {
+								data: "spawn",
+								type: "heli",
+								subtype: "lego",
+								name: "legoheli",
+							}
+							scenario2.add(spawnVehical)
+						}
+
+						{
+							let spawnVehical = new THREE.Object3D()
+							spawnVehical.position.set(14, 3, 16)
+							spawnVehical.userData = {
+								data: "spawn",
+								type: "airplane",
+								subtype: "lego",
+								name: "legoairplane",
+							}
+							scenario2.add(spawnVehical)
+						}
 					}
 
 					{
@@ -428,9 +456,19 @@ export class Example extends BaseScene {
 			this.heli.add(body)
 		}
 
+		{ // legoheli
+			const body = this.makeLegoHeli()
+			this.legoheli.add(body)
+		}
+
 		{ // airplane
 			const body = this.makeAirPlane()
 			this.airplane.add(body)
+		}
+
+		{ // legoairplane
+			const body = this.makeLegoAirPlane()
+			this.legoairplane.add(body)
 		}
 	}
 
@@ -680,7 +718,7 @@ export class Example extends BaseScene {
 		{ // wheels
 			{
 				const wheelObj = this.makeWheel(0.26, 0.2)
-				wheelObj.position.set(-0.5, -0.3, 0.8)
+				wheelObj.position.set(-0.5, -0.2, 0.8)
 				wheelObj.name = "wheel_fl"
 				wheelObj.userData = {
 					name: "wheel_fl",
@@ -692,7 +730,7 @@ export class Example extends BaseScene {
 			}
 			{
 				const wheelObj = this.makeWheel(0.26, 0.2)
-				wheelObj.position.set(0.5, -0.3, 0.8)
+				wheelObj.position.set(0.5, -0.2, 0.8)
 				wheelObj.name = "wheel_fr"
 				wheelObj.userData = {
 					name: "wheel_fr",
@@ -704,7 +742,7 @@ export class Example extends BaseScene {
 			}
 			{
 				const wheelObj = this.makeWheel(0.26, 0.2)
-				wheelObj.position.set(0.5, -0.3, -0.8)
+				wheelObj.position.set(0.5, -0.2, -0.8)
 				wheelObj.name = "wheel_bl"
 				wheelObj.userData = {
 					name: "wheel_bl",
@@ -716,7 +754,7 @@ export class Example extends BaseScene {
 			}
 			{
 				const wheelObj = this.makeWheel(0.26, 0.2)
-				wheelObj.position.set(-0.5, -0.3, -0.8)
+				wheelObj.position.set(-0.5, -0.2, -0.8)
 				wheelObj.name = "wheel_br"
 				wheelObj.userData = {
 					name: "wheel_br",
@@ -976,7 +1014,7 @@ export class Example extends BaseScene {
 		{ // wheels
 			{
 				const wheelObj = this.makeWheel(0.26, 0.2)
-				wheelObj.position.set(-0.3, -0.358, 0.6)
+				wheelObj.position.set(-0.3, -0.258, 0.6)
 				wheelObj.name = "wheel_fl"
 				wheelObj.userData = {
 					name: "wheel_fl",
@@ -988,7 +1026,7 @@ export class Example extends BaseScene {
 			}
 			{
 				const wheelObj = this.makeWheel(0.26, 0.2)
-				wheelObj.position.set(0.3, -0.358, 0.6)
+				wheelObj.position.set(0.3, -0.258, 0.6)
 				wheelObj.name = "wheel_fr"
 				wheelObj.userData = {
 					name: "wheel_fr",
@@ -1000,7 +1038,7 @@ export class Example extends BaseScene {
 			}
 			{
 				const wheelObj = this.makeWheel(0.26, 0.2)
-				wheelObj.position.set(0.3, -0.358, -0.598)
+				wheelObj.position.set(0.3, -0.258, -0.598)
 				wheelObj.name = "wheel_bl"
 				wheelObj.userData = {
 					name: "wheel_bl",
@@ -1012,7 +1050,7 @@ export class Example extends BaseScene {
 			}
 			{
 				const wheelObj = this.makeWheel(0.26, 0.2)
-				wheelObj.position.set(-0.3, -0.358, -0.598)
+				wheelObj.position.set(-0.3, -0.258, -0.598)
 				wheelObj.name = "wheel_br"
 				wheelObj.userData = {
 					name: "wheel_br",
@@ -1488,6 +1526,310 @@ export class Example extends BaseScene {
 		return body
 	}
 
+	makeLegoHeli() {
+		const body = new THREE.Mesh()
+		{ // chassy
+			const lower = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 1.4), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
+			body.add(lower)
+
+			const upper = new THREE.Mesh(new THREE.SphereGeometry(0.7), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
+			upper.position.set(0, 0.4, 0)
+			body.add(upper)
+
+			const back = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 2), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
+			back.position.set(0, 0.8, -1.2)
+			body.add(back)
+
+		}
+		{ // rotor
+			const rotor = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.4, 0.1), new THREE.MeshLambertMaterial({ color: 0xe5a00d }))
+			rotor.position.set(0, 1.3, 0)
+			rotor.rotation.z = Math.PI / 2
+			rotor.userData = {
+				data: 'rotor'
+			}
+			body.add(rotor)
+
+			const rotorBack = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.5, 0.1), new THREE.MeshLambertMaterial({ color: 0xe5a00d }))
+			rotorBack.position.set(0.4, 0.8, -2)
+			rotorBack.rotation.x = Math.PI / 2
+			rotorBack.userData = {
+				data: 'rotor'
+			}
+			body.add(rotorBack)
+		}
+		{ // camera
+			const camera = new THREE.Object3D()
+			camera.position.set(-0.35, 0.5, 0.20)
+			camera.userData = {
+				data: 'camera'
+			}
+			body.add(camera)
+		}
+		{ // sceats
+			{
+				const seat = this.makeSeat()
+				seat.position.set(-0.3, 0, 0)
+				seat.name = 'seat_1'
+				body.add(seat)
+				seat.userData = {
+					name: 'seat_1',
+					data: 'seat',
+					door_object: "door_1",
+					seat_type: "driver",
+					entry_points: "entrance_1",
+					connected_seats: "seat_2"
+				}
+
+				const doorObj = new THREE.Object3D()
+				doorObj.position.copy(seat.position)
+				doorObj.position.x -= 0.4
+				doorObj.position.y += 0.1
+				doorObj.position.z += 0.4
+				const door = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.3, 0.5), new THREE.MeshLambertMaterial({ color: 0xffff00 }))
+				door.position.z -= 0.2
+				doorObj.name = "door_1"
+				doorObj.userData = {
+					name: "door_1"
+				}
+				doorObj.add(door)
+				body.add(doorObj)
+
+				const entryPoint = new THREE.AxesHelper()
+				entryPoint.position.copy(doorObj.position)
+				entryPoint.position.x -= 0.4
+				entryPoint.position.y -= 0.5
+				entryPoint.position.z -= 0.4
+				entryPoint.name = 'entrance_1'
+				entryPoint.userData = {
+					name: "entrance_1"
+				}
+				body.add(entryPoint)
+			}
+			{
+				const seat = this.makeSeat()
+				seat.position.set(0.3, 0, 0)
+				seat.name = 'seat_2'
+				body.add(seat)
+				seat.userData = {
+					name: 'seat_2',
+					data: 'seat',
+					door_object: "door_2",
+					seat_type: "passenger",
+					entry_points: "entrance_2",
+					connected_seats: "seat_1"
+				}
+
+				const doorObj = new THREE.Object3D()
+				doorObj.position.copy(seat.position)
+				doorObj.position.x += 0.4
+				doorObj.position.y += 0.1
+				doorObj.position.z += 0.4
+				const door = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.3, 0.5), new THREE.MeshLambertMaterial({ color: 0xffff00 }))
+				door.position.z -= 0.2
+				doorObj.name = "door_2"
+				doorObj.userData = {
+					name: "door_2"
+				}
+				doorObj.add(door)
+				body.add(doorObj)
+
+				const entryPoint = new THREE.AxesHelper()
+				entryPoint.position.copy(doorObj.position)
+				entryPoint.position.x += 0.4
+				entryPoint.position.y -= 0.5
+				entryPoint.position.z -= 0.4
+				entryPoint.name = 'entrance_2'
+				entryPoint.userData = {
+					name: "entrance_2"
+				}
+				body.add(entryPoint)
+			}
+		}
+		{ // landings
+			{
+				const bodyLanders = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
+				bodyLanders.position.set(0.8, -0.4, 0)
+				bodyLanders.scale.set(0.1, 0.1, 1.4)
+				body.add(bodyLanders)
+			}
+			{
+				const bodyLanders = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
+				bodyLanders.position.set(-0.8, -0.4, 0)
+				bodyLanders.scale.set(0.1, 0.1, 1.4)
+				body.add(bodyLanders)
+			}
+		}
+		{ // collisions
+			{
+				const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+				bodyColl.scale.set(1.4, 0.5, 1.4)
+				bodyColl.scale.multiplyScalar(0.5)
+				bodyColl.userData = {
+					data: "collision",
+					shape: "box"
+				}
+				body.add(bodyColl)
+			}
+			{
+				const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+				bodyColl.scale.set(0.5, 0.6, 2)
+				bodyColl.scale.multiplyScalar(0.5)
+				bodyColl.position.set(0, 0.8, -1.2)
+				bodyColl.userData = {
+					data: "collision",
+					shape: "box"
+				}
+				body.add(bodyColl)
+			}
+			{
+				{ // landers
+					{
+						const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyColl.position.set(-0.8, -0.4, 0)
+						bodyColl.scale.set(0.1, 0.1, 1.4)
+						bodyColl.scale.multiplyScalar(0.5)
+						bodyColl.userData = {
+							data: "collision",
+							shape: "box"
+						}
+						body.add(bodyColl)
+					}
+					{
+						const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyColl.position.set(0.8, -0.4, 0)
+						bodyColl.scale.set(0.1, 0.1, 1.4)
+						bodyColl.scale.multiplyScalar(0.5)
+						bodyColl.userData = {
+							data: "collision",
+							shape: "box"
+						}
+						body.add(bodyColl)
+					}
+				}
+				{ // upper
+					const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+					bodyLanders.position.set(0, 0.4, 0)
+					bodyLanders.scale.multiplyScalar(0.7)
+					bodyLanders.userData = {
+						data: "collision",
+						shape: "sphere"
+					}
+					body.add(bodyLanders)
+				}
+				{ // lower
+					{
+						const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyLanders.position.set(-0.4, 0, 0.4)
+						bodyLanders.scale.multiplyScalar(0.25)
+						bodyLanders.userData = {
+							data: "collision",
+							shape: "sphere"
+						}
+						body.add(bodyLanders)
+					}
+					{
+						const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyLanders.position.set(0.4, 0, 0.4)
+						bodyLanders.scale.multiplyScalar(0.25)
+						bodyLanders.userData = {
+							data: "collision",
+							shape: "sphere"
+						}
+						body.add(bodyLanders)
+					}
+
+					{
+						const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyLanders.position.set(-0.4, 0, -0.4)
+						bodyLanders.scale.multiplyScalar(0.25)
+						bodyLanders.userData = {
+							data: "collision",
+							shape: "sphere"
+						}
+						body.add(bodyLanders)
+					}
+					{
+						const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyLanders.position.set(0.4, 0, -0.4)
+						bodyLanders.scale.multiplyScalar(0.25)
+						bodyLanders.userData = {
+							data: "collision",
+							shape: "sphere"
+						}
+						body.add(bodyLanders)
+					}
+				}
+				{ // propeller
+					const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+					bodyLanders.position.set(0, 1.2, 0)
+					bodyLanders.scale.multiplyScalar(0.25)
+					bodyLanders.userData = {
+						data: "collision",
+						shape: "sphere"
+					}
+					body.add(bodyLanders)
+				}
+				// back
+				{
+					{
+						const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyLanders.position.set(0, 0.8, -2)
+						bodyLanders.scale.multiplyScalar(0.25)
+						bodyLanders.userData = {
+							data: "collision",
+							shape: "sphere"
+						}
+						body.add(bodyLanders)
+					}
+					{
+						const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyLanders.position.set(0, 0.8, -1)
+						bodyLanders.scale.multiplyScalar(0.25)
+						bodyLanders.userData = {
+							data: "collision",
+							shape: "sphere"
+						}
+						body.add(bodyLanders)
+					}
+					{
+						const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyLanders.position.set(0, 0.8, -1.5)
+						bodyLanders.scale.multiplyScalar(0.25)
+						bodyLanders.userData = {
+							data: "collision",
+							shape: "sphere"
+						}
+						body.add(bodyLanders)
+					}
+				}
+				{ // landers
+					for (let i = 0; i < 5; i++) {
+						const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyLanders.position.set(-0.8, -0.4, 0.61 - (i * 0.3))
+						bodyLanders.scale.multiplyScalar(0.08)
+						bodyLanders.userData = {
+							data: "collision",
+							shape: "sphere"
+						}
+						body.add(bodyLanders)
+					}
+					for (let i = 0; i < 5; i++) {
+						const bodyLanders = new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
+						bodyLanders.position.set(0.8, -0.4, 0.61 - (i * 0.3))
+						bodyLanders.scale.multiplyScalar(0.08)
+						bodyLanders.userData = {
+							data: "collision",
+							shape: "sphere"
+						}
+						body.add(bodyLanders)
+					}
+				}
+			}
+		}
+		return body
+	}
+
 	makeAirPlane() {
 		const body = new THREE.Mesh()
 		{ // chassy
@@ -1631,7 +1973,7 @@ export class Example extends BaseScene {
 		{ // wheels
 			{
 				const wheelObj = this.makeWheel(0.14, 0.1)
-				wheelObj.position.set(0, -0.4, 1)
+				wheelObj.position.set(0, -0.3, 1)
 				wheelObj.name = "wheel_fl"
 				wheelObj.userData = {
 					name: "wheel_fl",
@@ -1644,7 +1986,7 @@ export class Example extends BaseScene {
 
 			{
 				const wheelObj = this.makeWheel(0.14, 0.1)
-				wheelObj.position.set(-0.5, -0.4, -1)
+				wheelObj.position.set(-0.5, -0.3, -1)
 				wheelObj.name = "wheel_bl"
 				wheelObj.userData = {
 					name: "wheel_bl",
@@ -1655,7 +1997,268 @@ export class Example extends BaseScene {
 
 			{
 				const wheelObj = this.makeWheel(0.14, 0.1)
-				wheelObj.position.set(0.5, -0.4, -1)
+				wheelObj.position.set(0.5, -0.3, -1)
+				wheelObj.name = "wheel_br"
+				wheelObj.userData = {
+					name: "wheel_br",
+					data: "wheel",
+				}
+				body.add(wheelObj)
+			}
+		}
+		{ // collisions
+			{
+				const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8, wireframe: true }))
+				bodyColl.scale.set(0.8, 0.5, 2.6)
+				bodyColl.scale.multiplyScalar(0.5)
+				bodyColl.userData = {
+					data: "collision",
+					shape: "box"
+				}
+				body.add(bodyColl)
+			}
+			{ // aileron
+				{
+					const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8, wireframe: true }))
+					bodyColl.scale.set(1.2, 0.15, 0.5)
+					bodyColl.scale.multiplyScalar(0.5)
+					bodyColl.position.set(-0.9, -0.2, 0.9)
+					bodyColl.userData = {
+						data: "collision",
+						shape: "box"
+					}
+					body.add(bodyColl)
+				}
+				{
+					const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8, wireframe: true }))
+					bodyColl.scale.set(1.2, 0.15, 0.5)
+					bodyColl.scale.multiplyScalar(0.5)
+					bodyColl.position.set(0.9, -0.2, 0.9)
+					bodyColl.userData = {
+						data: "collision",
+						shape: "box"
+					}
+					body.add(bodyColl)
+				}
+			}
+			{ // elevator
+				{
+					const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8, wireframe: true }))
+					bodyColl.scale.set(0.6, 0.15, 0.3)
+					bodyColl.scale.multiplyScalar(0.5)
+					bodyColl.position.set(-0.7, 0.2, -1.1)
+					bodyColl.userData = {
+						data: "collision",
+						shape: "box"
+					}
+					body.add(bodyColl)
+				}
+				{
+					const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8, wireframe: true }))
+					bodyColl.scale.set(0.6, 0.15, 0.3)
+					bodyColl.scale.multiplyScalar(0.5)
+					bodyColl.position.set(0.7, 0.2, -1.1)
+					bodyColl.userData = {
+						data: "collision",
+						shape: "box"
+					}
+					body.add(bodyColl)
+				}
+			}
+			{
+				const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8, wireframe: true }))
+				bodyColl.scale.set(0.6, 0.3, 0.8)
+				bodyColl.scale.multiplyScalar(0.5)
+				bodyColl.position.set(0, 0.4, -0.9)
+				bodyColl.userData = {
+					data: "collision",
+					shape: "box"
+				}
+				body.add(bodyColl)
+			}
+			{ // rudder
+				const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8, wireframe: true }))
+				bodyColl.scale.set(0.1, 0.5, 0.5)
+				bodyColl.scale.multiplyScalar(0.5)
+				bodyColl.position.set(0, 0.8, -1)
+				bodyColl.userData = {
+					data: "collision",
+					shape: "box"
+				}
+				body.add(bodyColl)
+			}
+		}
+		return body
+	}
+
+	makeLegoAirPlane() {
+		const body = new THREE.Mesh()
+		{ // chassy
+			const lower = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 2.6), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
+			body.add(lower)
+
+			const upper = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.8), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
+			upper.position.set(0, 0.4, -0.9)
+			body.add(upper)
+		}
+		{ // rotor
+			const rotor = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.1, 0.8), new THREE.MeshLambertMaterial({ color: 0x33aaff }))
+			rotor.position.set(0, 0, 1.5)
+			rotor.rotation.y = Math.PI / 2
+			rotor.userData = {
+				data: 'rotor'
+			}
+			body.add(rotor)
+		}
+		{ // camera
+			const camera = new THREE.Object3D()
+			camera.position.set(0, 1, 0.3)
+			camera.userData = {
+				data: 'camera'
+			}
+			body.add(camera)
+		}
+		{ // rudder
+			const rudderObj = new THREE.Object3D()
+			rudderObj.position.set(0, 0.8, -0.9)
+			rudderObj.rotation.x = Math.PI
+			const rudder = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.3), new THREE.MeshLambertMaterial({ color: 0x00ffff }))
+			rudder.position.z = +0.2
+			rudderObj.add(rudder)
+			rudderObj.name = 'rudder'
+			rudderObj.userData = {
+				data: 'rudder'
+			}
+			body.add(rudderObj)
+		}
+		{ // elevator
+			{
+				const eleObj = new THREE.Object3D()
+				eleObj.position.set(0.7, 0.2, -0.9)
+				eleObj.rotation.y = Math.PI / 2
+				const eleObj1 = new THREE.Object3D()
+				eleObj1.rotation.set(Math.PI / 2, 0, Math.PI / 2)
+				const elevator = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.1), new THREE.MeshLambertMaterial({ color: 0xffff00 }))
+				eleObj1.userData = {
+					data: 'elevator'
+				}
+				elevator.position.y = -0.2
+				eleObj1.add(elevator)
+				eleObj.add(eleObj1)
+				body.add(eleObj)
+			}
+			{
+				const eleObj = new THREE.Object3D()
+				eleObj.position.set(-0.7, 0.2, -0.9)
+				eleObj.rotation.y = Math.PI / 2
+				const eleObj1 = new THREE.Object3D()
+				eleObj1.rotation.set(Math.PI / 2, 0, Math.PI / 2)
+				const elevator = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.1), new THREE.MeshLambertMaterial({ color: 0xffff00 }))
+				eleObj1.userData = {
+					data: 'elevator'
+				}
+				elevator.position.y = -0.2
+				eleObj1.add(elevator)
+				eleObj.add(eleObj1)
+				body.add(eleObj)
+			}
+		}
+		{ // "aileron",
+			{
+				const aileronObj = new THREE.Object3D()
+				const aileronObj1 = new THREE.Object3D()
+				aileronObj.position.set(0.9, -0.2, 1.2)
+				aileronObj.rotation.z = Math.PI / 2
+				const aileron = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.2, 0.5), new THREE.MeshLambertMaterial({ color: 0xffaa77 }))
+				aileron.position.z = -0.3
+				aileronObj1.userData = {
+					data: "aileron",
+					side: "right"
+				}
+				aileronObj1.add(aileron)
+				aileronObj.add(aileronObj1)
+				body.add(aileronObj)
+			}
+			{
+				const aileronObj = new THREE.Object3D()
+				const aileronObj1 = new THREE.Object3D()
+				aileronObj.position.set(-0.9, -0.2, 1.2)
+				aileronObj.rotation.z = Math.PI / 2
+				const aileron = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.2, 0.5), new THREE.MeshLambertMaterial({ color: 0xffaa77 }))
+				aileron.position.z = -0.3
+				aileronObj1.userData = {
+					data: "aileron",
+					side: "left"
+				}
+				aileronObj1.add(aileron)
+				aileronObj.add(aileronObj1)
+				body.add(aileronObj)
+			}
+		}
+		{ // seat
+			const seat = this.makeSeat(true)
+			seat.position.set(0, 0, 0.3)
+			seat.name = 'seat_1'
+			seat.userData = {
+				name: 'seat_1',
+				data: 'seat',
+				seat_type: "driver",
+				entry_points: "entrance_1;entrance_2",
+			}
+			body.add(seat)
+
+			{
+				const entryPoint = new THREE.AxesHelper()
+				entryPoint.position.copy(seat.position)
+				entryPoint.position.x -= 0.7
+				entryPoint.position.y -= 0.4
+				entryPoint.name = 'entrance_1'
+				entryPoint.userData = {
+					name: "entrance_1"
+				}
+				body.add(entryPoint)
+			}
+
+			{
+				const entryPoint = new THREE.AxesHelper()
+				entryPoint.position.copy(seat.position)
+				entryPoint.position.x += 0.7
+				entryPoint.position.y -= 0.4
+				entryPoint.name = 'entrance_2'
+				entryPoint.userData = {
+					name: "entrance_2"
+				}
+				body.add(entryPoint)
+			}
+		}
+		{ // wheels
+			{
+				const wheelObj = this.makeWheel(0.14, 0.1)
+				wheelObj.position.set(0, -0.3, 1)
+				wheelObj.name = "wheel_fl"
+				wheelObj.userData = {
+					name: "wheel_fl",
+					steering: "true",
+					data: "wheel",
+					drive: "fwd"
+				}
+				body.add(wheelObj)
+			}
+
+			{
+				const wheelObj = this.makeWheel(0.14, 0.1)
+				wheelObj.position.set(-0.5, -0.3, -1)
+				wheelObj.name = "wheel_bl"
+				wheelObj.userData = {
+					name: "wheel_bl",
+					data: "wheel",
+				}
+				body.add(wheelObj)
+			}
+
+			{
+				const wheelObj = this.makeWheel(0.14, 0.1)
+				wheelObj.position.set(0.5, -0.3, -1)
 				wheelObj.name = "wheel_br"
 				wheelObj.userData = {
 					name: "wheel_br",

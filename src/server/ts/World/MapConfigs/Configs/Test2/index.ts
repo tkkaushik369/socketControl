@@ -11,6 +11,12 @@ export const Test2Config: MapConfigType = {
 	vehicles: [],
 }
 
+const character: MapConfigFOType = {
+	objCaller: 'boxman.glb',
+	type: 'character',
+	subtype: null,
+}
+
 const car: MapConfigFOType = {
 	// objCaller: 'car.glb',
 	objCaller: new Example(),
@@ -19,4 +25,5 @@ const car: MapConfigFOType = {
 }
 
 
+Test2Config.characters.push(character)
 Test2Config.vehicles.push(car)

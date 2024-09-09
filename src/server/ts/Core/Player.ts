@@ -36,7 +36,7 @@ export class Player implements INetwork {
 
 	inputManager: InputManager
 	cameraOperator: CameraOperator
-	camHelper: THREE.CameraHelper 
+	camHelper: THREE.CameraHelper
 
 	spawnPoint: CharacterSpawnPoint | null
 	character: Character | null
@@ -79,17 +79,17 @@ export class Player implements INetwork {
 
 	public setUID(uID: string) {
 		this.uID = uID
-		this.setSpawn(new THREE.Vector3(0, 17, -5))
+		// this.setSpawn(new THREE.Vector3(0, 17, -5), false) // for testing
 		this.world.scenarios.forEach((sc => {
 			if (this.world.lastScenarioID === sc.name) {
 				if (sc.playerPosition !== null) {
-					this.setSpawn(sc.playerPosition)
+					this.setSpawn(sc.playerPosition, false)
 				}
 			}
 		}))
 	}
 
-	public setSpawn(pos: THREE.Vector3, deg?: number) {
+	public setSpawn(pos: THREE.Vector3, isPlayerNearVehical: boolean, deg?: number) {
 		let spawnPlayer = new THREE.Object3D()
 		spawnPlayer.userData = {
 			name: this.uID + "_character",
@@ -97,7 +97,7 @@ export class Player implements INetwork {
 			type: "player",
 		}
 		spawnPlayer.position.copy(pos)
-		if (deg !== undefined) {
+		if (isPlayerNearVehical && (deg !== undefined)) {
 			const angle = deg * (Math.PI / 180)
 			const dist = 1
 			spawnPlayer.rotateY(angle)

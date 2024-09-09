@@ -4,6 +4,7 @@ import { WorldBase } from '../WorldBase'
 import { Character } from '../../Characters/Character'
 import { RandomBehaviour } from '../../Characters/CharacterAI/RandomBehaviour'
 import { Utility } from '../../Core/Utility'
+import { MapConfig } from '../MapConfigs'
 
 export class CharacterSpawnPoint implements ISpawnPoint {
 	private object: THREE.Object3D
@@ -20,7 +21,7 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 
 	public spawn(world: WorldBase): Character {
 		let player = new Character()
-		world.getGLTF('boxman.glb', (gltf: any) => {
+		const callerCharacter = (gltf: any) => {
 			player.setModel(gltf)
 			player.uID = this.userData.name
 			player.spawnPoint = this.object
@@ -40,7 +41,21 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 				let behaviour = new RandomBehaviour(player)
 				player.setBehaviour(behaviour)
 			}
-		})
+		}
+		if ((world.lastMapID !== null) && (MapConfig[world.lastMapID] !== undefined)) {
+			for (let j = 0; j < MapConfig[world.lastMapID].characters.length; j++) {
+				const char = MapConfig[world.lastMapID].characters[j]
+				if (('character' == char.type) /* && (this.subtype == char.subtype) */) {
+					if (typeof char.objCaller === 'string') {
+						world.getGLTF(char.objCaller, (gltf: any) => {
+							let model = gltf
+							callerCharacter(model)
+						})
+					}
+					break
+				}
+			}
+		}
 		return player
 	}
 }
