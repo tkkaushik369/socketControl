@@ -128,7 +128,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			for (let j = 0; j < MapConfig[world.lastMapID].vehicles.length; j++) {
 				const vehi = MapConfig[world.lastMapID].vehicles[j]
 				if ((type == vehi.type) && (this.subtype == vehi.subtype)) {
-					console.log(type, this.subtype)
+					// console.log(type, this.subtype)
 					if (vehi.objCaller instanceof BaseScene) {
 						// let model = vehi.objCaller.getVehical(type, this.subtype)
 						let model = new (vehi.objCaller as any).constructor().getVehical(type, this.subtype)
@@ -151,28 +151,18 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			case 'car': {
 				switch (this.subtype) {
 					case 'car_test': return new Car(model)
-					case 'lego': {
-						let vehicle = new Car(model, 40)
-						vehicle.engineForce = 300
-						vehicle.rayCastVehicle.wheelInfos.forEach((wheel) => {
-							wheel.radius = 0.2
-						})
-						return vehicle
-					}
 					default: return new Car(model)
 				}
 			}
 			case 'heli': {
 				switch (this.subtype) {
 					case 'heli_test': return new Helicopter(model)
-					case 'lego': return new Helicopter(model)
 					default: return new Helicopter(model)
 				}
 			}
 			case 'airplane': {
 				switch (this.subtype) {
 					case 'airplane_test': return new Airplane(model)
-					case 'lego': return new Airplane(model)
 					default: return new Airplane(model)
 				}
 			}

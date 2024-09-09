@@ -168,8 +168,7 @@ export abstract class WorldBase {
 		this.world.defaultContactMaterial.contactEquationStiffness = 1e7
 		this.world.defaultContactMaterial.contactEquationRelaxation = 5
 
-		// setInterval(this.update, this.physicsFrameTime * 1000)
-		setTimeout(this.update, this.physicsFrameTime * 1000)
+		setInterval(this.update, this.physicsFrameTime * 1000)
 	}
 
 	public getGLTF(path: string, callback: Function) {
@@ -555,8 +554,6 @@ export abstract class WorldBase {
 
 		if (this.updatePhysicsCallback !== null)
 			this.updatePhysicsCallback()
-		
-		setTimeout(this.update, this.requestDelta + this.logicDelta)
 	}
 
 	private updatePhysics(timeStep: number, unscaledTimeStep: number) {
