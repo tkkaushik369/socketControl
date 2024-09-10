@@ -73,9 +73,11 @@ export class SwitchingSeats extends CharacterStateBase {
 			let sineFactor = Utility.easeInOutSine(factor)
 
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, sineFactor)
-			this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
+			if ((this.character.world !== null) && !this.character.world.isClient) {
+				this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 
-			this.character.quaternion.slerp(this.endRotation, sineFactor)
+				this.character.quaternion.slerp(this.endRotation, sineFactor)
+			}
 		}
 	}
 }

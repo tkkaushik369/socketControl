@@ -43,10 +43,12 @@ export abstract class ExitingStateBase extends CharacterStateBase {
 		this.character.controlledObject = null
 		this.character.resetOrientation()
 		if (this.character.world !== null)
-			this.character.world.scene.attach(this.character)
+			if (!this.character.world.isClient)
+				this.character.world.scene.attach(this.character)
 		this.character.resetVelocity()
 		this.character.setPhysicsEnabled(true)
-		this.character.setPosition(this.character.position.x, this.character.position.y, this.character.position.z)
+		if ((this.character.world !== null) && !this.character.world.isClient)
+			this.character.setPosition(this.character.position.x, this.character.position.y, this.character.position.z)
 		this.character.inputReceiverUpdate(16)
 		this.character.inputReceiverUpdate(16)
 		this.character.characterCapsule.body.velocity.copy(this.vehicle.rayCastVehicle.chassisBody.velocity)
@@ -59,12 +61,14 @@ export abstract class ExitingStateBase extends CharacterStateBase {
 		forward.normalize()
 
 		if (this.character.world !== null)
-			this.character.world.scene.attach(this.dummyObj)
+			if (!this.character.world.isClient)
+				this.character.world.scene.attach(this.dummyObj)
 		this.exitPoint.getWorldPosition(this.dummyObj.position)
 		let target = this.dummyObj.position.clone().add(forward)
 		this.dummyObj.lookAt(target)
 		if (this.seat.seatPointObject.parent !== null)
-			this.seat.seatPointObject.parent.attach(this.dummyObj)
+			if ((this.character.world !== null) && !this.character.world.isClient)
+				this.seat.seatPointObject.parent.attach(this.dummyObj)
 		this.endRotation.copy(this.dummyObj.quaternion)
 	}
 }

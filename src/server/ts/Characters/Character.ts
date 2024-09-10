@@ -329,8 +329,9 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 
 	public setPhysicsEnabled(value: boolean): void {
 		if (this.world === null) return
+		if (this.physicsEnabled === value) return
 		this.physicsEnabled = value
-		if (value === true) {
+		if (this.physicsEnabled === true) {
 			this.world.addWorldObject(this.characterCapsule.body)
 		}
 		else {
@@ -493,7 +494,6 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		}
 		if (this.player !== null) {
 			this.setFirstPersonView(false)
-			this.player.cameraOperator.setRadius(1.6, true)
 			this.player.cameraOperator.followMode = false
 		}
 
@@ -542,7 +542,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 				if (this.firstPerson) {
 					let offset = new THREE.Vector3()
 					this.getWorldPosition(offset)
-					offset.y += 0.6
+					offset.y += 0.3
 					this.player.cameraOperator.target = offset
 				} else
 					this.getWorldPosition(this.player.cameraOperator.target)
@@ -552,7 +552,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 
 	public setAnimation(clipName: string, fadeIn: number): number {
 		let clip = THREE.AnimationClip.findByName(this.animations, clipName)
-		
+
 		if (this.mixer !== null) {
 			let action = this.mixer.clipAction(clip)
 			if (action === null) {
@@ -564,9 +564,12 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			action.fadeIn(fadeIn)
 			action.play()
 
-			return action.getClip().duration
+			let fast = 0
+			if ((this.world !== null) && this.world.isClient)
+				fast = this.world.physicsFrameTime
+			return action.getClip().duration - fast
 		}
-		let duration: number = 0
+		let duration: number = 0.1
 		if (this.allAnim[clipName] !== undefined)
 			duration = this.allAnim[clipName]
 		return duration
@@ -719,10 +722,11 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.resetVelocity()
 		this.rotateModel()
 		this.setPhysicsEnabled(false)
-		vehicle.attach(this)
-
-		this.setPosition(seat.seatPointObject.position.x, seat.seatPointObject.position.y + 0.6, seat.seatPointObject.position.z)
-		this.quaternion.copy(seat.seatPointObject.quaternion)
+		if ((this.world !== null) && !this.world.isClient) {
+			vehicle.attach(this)
+			this.setPosition(seat.seatPointObject.position.x, seat.seatPointObject.position.y + 0.6, seat.seatPointObject.position.z)
+			this.quaternion.copy(seat.seatPointObject.quaternion)
+		}
 
 		this.occupySeat(seat)
 		this.setState(new VehicalState.Driving(this, seat));
@@ -993,7 +997,9 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 
 	public Out() {
 		let newPos = new THREE.Vector3()
+		let newQuat = new THREE.Quaternion()
 		this.getWorldPosition(newPos)
+		this.getWorldQuaternion(newQuat)
 
 		let csc = this.charState.state
 		let vehicalState: { [id: string]: any } = {}
@@ -1059,17 +1065,17 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 				},
 				charState: csc,
 				vehicalState: vehicalState,
-				physicsEnabled: this.physicsEnabled,
+				// physicsEnabled: this.physicsEnabled,
 				characterPosition: {
-					x: (/* (this.player !== null) && */ !this.physicsEnabled) ? newPos.x : this.position.x,
-					y: (/* (this.player !== null) && */ !this.physicsEnabled) ? newPos.y : this.position.y,
-					z: (/* (this.player !== null) && */ !this.physicsEnabled) ? newPos.z : this.position.z,
+					x: newPos.x,
+					y: newPos.y,
+					z: newPos.z,
 				},
 				characterQuaternion: {
-					x: /* (this.controlledObject !== null) ? this.controlledObject.quaternion.x : */ this.quaternion.x,
-					y: /* (this.controlledObject !== null) ? this.controlledObject.quaternion.y : */ this.quaternion.y,
-					z: /* (this.controlledObject !== null) ? this.controlledObject.quaternion.z : */ this.quaternion.z,
-					w: /* (this.controlledObject !== null) ? this.controlledObject.quaternion.w : */ this.quaternion.w,
+					x: newQuat.x,
+					y: newQuat.y,
+					z: newQuat.z,
+					w: newQuat.w,
 				},
 			}
 		}

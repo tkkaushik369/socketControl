@@ -40,11 +40,13 @@ export class ExitingAirplane extends ExitingStateBase {
 			let factor = THREE.MathUtils.clamp(((this.timer / this.animationLength) - beginningCutoff) * (1 / (1 - beginningCutoff)), 0, 1)
 			let smoothFactor = Utility.easeOutQuad(factor)
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, smoothFactor)
-			this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
+			if ((this.character.world !== null) && !this.character.world.isClient) {
+				this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 
-			// Rotation
-			this.updateEndRotation()
-			this.character.quaternion.slerp(this.endRotation, smoothFactor)
+				// Rotation
+				this.updateEndRotation()
+				this.character.quaternion.slerp(this.endRotation, smoothFactor)
+			}
 		}
 	}
 }
