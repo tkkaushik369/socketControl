@@ -12,6 +12,7 @@ import express from 'express'
 import path from 'path'
 import http from 'http'
 import { Server, Socket } from 'socket.io'
+import parser from 'socket.io-msgpack-parser'
 import { Utility } from './ts/Core/Utility'
 import { Player, PlayerSetMesssage } from './ts/Core/Player'
 import { WorldServer } from './ts/World/WorldServer'
@@ -44,7 +45,8 @@ class AppServer {
 		app.use(express.static(path.join(__dirname, "../client")))
 
 		this.server = new http.Server(app)
-		this.io = new Server(this.server)
+		this.io = new Server(this.server, { parser: parser })
+		this.io.engine.on("connection", (rawSocket) => { rawSocket.request = null })
 		this.worldServer = new WorldServer(this.ForSocketLoop)
 
 		this.worldServer.launchMap(Object.keys(this.worldServer.maps)[0], false, true)
@@ -70,14 +72,9 @@ class AppServer {
 			lastMapID: this.worldServer.lastMapID,
 		}
 
-		socket.emit("setID", playerSetMessage, (userName: string, anime: { [id: string]: number }) => {
+		socket.emit("setID", playerSetMessage, (userName: string) => {
 			this.worldServer.users[socket.id].setUID(userName)
 			this.worldServer.users[socket.id].addUser()
-			if (this.worldServer) {
-				this.worldServer.characters.forEach((char) => {
-					char.allAnim = anime
-				})
-			}
 			console.log(`Player Created: ${socket.id} -> ${userName}`)
 		})
 	}
@@ -89,7 +86,7 @@ class AppServer {
 			delete this.worldServer.users[socket.id]
 		const onFinish = () => {
 			console.log(`Client disconnected: ${socket.id} <- ${user.uID}`)
-			this.io.volatile.emit("removeClient", socket.id)
+			this.io.emit("removeClient", socket.id)
 			user.removeUser()
 		}
 		if (user !== undefined) {

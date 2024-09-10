@@ -4,6 +4,7 @@ import { LDrawLoader } from 'three/examples/jsm/loaders/LDrawLoader'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import { Utility } from '../server/ts/Core/Utility'
 import { io, Socket } from 'socket.io-client'
+import parser from 'socket.io-msgpack-parser'
 import { WorldClient } from './ts/World/WorldClient'
 import { Player } from '../server/ts/Core/Player'
 import { ControlsTypes } from '../server/ts/Enums/ControlsTypes'
@@ -51,7 +52,7 @@ export default class AppClient {
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 
 		// init
-		this.io = io()
+		this.io = io({ parser: parser })
 		this.worldClient = new WorldClient(controls, workBox, this.ForSocketLoop, this.ForLaunchMap, this.ForLaunchScenario)
 		this.sID = ""
 		this.lastUpdate = Date.now()
@@ -109,13 +110,15 @@ export default class AppClient {
 				if (obj.userData.hasOwnProperty('debug')) {
 					if (obj.userData.debug) {
 						obj.visible = true;
-						const textureLoader = new THREE.TextureLoader();
-						const texture = textureLoader.load(
-							'./images/uv-test-bw.jpg',
-						);
-						let mat = new THREE.MeshStandardMaterial({ map: texture });
-						(obj as THREE.Mesh).material = mat
-						// this.worldClient.scene.add(new VertexNormalsHelper(obj, 0.1, 0x00ff00))
+						if (false) {
+							const textureLoader = new THREE.TextureLoader();
+							const texture = textureLoader.load(
+								'./images/uv-test-bw.jpg',
+							);
+							let mat = new THREE.MeshStandardMaterial({ map: texture });
+							(obj as THREE.Mesh).material = mat
+							// this.worldClient.scene.add(new VertexNormalsHelper(obj, 0.1, 0x00ff00))
+						}
 					}
 				}
 			}
@@ -134,7 +137,7 @@ export default class AppClient {
 			this.worldClient.player.cameraOperator.camera.add(AttachModels.makeCamera())
 			this.worldClient.player.attachments.push(this.worldClient.player.cameraOperator.camera)
 			this.worldClient.player.cameraOperator.camera.visible = false
-			this.worldClient.scene.add(this.worldClient.player.cameraOperator.camera)
+			this.worldClient.addSceneObject(this.worldClient.player.cameraOperator.camera) // this.worldClient.scene.add(this.worldClient.player.cameraOperator.camera)
 			this.worldClient.player.addUser()
 
 			console.log(`Username: ${this.worldClient.player.uID}`)
@@ -183,7 +186,7 @@ export default class AppClient {
 						player.setUID(messages[id].uID)
 						player.cameraOperator.camera.add(AttachModels.makeCamera())
 						player.attachments.push(player.cameraOperator.camera)
-						this.worldClient.scene.add(player.cameraOperator.camera)
+						this.worldClient.addSceneObject(player.cameraOperator.camera) // this.worldClient.scene.add(player.cameraOperator.camera)
 						player.addUser()
 
 						console.log("New User: " + player.uID)
@@ -225,39 +228,42 @@ export default class AppClient {
 				case MessageTypes.Character: {
 					this.worldClient.characters.forEach((char) => {
 						if (char.uID === messages[id].uID) {
-							if (char.physicsEnabled !== messages[id].data.physicsEnabled) {
+							/* if (char.physicsEnabled !== messages[id].data.physicsEnabled) {
 								char.setPhysicsEnabled(messages[id].data.physicsEnabled)
-							}
-							if (messages[id].data.physicsEnabled && messages[id].data.physicsEnabled) {
-								this.worldClient.zeroBody(char.characterCapsule.body)
-								char.characterCapsule.body.position.set(
-									messages[id].data.characterPosition.x,
-									messages[id].data.characterPosition.y,
-									messages[id].data.characterPosition.z,
-								)
-								char.characterCapsule.body.interpolatedPosition.set(
-									messages[id].data.characterPosition.x,
-									messages[id].data.characterPosition.y,
-									messages[id].data.characterPosition.z,
-								)
-								char.position.set(
-									messages[id].data.characterPosition.x,
-									messages[id].data.characterPosition.y,
-									messages[id].data.characterPosition.z,
-								)
-								char.quaternion.set(
-									messages[id].data.characterQuaternion.x,
-									messages[id].data.characterQuaternion.y,
-									messages[id].data.characterQuaternion.z,
-									messages[id].data.characterQuaternion.w,
-								)
-							}
+							} */
+							// if (messages[id].data.physicsEnabled && messages[id].data.physicsEnabled) {
+							this.worldClient.zeroBody(char.characterCapsule.body)
+							char.characterCapsule.body.position.set(
+								messages[id].data.characterPosition.x,
+								messages[id].data.characterPosition.y,
+								messages[id].data.characterPosition.z,
+							)
+							char.characterCapsule.body.interpolatedPosition.set(
+								messages[id].data.characterPosition.x,
+								messages[id].data.characterPosition.y,
+								messages[id].data.characterPosition.z,
+							)
+							char.position.set(
+								messages[id].data.characterPosition.x,
+								messages[id].data.characterPosition.y,
+								messages[id].data.characterPosition.z,
+							)
+							char.quaternion.set(
+								messages[id].data.characterQuaternion.x,
+								messages[id].data.characterQuaternion.y,
+								messages[id].data.characterQuaternion.z,
+								messages[id].data.characterQuaternion.w,
+							)
+							// }
 
 							if ((messages[id].data.AiData.character !== null) && (char.behaviour !== null)) {
 								char.triggerAction(messages[id].data.AiData.character.action, messages[id].data.AiData.character.isPressed)
 								if ((messages[id].data.AiData.character !== null) && (char.controlledObject !== null))
 									char.controlledObject.triggerAction(messages[id].data.AiData.controlledObject.action, messages[id].data.AiData.controlledObject.isPressed)
 							}
+
+							/* if(char.player !== null)
+								console.log(char.charState.state, messages[id].data.charState) */
 
 							if (char.charState.state !== messages[id].data.charState) {
 								let isError = null

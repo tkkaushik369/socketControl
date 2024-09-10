@@ -115,7 +115,7 @@ export class Player implements INetwork {
 			this.character.player = this
 			this.character.takeControl()
 		}
-		this.world.scene.add(this.camHelper)
+		this.world.addSceneObject(this.camHelper) // this.world.scene.add(this.camHelper)
 	}
 	public removeUser() {
 		if (this.world === null) return
@@ -124,7 +124,7 @@ export class Player implements INetwork {
 			this.character.player = null
 			this.character = null
 		}
-		this.world.scene.remove(this.camHelper)
+		this.world.removeSceneObject(this.camHelper) // this.world.scene.remove(this.camHelper)
 	}
 
 	Out() {

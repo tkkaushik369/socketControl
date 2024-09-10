@@ -402,6 +402,7 @@ export class WorldClient extends WorldBase {
 	}
 
 	private animate() {
+		this.update()
 		this.csm.update()
 		this.oceans.forEach((ocean) => {
 			ocean.update(this.timeScaleTarget * 1.0 / 60.0)

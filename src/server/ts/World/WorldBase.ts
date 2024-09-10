@@ -89,7 +89,7 @@ export abstract class WorldBase {
 
 		// init
 		this.player = null
-		this.physicsFrameRate = 60
+		this.physicsFrameRate = 90
 		this.physicsFrameTime = 1 / this.physicsFrameRate
 		this.worldClock = new THREE.Clock()
 		this.requestDelta = this.worldClock.getDelta()
@@ -140,7 +140,7 @@ export abstract class WorldBase {
 			Debug_FPS: true,
 			Debug_Helper: true,
 			PostProcess: true,
-			SyncSun: true,
+			SyncSun: false,
 			SyncInputs: true,
 			SyncCamera: true,
 		}
@@ -165,10 +165,8 @@ export abstract class WorldBase {
 		this.world.solver = solver
 		this.world.allowSleep = true;
 
-		this.world.defaultContactMaterial.contactEquationStiffness = 1e7
-		this.world.defaultContactMaterial.contactEquationRelaxation = 5
-
-		setInterval(this.update, this.physicsFrameTime * 1000)
+		// this.world.defaultContactMaterial.contactEquationStiffness = 1e7
+		// this.world.defaultContactMaterial.contactEquationRelaxation = 5
 	}
 
 	public getGLTF(path: string, callback: Function) {
@@ -509,7 +507,7 @@ export abstract class WorldBase {
 		}
 	}
 
-	private update() {
+	protected update() {
 		this.requestDelta = this.worldClock.getDelta()
 
 		let unscaledTimeStep = (this.requestDelta + this.logicDelta)

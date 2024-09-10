@@ -11,6 +11,8 @@ export class WorldServer extends WorldBase {
 
 		// init
 		this.updatePhysicsCallback = updatePhysicsCallback
+
+		setInterval(this.update, this.physicsFrameTime * 1000)
 	}
 
 	public getGLTF(path: string, callback: Function) {
