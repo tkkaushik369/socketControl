@@ -24,6 +24,7 @@
 		"copy-webpack-plugin": "^12.0.2",
 		"css-loader": "^7.1.2",
 		"electron": "^32.0.2",
+		"electron-reload": "^2.0.0-alpha.1",
 		"express": "^5.0.0",
 		"jsdom": "^24.1.1",
 		"lodash": "^4.17.21",
