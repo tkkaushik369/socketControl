@@ -19,6 +19,7 @@ import * as CharState from '../server/ts/Characters/CharacterStates/_CharacterSt
 import * as VehicalState from '../server/ts/Characters/CharacterStates/Vehicles/_VehicleStateLibrary'
 import _ from 'lodash'
 import { PlayerCaller } from './ts/World/PlayerCaller'
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min'
 
 if (navigator.userAgent.includes('QtWebEngine')) {
 	document.body.classList.add('bodyTransparent')
@@ -175,13 +176,19 @@ export default class AppClient {
 					if (this.worldClient.players[i].userName === messages[id].uID) {
 						notFound = false
 						playerCaller = this.worldClient.players[i]
+						playerCaller.flag = true
 						break
 					}
 				}
 				if (notFound) {
-					this.worldClient.players.push(new PlayerCaller(messages[id].uID))
-					// this.worldClient.playersGUIFolder
+					const playerGui: GUI = this.worldClient.playersGUIFolder.addFolder(messages[id].uID)
+					this.worldClient.players.push(new PlayerCaller(messages[id].uID, playerGui))
 					playerCaller = this.worldClient.players[i]
+
+					playerCaller.callDir['join'] = () => {
+						
+					}
+					playerCaller.playerGui.add(playerCaller.callDir, 'join')
 				}
 
 				if (playerCaller !== null) {
@@ -205,17 +212,19 @@ export default class AppClient {
 				case MessageTypes.Player:
 				case MessageTypes.PlayerAll:
 					{
-						if (this.worldClient.users[id] === undefined) {
-							const player = new Player(messages[id].sID, this.worldClient, Utility.defaultCamera(), null)
-							// Initialization
-							player.setUID(messages[id].uID)
-							player.cameraOperator.camera.add(AttachModels.makeCamera())
-							player.attachments.push(player.cameraOperator.camera)
-							this.worldClient.addSceneObject(player.cameraOperator.camera)
-							player.addUser()
+						if (messages[id].msgType === MessageTypes.Player) {
+							if (this.worldClient.users[id] === undefined) {
+								const player = new Player(messages[id].sID, this.worldClient, Utility.defaultCamera(), null)
+								// Initialization
+								player.setUID(messages[id].uID)
+								player.cameraOperator.camera.add(AttachModels.makeCamera())
+								player.attachments.push(player.cameraOperator.camera)
+								this.worldClient.addSceneObject(player.cameraOperator.camera)
+								player.addUser()
 
-							console.log("New User: " + player.uID)
-							this.worldClient.users[player.sID] = player
+								console.log("New User: " + player.uID)
+								this.worldClient.users[player.sID] = player
+							}
 						}
 
 						if (this.worldClient.users[id] === undefined) {
@@ -651,6 +660,17 @@ export default class AppClient {
 				}
 			}
 		})
+
+		const toRemove: PlayerCaller[] = []
+		this.worldClient.players.forEach((pc) => { if (!pc.flag) toRemove.push(pc) })
+
+		for (let i = 0; i < toRemove.length; i++) {
+			const index = this.worldClient.players.indexOf(toRemove[i])
+			if (index > -1) {
+				this.worldClient.players[index].playerGui.destroy()
+				this.worldClient.players.splice(index, 1)
+			}
+		}
 	}
 
 	private OnControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {

@@ -71,8 +71,8 @@ class AppServer {
 		console.log(`Client Connected: ${socket.id}`)
 		const worldServer = new WorldServer(this.ForWorldSocketLoop)
 		worldServer.worldId = "World_Player_" + socket.id
-		worldServer.loopRunner = setInterval(worldServer.update, worldServer.physicsFrameTime * 1000)
 		worldServer.launchMap(Object.keys(worldServer.maps)[0], false, true)
+		worldServer.loopRunner = setInterval(worldServer.update, worldServer.physicsFrameTime * 1000)
 		this.allUsers[socket.id] = new Player(socket.id, worldServer, Utility.defaultCamera(), null)
 		worldServer.users[socket.id] = this.allUsers[socket.id]
 		this.allWorlds.push(worldServer)
