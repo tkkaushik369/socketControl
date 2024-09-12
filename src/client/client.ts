@@ -18,6 +18,7 @@ import { Airplane } from '../server/ts/Vehicles/Airplane'
 import * as CharState from '../server/ts/Characters/CharacterStates/_CharacterStateLibrary'
 import * as VehicalState from '../server/ts/Characters/CharacterStates/Vehicles/_VehicleStateLibrary'
 import _ from 'lodash'
+import { PlayerCaller } from './ts/World/PlayerCaller'
 
 if (navigator.userAgent.includes('QtWebEngine')) {
 	document.body.classList.add('bodyTransparent')
@@ -137,7 +138,7 @@ export default class AppClient {
 			this.worldClient.player.cameraOperator.camera.add(AttachModels.makeCamera())
 			this.worldClient.player.attachments.push(this.worldClient.player.cameraOperator.camera)
 			this.worldClient.player.cameraOperator.camera.visible = false
-			this.worldClient.addSceneObject(this.worldClient.player.cameraOperator.camera) // this.worldClient.scene.add(this.worldClient.player.cameraOperator.camera)
+			this.worldClient.addSceneObject(this.worldClient.player.cameraOperator.camera)
 			this.worldClient.player.addUser()
 
 			console.log(`Username: ${this.worldClient.player.uID}`)
@@ -164,8 +165,30 @@ export default class AppClient {
 
 	private OnPlayers(messages: { [id: string]: any }) {
 		pingStats.innerHTML = "Ping: " + "<br>"
+		this.worldClient.players.forEach((pc) => { pc.flag = false })
 		Object.keys(messages).forEach((id) => {
 			if (messages[id].sID !== undefined) {
+				let i = 0
+				let notFound = true
+				let playerCaller: PlayerCaller | null = null
+				for (i = 0; i < this.worldClient.players.length; i++) {
+					if (this.worldClient.players[i].userName === messages[id].uID) {
+						notFound = false
+						playerCaller = this.worldClient.players[i]
+						break
+					}
+				}
+				if (notFound) {
+					this.worldClient.players.push(new PlayerCaller(messages[id].uID))
+					// this.worldClient.playersGUIFolder
+					playerCaller = this.worldClient.players[i]
+				}
+
+				if (playerCaller !== null) {
+					// playerCaller
+				}
+
+				pingStats.innerHTML += messages[id].msgType + ": "
 				pingStats.innerHTML += "[" + messages[id].sID + "] "
 				if (messages[id].sID == this.sID) {
 					if (this.lastUpdate < Date.now() - 1000) {
@@ -179,59 +202,57 @@ export default class AppClient {
 			}
 
 			switch (messages[id].msgType) {
-				case MessageTypes.Player: {
-					if (this.worldClient.users[id] === undefined) {
-						const player = new Player(messages[id].sID, this.worldClient, Utility.defaultCamera(), null)
-						// Initialization
-						player.setUID(messages[id].uID)
-						player.cameraOperator.camera.add(AttachModels.makeCamera())
-						player.attachments.push(player.cameraOperator.camera)
-						this.worldClient.addSceneObject(player.cameraOperator.camera) // this.worldClient.scene.add(player.cameraOperator.camera)
-						player.addUser()
+				case MessageTypes.Player:
+				case MessageTypes.PlayerAll:
+					{
+						if (this.worldClient.users[id] === undefined) {
+							const player = new Player(messages[id].sID, this.worldClient, Utility.defaultCamera(), null)
+							// Initialization
+							player.setUID(messages[id].uID)
+							player.cameraOperator.camera.add(AttachModels.makeCamera())
+							player.attachments.push(player.cameraOperator.camera)
+							this.worldClient.addSceneObject(player.cameraOperator.camera)
+							player.addUser()
 
-						console.log("New User: " + player.uID)
-						this.worldClient.users[player.sID] = player
-					}
+							console.log("New User: " + player.uID)
+							this.worldClient.users[player.sID] = player
+						}
 
-					if (this.worldClient.users[id] === undefined) {
-						console.log("Undefined Player" + this.worldClient.users[id])
+						if (this.worldClient.users[id] === undefined) {
+							console.log("Undefined Player" + this.worldClient.users[id])
+							break
+						}
+
+						// World Time Scale
+						this.worldClient.timeScaleTarget = messages[id].data.timeScaleTarget
+
+						if (this.worldClient.settings.SyncSun) {
+							this.worldClient.effectController.elevation = messages[id].data.sun.elevation
+							this.worldClient.effectController.azimuth = messages[id].data.sun.azimuth
+							this.worldClient.sunConf.elevation = this.worldClient.effectController.elevation
+							this.worldClient.sunConf.azimuth = this.worldClient.effectController.azimuth
+							this.worldClient.sunGuiChanged()
+							// console.log(JSON.stringify(messages[id].data.sun))
+						}
+
+						if ((this.sID !== messages[id].sID) || this.worldClient.settings.SyncCamera) {
+							this.worldClient.users[id].cameraOperator.camera.position.set(
+								messages[id].data.cameraPosition.x,
+								messages[id].data.cameraPosition.y,
+								messages[id].data.cameraPosition.z,
+							)
+							this.worldClient.users[id].cameraOperator.camera.quaternion.set(
+								messages[id].data.cameraQuaternion.x,
+								messages[id].data.cameraQuaternion.y,
+								messages[id].data.cameraQuaternion.z,
+								messages[id].data.cameraQuaternion.w,
+							)
+						}
 						break
 					}
-
-					// World Time Scale
-					this.worldClient.timeScaleTarget = messages[id].data.timeScaleTarget
-
-					if (this.worldClient.settings.SyncSun) {
-						this.worldClient.effectController.elevation = messages[id].data.sun.elevation
-						this.worldClient.effectController.azimuth = messages[id].data.sun.azimuth
-						this.worldClient.sunConf.elevation = this.worldClient.effectController.elevation
-						this.worldClient.sunConf.azimuth = this.worldClient.effectController.azimuth
-						this.worldClient.sunGuiChanged()
-						// console.log(JSON.stringify(messages[id].data.sun))
-					}
-
-					if ((this.sID !== messages[id].sID) || this.worldClient.settings.SyncCamera) {
-						this.worldClient.users[id].cameraOperator.camera.position.set(
-							messages[id].data.cameraPosition.x,
-							messages[id].data.cameraPosition.y,
-							messages[id].data.cameraPosition.z,
-						)
-						this.worldClient.users[id].cameraOperator.camera.quaternion.set(
-							messages[id].data.cameraQuaternion.x,
-							messages[id].data.cameraQuaternion.y,
-							messages[id].data.cameraQuaternion.z,
-							messages[id].data.cameraQuaternion.w,
-						)
-					}
-					break
-				}
 				case MessageTypes.Character: {
 					this.worldClient.characters.forEach((char) => {
 						if (char.uID === messages[id].uID) {
-							/* if (char.physicsEnabled !== messages[id].data.physicsEnabled) {
-								char.setPhysicsEnabled(messages[id].data.physicsEnabled)
-							} */
-							// if (messages[id].data.physicsEnabled && messages[id].data.physicsEnabled) {
 							this.worldClient.zeroBody(char.characterCapsule.body)
 							char.characterCapsule.body.position.set(
 								messages[id].data.characterPosition.x,
@@ -254,7 +275,6 @@ export default class AppClient {
 								messages[id].data.characterQuaternion.z,
 								messages[id].data.characterQuaternion.w,
 							)
-							// }
 
 							if ((messages[id].data.AiData.character !== null) && (char.behaviour !== null)) {
 								char.triggerAction(messages[id].data.AiData.character.action, messages[id].data.AiData.character.isPressed)

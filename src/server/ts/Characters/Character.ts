@@ -1065,7 +1065,6 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 				},
 				charState: csc,
 				vehicalState: vehicalState,
-				// physicsEnabled: this.physicsEnabled,
 				characterPosition: {
 					x: newPos.x,
 					y: newPos.y,

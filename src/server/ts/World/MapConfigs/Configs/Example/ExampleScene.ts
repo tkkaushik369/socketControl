@@ -395,6 +395,39 @@ export class Example extends BaseScene {
 						}
 						scenario2.add(spawnVehical)
 					}
+
+					{
+						let spawnVehical = new THREE.Object3D()
+						spawnVehical.position.set(6, 0, -5)
+						spawnVehical.userData = {
+							data: "spawn",
+							type: "car",
+							name: "car_glb",
+						}
+						scenario2.add(spawnVehical)
+					}
+
+					{
+						let spawnVehical = new THREE.Object3D()
+						spawnVehical.position.set(9, 0, -5)
+						spawnVehical.userData = {
+							data: "spawn",
+							type: "heli",
+							name: "heliglb",
+						}
+						scenario2.add(spawnVehical)
+					}
+
+					{
+						let spawnVehical = new THREE.Object3D()
+						spawnVehical.position.set(12, 0, -5)
+						spawnVehical.userData = {
+							data: "spawn",
+							type: "airplane",
+							name: "airplaneglb",
+						}
+						scenario2.add(spawnVehical)
+					}
 					this.scene.add(scenario2)
 				}
 			}

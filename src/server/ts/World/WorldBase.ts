@@ -55,6 +55,8 @@ export abstract class WorldBase {
 
 	// server
 	protected updatePhysicsCallback: Function | null
+	public loopRunner: ReturnType<typeof setInterval> | null
+	public worldId: string | null
 
 	// client
 	public player: Player | null
@@ -89,7 +91,7 @@ export abstract class WorldBase {
 
 		// init
 		this.player = null
-		this.physicsFrameRate = 90
+		this.physicsFrameRate = 45
 		this.physicsFrameTime = 1 / this.physicsFrameRate
 		this.worldClock = new THREE.Clock()
 		this.requestDelta = this.worldClock.getDelta()
@@ -125,6 +127,7 @@ export abstract class WorldBase {
 		this.scenarioGUIFolderCallback = null
 		this.launchMapCallback = null
 		this.launchScenarioCallback = null
+		this.worldId = null
 
 		// Settings
 		this.settings = {
@@ -165,8 +168,7 @@ export abstract class WorldBase {
 		this.world.solver = solver
 		this.world.allowSleep = true;
 
-		// this.world.defaultContactMaterial.contactEquationStiffness = 1e7
-		// this.world.defaultContactMaterial.contactEquationRelaxation = 5
+		this.loopRunner = null
 	}
 
 	public getGLTF(path: string, callback: Function) {
@@ -368,7 +370,7 @@ export abstract class WorldBase {
 					Utility.setupMeshProperties(child)
 
 					if (child.material.name === 'ocean') {
-						if (true) {
+						if (false) {
 							const width = 100, length = 100
 							const water = new Water(new THREE.PlaneGeometry(width, length, 100, 100), {
 								textureWidth: width,
@@ -507,7 +509,7 @@ export abstract class WorldBase {
 		}
 	}
 
-	protected update() {
+	public update() {
 		this.requestDelta = this.worldClock.getDelta()
 
 		let unscaledTimeStep = (this.requestDelta + this.logicDelta)
@@ -551,10 +553,17 @@ export abstract class WorldBase {
 		this.sinceLastFrame %= interval
 
 		if (this.updatePhysicsCallback !== null)
-			this.updatePhysicsCallback()
+			this.updatePhysicsCallback(this.worldId)
 	}
 
 	private updatePhysics(timeStep: number, unscaledTimeStep: number) {
+		
+		if (Object.keys(this.users).length === 0) {
+			if (this.loopRunner !== null)
+				clearInterval(this.loopRunner)
+			this.loopRunner = null
+		}
+
 		if (this.doPhysics) {
 			this.world.step(this.physicsFrameTime, timeStep)
 		}

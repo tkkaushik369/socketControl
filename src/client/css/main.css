@@ -18,7 +18,7 @@ body {
 	position: absolute;
 	top: var(--top);
 	left: 4px;
-	width: 300px;
+	width: 350px;
 	height: calc(100% - var(--top) - var(--bottom));
 	font-family: monospace;
 	border: 1px solid rgba(120, 120, 120, 0.3);

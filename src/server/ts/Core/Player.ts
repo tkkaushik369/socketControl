@@ -18,6 +18,7 @@ export type PlayerSetMesssage = {
 export class Player implements INetwork {
 	sID: string
 	world: WorldBase
+	origWorld: WorldBase
 
 	uID: string | null
 	msgType: MessageTypes
@@ -48,6 +49,7 @@ export class Player implements INetwork {
 		// bind functions
 		this.setUID = this.setUID.bind(this)
 		this.setSpawn = this.setSpawn.bind(this)
+		this.changeWorld = this.changeWorld.bind(this)
 		this.addUser = this.addUser.bind(this)
 		this.removeUser = this.removeUser.bind(this)
 		this.Out = this.Out.bind(this)
@@ -55,6 +57,7 @@ export class Player implements INetwork {
 		// init
 		this.sID = sID
 		this.world = world
+		this.origWorld = world
 
 		this.uID = null
 		this.msgType = MessageTypes.Player
@@ -108,23 +111,28 @@ export class Player implements INetwork {
 		this.spawnPoint = new CharacterSpawnPoint(spawnPlayer, spawnPlayer.userData)
 	}
 
+	public changeWorld(world: WorldBase) {
+		this.removeUser()
+		this.world = world
+		this.addUser()
+	}
+
 	public addUser() {
-		if ((this.world === null) || (this.spawnPoint === null)) return
+		if (this.spawnPoint === null) return
 		this.character = this.spawnPoint.spawn(this.world)
 		if (this.character !== null) {
 			this.character.player = this
 			this.character.takeControl()
 		}
-		this.world.addSceneObject(this.camHelper) // this.world.scene.add(this.camHelper)
+		this.world.addSceneObject(this.camHelper)
 	}
 	public removeUser() {
-		if (this.world === null) return
 		if (this.character !== null) {
 			this.world.remove(this.character)
 			this.character.player = null
 			this.character = null
 		}
-		this.world.removeSceneObject(this.camHelper) // this.world.scene.remove(this.camHelper)
+		this.world.removeSceneObject(this.camHelper)
 	}
 
 	Out() {

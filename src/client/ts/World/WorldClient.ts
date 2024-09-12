@@ -17,6 +17,7 @@ import { CSM } from 'three/examples/jsm/csm/CSM'
 import { Sky } from 'three/examples/jsm/objects/Sky'
 import { Ocean } from './Ocean'
 import _ from 'lodash'
+import { PlayerCaller } from './PlayerCaller'
 
 export class WorldClient extends WorldBase {
 
@@ -44,6 +45,8 @@ export class WorldClient extends WorldBase {
 	private gui: GUI
 	private mapGUIFolder: GUI
 	private scenarioGUIFolder: GUI
+	public playersGUIFolder: GUI
+	public players: PlayerCaller[]
 	public cannonDebugRenderer: CannonDebugRenderer
 	private updateAnimationCallback: Function | null = null
 
@@ -77,6 +80,7 @@ export class WorldClient extends WorldBase {
 		this.updateControlsCallBack = this.updateControls
 		this.launchMapCallback = launchMapCallback
 		this.launchScenarioCallback = launchScenarioCallback
+		this.players = []
 
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -242,6 +246,9 @@ export class WorldClient extends WorldBase {
 		// Scenarios
 		this.scenarioGUIFolder = this.gui.addFolder('Scenarios')
 		this.scenarioGUIFolderCallback = this.scenarioGUIFolder
+
+		// Players
+		this.playersGUIFolder = this.gui.addFolder('Players')
 
 		// Resize
 		window.addEventListener('resize', this.onWindowResize, false)
