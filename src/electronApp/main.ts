@@ -14,7 +14,7 @@ const createWindow = () => {
 	}
 	let offset = {
 		width: 500,
-		height: 30,
+		height: 50,
 	}
 	const mainWindow = new BrowserWindow({
 		width: size.width,

@@ -3,15 +3,29 @@
 	--bottom: 190px;
 }
 
+html, body {
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
 body {
 	overflow: hidden;
 	margin: 0px;
 	color: rgba(200, 200, 200, 0.6);
 	background-color: rgba(1, 1, 1, 1);
+	outline: 1px solid rgba(0, 250, 250, 0.2);
+	outline-offset: -2px;
 }
 
 .bodyTransparent {
 	background-color: rgba(1, 1, 1, 0.01);
+}
+
+.Hide {
+	opacity: 0.2;
+	/* display: none; */
 }
 
 #pingStats {
