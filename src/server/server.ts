@@ -196,10 +196,7 @@ class AppServer {
 			this.allUsers[socket.id].timeStamp = message.timeStamp
 			this.allUsers[socket.id].ping = message.ping
 		}
-<<<<<<< HEAD
 		callBack()
-=======
->>>>>>> 0abda0b2639a5d8c977a53af1835c0b36acdfb34
 	}
 
 	private ForSocketLoop(worldId: string) {
