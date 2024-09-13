@@ -16,7 +16,6 @@ import { CSM } from 'three/examples/jsm/csm/CSM'
 import { Sky } from 'three/examples/jsm/objects/Sky'
 import { Ocean } from './Ocean'
 import _ from 'lodash'
-import { PlayerCaller } from './PlayerCaller'
 
 export class WorldClient extends WorldBase {
 
@@ -44,8 +43,8 @@ export class WorldClient extends WorldBase {
 	private gui: GUI
 	private mapGUIFolder: GUI
 	private scenarioGUIFolder: GUI
-	public playersGUIFolder: GUI
-	public players: PlayerCaller[]
+	public roomCallers: { [id: string]: any } = {}
+	public worldsGUIFolder: GUI
 	public cannonDebugRenderer: CannonDebugRenderer
 	private updateAnimationCallback: Function | null = null
 
@@ -79,7 +78,6 @@ export class WorldClient extends WorldBase {
 		this.updateControlsCallBack = this.updateControls
 		this.launchMapCallback = launchMapCallback
 		this.launchScenarioCallback = launchScenarioCallback
-		this.players = []
 
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -178,12 +176,12 @@ export class WorldClient extends WorldBase {
 				texture.wrapT = THREE.RepeatWrapping;
 			})
 			this.outlinePass.selectedObjects = []
-			this.outlinePass.usePatternTexture = true
+			this.outlinePass.usePatternTexture = false
 
 			this.composer.addPass(this.renderPass);
 			this.composer.addPass(this.fxaaPass);
 			this.composer.addPass(this.outputPass);
-			// this.composer.addPass(this.outlinePass)
+			this.composer.addPass(this.outlinePass)
 		}
 
 		// Stats
@@ -240,14 +238,15 @@ export class WorldClient extends WorldBase {
 		Object.keys(this.maps).forEach((key) => {
 			this.mapGUIFolder.add(this.maps, key)
 		})
-		this.mapGUIFolder.open()
+		this.mapGUIFolder.close()
 
 		// Scenarios
 		this.scenarioGUIFolder = this.gui.addFolder('Scenarios')
 		this.scenarioGUIFolderCallback = this.scenarioGUIFolder
+		this.scenarioGUIFolder.close()
 
-		// Players
-		this.playersGUIFolder = this.gui.addFolder('Players')
+		// Worlds
+		this.worldsGUIFolder = this.gui.addFolder('Worlds')
 
 		// Resize
 		window.addEventListener('resize', this.onWindowResize, false)

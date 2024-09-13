@@ -19,7 +19,6 @@ const createWindow = () => {
 	const mainWindow = new BrowserWindow({
 		width: size.width,
 		height: size.height,
-		// backgroundColor: '#2e2c29',
 		transparent: true,
 		frame: false,
 		webPreferences: {
@@ -41,9 +40,6 @@ const createWindow = () => {
 		mainWindow.webContents.setZoomFactor(0.6)
 		mainWindow.show()
 	});
-	// mainWindow.blur()
-	// mainWindow.focus()
-	// window.location.host
 	// mainWindow.webContents.openDevTools()
 }
 

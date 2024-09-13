@@ -19,6 +19,8 @@ import { Water } from './Water'
 import { BaseScene } from './BaseScene'
 
 export abstract class WorldBase {
+
+	public worldId: string | null = null
 	public physicsFrameRate: number
 	public physicsFrameTime: number
 	private worldClock: THREE.Clock
@@ -55,8 +57,7 @@ export abstract class WorldBase {
 
 	// server
 	protected updatePhysicsCallback: Function | null
-	public loopRunner: ReturnType<typeof setInterval> | null
-	public worldId: string | null
+	public runner: ReturnType<typeof setInterval> | null
 
 	// client
 	public player: Player | null
@@ -120,6 +121,7 @@ export abstract class WorldBase {
 		this.worldObjects = []
 
 		this.updatePhysicsCallback = null
+		this.runner = null
 
 		this.isClient = false
 		this.doPhysics = true
@@ -127,7 +129,6 @@ export abstract class WorldBase {
 		this.scenarioGUIFolderCallback = null
 		this.launchMapCallback = null
 		this.launchScenarioCallback = null
-		this.worldId = null
 
 		// Settings
 		this.settings = {
@@ -167,8 +168,6 @@ export abstract class WorldBase {
 
 		this.world.solver = solver
 		this.world.allowSleep = true;
-
-		this.loopRunner = null
 	}
 
 	public getGLTF(path: string, callback: Function) {
@@ -444,7 +443,9 @@ export abstract class WorldBase {
 				break
 			}
 		}
-		if (isLaunmch) if (defaultScenarioID !== null) this.launchScenario(defaultScenarioID, false)
+		if (isLaunmch)
+			if (defaultScenarioID !== null)
+				this.launchScenario(defaultScenarioID, false)
 	}
 
 	public launchScenario(scenarioID: string, isCallback: boolean): void {
@@ -510,6 +511,14 @@ export abstract class WorldBase {
 	}
 
 	public update() {
+		if (this.worldId === null) return
+		if (Object.keys(this.users).length === 0) {
+			if (this.runner !== null) {
+				clearInterval(this.runner)
+				this.runner = null
+			}
+		}
+
 		this.requestDelta = this.worldClock.getDelta()
 
 		let unscaledTimeStep = (this.requestDelta + this.logicDelta)
@@ -521,7 +530,7 @@ export abstract class WorldBase {
 		// Update registred objects
 		if (!this.isClient) {
 			this.updatables.forEach((entity) => { entity.update(timeStep, unscaledTimeStep) })
-		
+
 			// Sun Update
 			this.sunConf.elevation += (Math.sign(this.sunConf.azimuth)) * this.timeScaleTarget * 0.1
 			if ((this.sunConf.elevation >= 90) || (this.sunConf.elevation <= -90))
@@ -557,11 +566,18 @@ export abstract class WorldBase {
 	}
 
 	private updatePhysics(timeStep: number, unscaledTimeStep: number) {
-		
-		if (Object.keys(this.users).length === 0) {
-			if (this.loopRunner !== null)
-				clearInterval(this.loopRunner)
-			this.loopRunner = null
+		if ((this.player !== null) && !this.player.world.isClient) {
+			let count = 0
+
+			Object.keys(this.users).forEach((sID) => {
+				if (this.users[sID] !== undefined) count++
+			})
+
+			if (count === 0) {
+				if (this.runner !== null)
+					clearInterval(this.runner)
+				this.runner = null
+			}
 		}
 
 		if (this.doPhysics) {

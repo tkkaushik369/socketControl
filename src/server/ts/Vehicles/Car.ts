@@ -73,8 +73,6 @@ export class Car extends Vehicle implements IControllable {
 
 		this.readCarData(gltf)
 
-		// this.collision.preStep = () => { this.physicsPreStep(this.collision, this) }
-
 		this.actions = {
 			'throttle': new KeyBinding('KeyW'),
 			'reverse': new KeyBinding('KeyS'),

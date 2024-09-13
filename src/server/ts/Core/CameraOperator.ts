@@ -12,7 +12,7 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	public updateOrder: number = 4
 
 	private player: Player
-	private world: WorldBase
+	public world: WorldBase
 	public camera: THREE.PerspectiveCamera
 	public target: THREE.Vector3
 	private sensitivity: THREE.Vector2

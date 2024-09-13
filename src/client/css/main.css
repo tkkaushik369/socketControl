@@ -25,7 +25,6 @@ body {
 
 .Hide {
 	opacity: 0.2;
-	/* display: none; */
 }
 
 #pingStats {
@@ -40,6 +39,8 @@ body {
 	user-select: none;
 	overflow-y: scroll;
 	scrollbar-width: none;
+
+	background-color: rgba(10, 10, 10, 0.3);
 }
 
 #pingStats::-webkit-scrollbar {

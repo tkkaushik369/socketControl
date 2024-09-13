@@ -133,9 +133,6 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 			let wheelObject = this.wheels[i].wheelObject
 			wheelObject.position.copy(Utility.threeVector(transform.position))
 			wheelObject.quaternion.copy(Utility.threeQuat(transform.quaternion))
-
-			// let upAxisWorld = new CANNON.Vec3()
-			// this.rayCastVehicle.getVehicleAxisWorld(this.rayCastVehicle.indexUpAxis, upAxisWorld) // getVehicleAxisWorld(axisIndex: number, result: Vec3): void;
 		}
 
 		this.updateMatrixWorld()
@@ -440,15 +437,15 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 			data: {
 				vehiclePosition: {
-					x: this.position.x /* this.collision.interpolatedPosition.x */,
-					y: this.position.y /* this.collision.interpolatedPosition.y */,
-					z: this.position.z /* this.collision.interpolatedPosition.z */,
+					x: this.position.x,
+					y: this.position.y,
+					z: this.position.z,
 				},
 				vehicleQuaternion: {
-					x: this.quaternion.x /* this.collision.interpolatedQuaternion.x */,
-					y: this.quaternion.y /* this.collision.interpolatedQuaternion.y */,
-					z: this.quaternion.z /* this.collision.interpolatedQuaternion.z */,
-					w: this.quaternion.w /* this.collision.interpolatedQuaternion.w */,
+					x: this.quaternion.x,
+					y: this.quaternion.y,
+					z: this.quaternion.z,
+					w: this.quaternion.w,
 				},
 			}
 		}
