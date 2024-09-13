@@ -1,6 +1,6 @@
 export enum MessageTypes {
 	Player,
-	PlayerAll,
+	World,
 	Character,
 	Vehical,
 	Decoration,

@@ -56,8 +56,6 @@ export class Airplane extends Vehicle implements IWorldEntity {
 
 		this.readAirplaneData(gltf)
 
-		// this.collision.preStep = () => { this.physicsPreStep(this.collision, this) }
-
 		this.actions = {
 			'throttle': new KeyBinding('ShiftLeft'),
 			'brake': new KeyBinding('Space'),

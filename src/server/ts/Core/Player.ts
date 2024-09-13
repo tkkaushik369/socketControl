@@ -13,12 +13,12 @@ export type PlayerSetMesssage = {
 	count: number,
 	lastScenarioID: string,
 	lastMapID: string,
+	worldId: string,
 }
 
 export class Player implements INetwork {
 	sID: string
 	world: WorldBase
-	origWorld: WorldBase
 
 	uID: string | null
 	msgType: MessageTypes
@@ -26,6 +26,7 @@ export class Player implements INetwork {
 	ping: number
 
 	data: {
+		worldId: string | null,
 		sun: {
 			elevation: number, // 0 to 90
 			azimuth: number, // -180 to 180
@@ -37,7 +38,6 @@ export class Player implements INetwork {
 
 	inputManager: InputManager
 	cameraOperator: CameraOperator
-	camHelper: THREE.CameraHelper
 
 	spawnPoint: CharacterSpawnPoint | null
 	character: Character | null
@@ -49,7 +49,6 @@ export class Player implements INetwork {
 		// bind functions
 		this.setUID = this.setUID.bind(this)
 		this.setSpawn = this.setSpawn.bind(this)
-		this.changeWorld = this.changeWorld.bind(this)
 		this.addUser = this.addUser.bind(this)
 		this.removeUser = this.removeUser.bind(this)
 		this.Out = this.Out.bind(this)
@@ -57,7 +56,6 @@ export class Player implements INetwork {
 		// init
 		this.sID = sID
 		this.world = world
-		this.origWorld = world
 
 		this.uID = null
 		this.msgType = MessageTypes.Player
@@ -65,14 +63,19 @@ export class Player implements INetwork {
 		this.ping = 0
 		this.inputManager = new InputManager(this, this.world, domElement)
 		this.cameraOperator = new CameraOperator(this, this.world, camera, domElement ? this.world.settings.Mouse_Sensitivity : 0.2)
-		this.camHelper = new THREE.CameraHelper(this.cameraOperator.camera)
-		this.camHelper.visible = false
+		
 		this.attachments = []
+
+		const camHelper = new THREE.CameraHelper(this.cameraOperator.camera)
+		camHelper.visible = false
+
+		this.attachments.push(camHelper)
 
 		this.spawnPoint = null
 		this.character = null
 
 		this.data = {
+			worldId: this.world.worldId,
 			sun: { elevation: 0, azimuth: 0 },
 			timeScaleTarget: 1,
 			cameraPosition: { x: 0, y: 0, z: 0 },
@@ -111,12 +114,6 @@ export class Player implements INetwork {
 		this.spawnPoint = new CharacterSpawnPoint(spawnPlayer, spawnPlayer.userData)
 	}
 
-	public changeWorld(world: WorldBase) {
-		this.removeUser()
-		this.world = world
-		this.addUser()
-	}
-
 	public addUser() {
 		if (this.spawnPoint === null) return
 		this.character = this.spawnPoint.spawn(this.world)
@@ -124,7 +121,9 @@ export class Player implements INetwork {
 			this.character.player = this
 			this.character.takeControl()
 		}
-		this.world.addSceneObject(this.camHelper)
+		this.attachments.forEach((obj) => {
+			this.world.addSceneObject(obj)
+		})
 	}
 	public removeUser() {
 		if (this.character !== null) {
@@ -132,7 +131,9 @@ export class Player implements INetwork {
 			this.character.player = null
 			this.character = null
 		}
-		this.world.removeSceneObject(this.camHelper)
+		this.attachments.forEach((obj) => {
+			this.world.removeSceneObject(obj)
+		})
 	}
 
 	Out() {
@@ -144,6 +145,7 @@ export class Player implements INetwork {
 			ping: this.ping,
 
 			data: {
+				worldId: this.world.worldId,
 				sun: {
 					elevation: this.data.sun.elevation,
 					azimuth: this.data.sun.azimuth

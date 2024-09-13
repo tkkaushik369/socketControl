@@ -163,7 +163,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.modelContainer.position.y = -0.57
 		this.tiltContainer.add(this.modelContainer)
 
-		{
+		{ 
 			// this.readCharacterData(gltf)
 			// this.setAnimations(gltf.animations)
 			// this.modelContainer.add(gltf.scene)
@@ -224,13 +224,8 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.raycastBox = new THREE.Mesh(boxGeo, boxMat)
 		this.raycastBox.visible = false
 
-		// Physics pre/post step callback bindings
-		// this.characterCapsule.body.preStep = () => { this.physicsPreStep(this.characterCapsule.body, this) }
-		// this.characterCapsule.body.postStep = () => { this.physicsPostStep(this.characterCapsule.body, this) }
-
-		// States
+		// States => this.setState(new Idle(this))
 		{
-			// this.setState(new Idle(this))
 			this.charState = new Idle(this)
 			this.charState.onInputChange()
 		}

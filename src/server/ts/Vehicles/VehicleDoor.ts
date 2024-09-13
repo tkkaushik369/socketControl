@@ -122,7 +122,6 @@ export class VehicleDoor {
 	}
 
 	public open(): void {
-		// this.resetPhysTrailer()
 		this.achievingTargetRotation = true
 		this.targetRotation = 1
 	}
