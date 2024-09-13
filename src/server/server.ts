@@ -64,7 +64,7 @@ class AppServer {
 			socket.on("change", (worldId: string, callBack: Function) => this.OnChange(socket, worldId, callBack))
 			socket.on("map", (mapName: string) => this.OnMap(socket, mapName))
 			socket.on("scenario", (scenarioName: string) => this.OnScenario(socket, scenarioName))
-			socket.on("update", (message: any) => this.OnUpdate(socket, message))
+			socket.on("update", (message: any, callBack: Function) => this.OnUpdate(socket, message, callBack))
 		})
 	}
 
@@ -191,11 +191,12 @@ class AppServer {
 		this.io.in(this.allUsers[socket.id].world.worldId).emit("scenario", scenarioName)
 	}
 
-	private OnUpdate(socket: Socket, message: any) {
+	private OnUpdate(socket: Socket, message: any, callBack: Function) {
 		if (this.allUsers[socket.id] !== undefined) {
 			this.allUsers[socket.id].timeStamp = message.timeStamp
 			this.allUsers[socket.id].ping = message.ping
 		}
+		callBack()
 	}
 
 	private ForSocketLoop(worldId: string) {
@@ -220,7 +221,6 @@ class AppServer {
 		// All Player Data
 		Object.keys(this.allUsers).forEach((id) => {
 			if ((this.allUsers[id] !== undefined) && (this.allUsers[id].uID != null)) {
-				this.allUsers[id].timeStamp = Date.now()
 				this.allUsers[id].data.timeScaleTarget = this.allUsers[id].world.timeScaleTarget
 				this.allUsers[id].data.sun.elevation = this.allUsers[id].world.sunConf.elevation
 				this.allUsers[id].data.sun.azimuth = this.allUsers[id].world.sunConf.azimuth

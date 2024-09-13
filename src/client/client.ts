@@ -746,9 +746,12 @@ export default class AppClient {
 
 	private ForSocketLoop() {
 		if (this.worldClient.player !== null) {
-			this.worldClient.player.ping = Date.now() - this.worldClient.player.timeStamp
 			this.worldClient.player.timeStamp = Date.now()
-			this.io.emit("update", this.worldClient.player.Out())
+
+			const player = this.worldClient.player
+			this.io.emit("update", this.worldClient.player.Out(), () => {
+				player.ping = Date.now() - player.timeStamp
+			})
 		}
 	}
 }
