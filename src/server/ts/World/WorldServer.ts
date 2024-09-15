@@ -4,6 +4,9 @@ import { JSDOM } from 'jsdom'
 import fs from 'fs'
 
 export class WorldServer extends WorldBase {
+
+	modelCache: { [id: string]: any } = {}
+
 	constructor(updatePhysicsCallback: Function | null = null) {
 		super()
 		// bind function
@@ -15,6 +18,15 @@ export class WorldServer extends WorldBase {
 
 	public getGLTF(path: string, callback: Function) {
 		const resPath = super.getGLTF(path, callback)
+
+		if (this.modelCache[resPath] !== undefined) {
+			const jsonObj = JSON.parse(this.modelCache[resPath])
+			const loader = new THREE.ObjectLoader();
+			const model = loader.parse(jsonObj) as any
+			callback({ scene: model, animations: model.animations })
+			return resPath
+		}
+
 		const dom = new JSDOM();
 		(global as any).window = dom.window;
 		(global as any).document = dom.window.document;
@@ -22,6 +34,7 @@ export class WorldServer extends WorldBase {
 
 		const data: string = fs.readFileSync(resPath, 'utf8');
 		const jsonObj = JSON.parse(data)
+		this.modelCache[resPath] = data
 
 		const loader = new THREE.ObjectLoader();
 		const model = loader.parse(jsonObj) as any

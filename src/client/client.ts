@@ -18,6 +18,8 @@ import * as CharState from '../server/ts/Characters/CharacterStates/_CharacterSt
 import * as VehicalState from '../server/ts/Characters/CharacterStates/Vehicles/_VehicleStateLibrary'
 import _ from 'lodash'
 
+THREE.Cache.enabled = true
+
 const pingStats = document.getElementById('pingStats') as HTMLDivElement
 const controls = document.getElementById('controls') as HTMLDivElement
 const controlsMain = document.getElementById('controls-main') as HTMLDivElement
