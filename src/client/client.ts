@@ -20,35 +20,24 @@ import _ from 'lodash'
 
 const pingStats = document.getElementById('pingStats') as HTMLDivElement
 const controls = document.getElementById('controls') as HTMLDivElement
+const controlsMain = document.getElementById('controls-main') as HTMLDivElement
 const workBox = document.getElementById('work') as HTMLDivElement
 
-function isElectron() {
-	// Renderer process
-	if (typeof window !== 'undefined' && typeof window.process === 'object'/*  && window.process.type === 'renderer' */) {
-		return true;
-	}
+const isElectronApp = Utility.isElectron()
+const isAndroid = Utility.deviceState()
 
-	// Main process
-	if (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
-		return true;
-	}
-
-	// Detect the user agent when the `nodeIntegration` option is set to true
-	if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
-		return true;
-	}
-
-	return false;
-}
-
-if (navigator.userAgent.includes('QtWebEngine') || isElectron()) {
+if (navigator.userAgent.includes('QtWebEngine') || isElectronApp) {
 	document.body.classList.add('bodyTransparent')
 	console.log('transparent')
 }
 
-if (isElectron()) {
-	workBox.classList.add('Hide')
-	console.log("isElectron", isElectron())
+if (isElectronApp) {
+	console.log("isElectron", isElectronApp)
+}
+
+if(isAndroid) {
+	controlsMain.style.display = 'block'
+	console.log("isAndroid", isAndroid)
 }
 
 export default class AppClient {

@@ -461,6 +461,17 @@ export abstract class WorldBase {
 			for (const scenario of this.scenarios) {
 				if (scenario.name === scenarioID || scenario.spawnAlways) {
 					scenario.launch(this)
+
+					if (this.isClient) {
+						Object.keys(this.users).forEach((sID) => {
+							if (this.users !== undefined) {
+								this.users[sID].inputManager.onKeyDown({ code: 'w' } as KeyboardEvent)
+								this.users[sID].inputManager.update(this.physicsFrameTime * this.settings.Time_Scale, this.physicsFrameTime)
+								this.users[sID].inputManager.onKeyUp({ code: 'w' } as KeyboardEvent)
+								this.users[sID].inputManager.update(this.physicsFrameTime * this.settings.Time_Scale, this.physicsFrameTime)
+							}
+						})
+					}
 				}
 			}
 		}

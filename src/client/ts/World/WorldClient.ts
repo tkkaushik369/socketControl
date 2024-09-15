@@ -179,9 +179,9 @@ export class WorldClient extends WorldBase {
 			this.outlinePass.usePatternTexture = false
 
 			this.composer.addPass(this.renderPass);
+			this.composer.addPass(this.outlinePass)
 			this.composer.addPass(this.fxaaPass);
 			this.composer.addPass(this.outputPass);
-			this.composer.addPass(this.outlinePass)
 		}
 
 		// Stats
@@ -267,6 +267,8 @@ export class WorldClient extends WorldBase {
 		if (true) {
 			this.scene.add(AttachModels.makePointHighlight())
 		}
+
+		setInterval(this.update, this.physicsFrameTime * 1000)
 	}
 
 	public getGLTF(path: string, callback: Function) {
@@ -407,7 +409,6 @@ export class WorldClient extends WorldBase {
 	}
 
 	private animate() {
-		this.update()
 		this.csm.update()
 		this.oceans.forEach((ocean) => {
 			ocean.update(this.timeScaleTarget * 1.0 / 60.0)

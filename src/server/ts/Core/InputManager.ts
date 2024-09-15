@@ -14,14 +14,6 @@ export class InputManager implements IUpdatable {
 	public isLocked: boolean
 	public inputReceiver: IInputReceiver | null
 
-	public boundOnMouseDown: (evt: any) => void
-	public boundOnMouseMove: (evt: any) => void
-	public boundOnMouseUp: (evt: any) => void
-	public boundOnMouseWheelMove: (evt: any) => void
-	public boundOnPointerlockChange: (evt: any) => void
-	public boundOnPointerlockError: (evt: any) => void
-	public boundOnKeyDown: (evt: any) => void
-	public boundOnKeyUp: (evt: any) => void
 
 	// callback Controls
 	public controlsCallBack: Function | null
@@ -56,32 +48,18 @@ export class InputManager implements IUpdatable {
 		this.inputReceiver = null
 		this.controlsCallBack = null
 
-		// Bindings for later event use
-		// Mouse
-		this.boundOnMouseDown = (evt) => this.onMouseDown(evt)
-		this.boundOnMouseMove = (evt) => this.onMouseMove(evt)
-		this.boundOnMouseUp = (evt) => this.onMouseUp(evt)
-		this.boundOnMouseWheelMove = (evt) => this.onMouseWheelMove(evt)
-
-		// Pointer lock
-		this.boundOnPointerlockChange = (evt) => this.onPointerlockChange(evt)
-		this.boundOnPointerlockError = (evt) => this.onPointerlockError(evt)
-
-		// Keys
-		this.boundOnKeyDown = (evt) => this.onKeyDown(evt)
-		this.boundOnKeyUp = (evt) => this.onKeyUp(evt)
 
 		if (this.domElement !== null) {
 			// Init event listeners
 			// Mouse
-			this.domElement.addEventListener('mousedown', this.boundOnMouseDown, false)
-			document.addEventListener('wheel', this.boundOnMouseWheelMove, false)
-			document.addEventListener('pointerlockchange', this.boundOnPointerlockChange, false)
-			document.addEventListener('pointerlockerror', this.boundOnPointerlockError, false)
+			this.domElement.addEventListener('mousedown', this.onMouseDown, false)
+			document.addEventListener('wheel', this.onMouseWheelMove, false)
+			document.addEventListener('pointerlockchange', this.onPointerlockChange, false)
+			document.addEventListener('pointerlockerror', this.onPointerlockError, false)
 
 			// Keys
-			document.addEventListener('keydown', this.boundOnKeyDown, false)
-			document.addEventListener('keyup', this.boundOnKeyUp, false)
+			document.addEventListener('keydown', this.onKeyDown, false)
+			document.addEventListener('keyup', this.onKeyUp, false)
 		}
 
 		world.registerUpdatable(this)
@@ -103,21 +81,21 @@ export class InputManager implements IUpdatable {
 		this.pointerLock = enabled
 	}
 
-	public onPointerlockChange(event: MouseEvent): void {
+	public onPointerlockChange(event: Event): void {
 		if (this.domElement === null) return
 		if (document.pointerLockElement === this.domElement) {
-			this.domElement.addEventListener('mousemove', this.boundOnMouseMove, false)
-			this.domElement.addEventListener('mouseup', this.boundOnMouseUp, false)
+			this.domElement.addEventListener('mousemove', this.onMouseMove, false)
+			this.domElement.addEventListener('mouseup', this.onMouseUp, false)
 			this.isLocked = true
 		}
 		else {
-			this.domElement.removeEventListener('mousemove', this.boundOnMouseMove, false)
-			this.domElement.removeEventListener('mouseup', this.boundOnMouseUp, false)
+			this.domElement.removeEventListener('mousemove', this.onMouseMove, false)
+			this.domElement.removeEventListener('mouseup', this.onMouseUp, false)
 			this.isLocked = false
 		}
 	}
 
-	public onPointerlockError(event: MouseEvent): void {
+	public onPointerlockError(event: Event): void {
 		console.error('PointerLockControls: Unable to use Pointer Lock API')
 	}
 
@@ -127,8 +105,8 @@ export class InputManager implements IUpdatable {
 			this.domElement.requestPointerLock()
 		}
 		else {
-			this.domElement.addEventListener('mousemove', this.boundOnMouseMove, false)
-			this.domElement.addEventListener('mouseup', this.boundOnMouseUp, false)
+			this.domElement.addEventListener('mousemove', this.onMouseMove, false)
+			this.domElement.addEventListener('mouseup', this.onMouseUp, false)
 		}
 
 		this.setMouseButton('mouse' + event.button, true, true)
@@ -141,8 +119,8 @@ export class InputManager implements IUpdatable {
 	public onMouseUp(event: MouseEvent): void {
 		if (this.domElement === null) return
 		if (!this.pointerLock) {
-			this.domElement.removeEventListener('mousemove', this.boundOnMouseMove, false)
-			this.domElement.removeEventListener('mouseup', this.boundOnMouseUp, false)
+			this.domElement.removeEventListener('mousemove', this.onMouseMove, false)
+			this.domElement.removeEventListener('mouseup', this.onMouseUp, false)
 		}
 
 		this.setMouseButton('mouse' + event.button, false, true)
@@ -241,5 +219,4 @@ export class InputManager implements IUpdatable {
 			this.inputReceiver.handleKeyboardEvent(code, isShift, pressed)
 		}
 	}
-
 }

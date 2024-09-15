@@ -134,7 +134,7 @@ export class Scenario {
 		this.spawnPoints.forEach((sp) => {
 			// console.log(sp.userData)
 			let ent: Character | Vehicle = sp.spawn(world) // only vehicles
-			if (ent=== null) {
+			if (ent === null) {
 				console.log("Unknown Spawn: ", sp.userData)
 			}
 		})

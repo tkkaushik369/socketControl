@@ -163,7 +163,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.modelContainer.position.y = -0.57
 		this.tiltContainer.add(this.modelContainer)
 
-		{ 
+		{
 			// this.readCharacterData(gltf)
 			// this.setAnimations(gltf.animations)
 			// this.modelContainer.add(gltf.scene)
@@ -556,7 +556,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			}
 
 			this.mixer.stopAllAction()
-			action.fadeIn(fadeIn)
+			action.fadeIn(((this.world !== null) && this.world.isClient) ? fadeIn : 0.001)
 			action.play()
 
 			let fast = 0
