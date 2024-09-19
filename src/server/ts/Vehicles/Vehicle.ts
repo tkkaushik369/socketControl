@@ -136,16 +136,16 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		}
 
 		this.position.set(
-			this.collision.position.x,
-			this.collision.position.y,
-			this.collision.position.z
+			this.collision.interpolatedPosition.x,
+			this.collision.interpolatedPosition.y,
+			this.collision.interpolatedPosition.z
 		)
 
 		this.quaternion.set(
-			this.collision.quaternion.x,
-			this.collision.quaternion.y,
-			this.collision.quaternion.z,
-			this.collision.quaternion.w
+			this.collision.interpolatedQuaternion.x,
+			this.collision.interpolatedQuaternion.y,
+			this.collision.interpolatedQuaternion.z,
+			this.collision.interpolatedQuaternion.w
 		)
 
 		this.seats.forEach((seat: VehicleSeat) => {
@@ -157,8 +157,17 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 			let transform = (this.rayCastVehicle.wheelInfos[i] as CANNON.WheelInfo).worldTransform
 
 			let wheelObject = this.wheels[i].wheelObject
-			wheelObject.position.copy(Utility.threeVector(transform.position))
-			wheelObject.quaternion.copy(Utility.threeQuat(transform.quaternion))
+			wheelObject.position.copy(Utility.threeVector(new CANNON.Vec3(
+				transform.position.x + this.collision.interpolatedPosition.x - this.collision.position.x,
+				transform.position.y + this.collision.interpolatedPosition.y - this.collision.position.y,
+				transform.position.z + this.collision.interpolatedPosition.z - this.collision.position.z,
+			)))
+			wheelObject.quaternion.copy(Utility.threeQuat(new CANNON.Quaternion(
+				transform.quaternion.x + this.collision.interpolatedQuaternion.x - this.collision.quaternion.x,
+				transform.quaternion.y + this.collision.interpolatedQuaternion.y - this.collision.quaternion.y,
+				transform.quaternion.z + this.collision.interpolatedQuaternion.z - this.collision.quaternion.z,
+				transform.quaternion.w + this.collision.interpolatedQuaternion.z - this.collision.quaternion.z,
+			)))
 		}
 
 		this.updateMatrixWorld()
@@ -480,7 +489,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	public Set(messages: any) {
 		if (this.world)
 			this.world.zeroBody(this.collision)
-		
+
 		this.collision.position.set(
 			messages.data.vehiclePosition.x,
 			messages.data.vehiclePosition.y,
