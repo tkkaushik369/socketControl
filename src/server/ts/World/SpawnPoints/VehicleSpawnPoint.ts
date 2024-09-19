@@ -11,14 +11,16 @@ import { FollowPath } from '../../Characters/CharacterAI/FollowPath'
 
 import { MapConfig } from '../MapConfigs'
 import { BaseScene } from '../BaseScene'
+import { Player } from '../../Core/Player'
 
 export class VehicleSpawnPoint implements ISpawnPoint {
 	public type: string | null
 	public subtype: string | null
 	public driver: string | null // ai | player
+	public playerData: { player: Player, position: THREE.Vector3 } | null
 	public firstAINode: string | null
 
-	private object: THREE.Object3D
+	public object: THREE.Object3D
 	public userData: { [id: string]: any }
 
 	constructor(object: THREE.Object3D) {
@@ -26,6 +28,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 		this.type = null
 		this.subtype = null
 		this.driver = null
+		this.playerData = null
 		this.firstAINode = null
 		this.userData = this.object.userData
 
@@ -51,24 +54,21 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 		if (this.type === null) return null
 		const type: string = this.type
 
-		let callerCharacter = (model: any, vehicle: Vehicle): Character => {
+		let callerCharacter = (model: any, vehicle: Vehicle, player?: Player): Character => {
 			let character = new Character()
 			// world.getGLTF('boxman.glb', (gltf: any) => {
 			character.setModel(model)
 			character.uID = vehicle.uID + "_driver"
 			// })
 			world.add(character)
+			if (player !== undefined) {
+				character.player = player
+				player.character = character
+			}
 
 			if (this.driver === 'player') {
-				vehicle.materials.forEach((mat) => {
-					const material = (mat as THREE.MeshPhongMaterial)
-					// console.log(vehicle.hasOwnProperty('isMesh'))
-					// material.wireframe = true
-					// material.color = new THREE.Color(0xe5a00d)
-					// console.log(this.object)
-				})
-				// character.teleportToVehicle(vehicle, vehicle.seats[0])
-				// character.takeControl()
+				character.teleportToVehicle(vehicle, vehicle.seats[0])
+				character.takeControl()
 			}
 			else if (this.driver === 'ai') {
 				character.teleportToVehicle(vehicle, vehicle.seats[0])
@@ -91,15 +91,21 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			return character
 		}
 
-		let callerVehicle = (model: any): Vehicle => {
-			let vehicle: Vehicle = this.getNewVehicleByType(model)
-			vehicle.uID = this.userData.name
-			vehicle.spawnPoint = this.object
-
+		let callerVehicle = (model: any, playerData?: { player: Player, position: THREE.Vector3 }): Vehicle => {
 			let worldPos = new THREE.Vector3()
 			let worldQuat = new THREE.Quaternion()
+
 			this.object.getWorldPosition(worldPos)
+			if (playerData !== undefined)
+				worldPos = worldPos.add(playerData.position)
+
 			this.object.getWorldQuaternion(worldQuat)
+
+			let vehicle: Vehicle = this.getNewVehicleByType(model)
+			vehicle.uID = this.userData.name
+			if (this.playerData !== null)
+				vehicle.uID += "" + this.playerData.player.uID
+			vehicle.spawnPoint = this.object
 
 			vehicle.setPosition(worldPos.x, worldPos.y + 1, worldPos.z)
 			vehicle.collision.quaternion.copy(Utility.cannonQuat(worldQuat))
@@ -113,7 +119,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 							if (typeof char.objCaller === 'string') {
 								world.getGLTF(char.objCaller, (gltf: any) => {
 									let model = gltf
-									return callerCharacter(model, vehicle)
+									return callerCharacter(model, vehicle, (playerData !== undefined) ? playerData.player : undefined)
 								})
 							}
 							break
@@ -132,11 +138,11 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 					if (vehi.objCaller instanceof BaseScene) {
 						// let model = vehi.objCaller.getVehical(type, this.subtype)
 						let model = new (vehi.objCaller as any).constructor().getVehical(type, this.subtype)
-						return callerVehicle(model)
+						return callerVehicle(model, (this.playerData === null) ? undefined : this.playerData)
 					} else {
 						world.getGLTF(vehi.objCaller, (gltf: any) => {
 							let model = gltf
-							return callerVehicle(model)
+							return callerVehicle(model, (this.playerData === null) ? undefined : this.playerData)
 						})
 					}
 					break

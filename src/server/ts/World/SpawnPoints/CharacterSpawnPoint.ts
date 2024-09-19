@@ -7,7 +7,7 @@ import { Utility } from '../../Core/Utility'
 import { MapConfig } from '../MapConfigs'
 
 export class CharacterSpawnPoint implements ISpawnPoint {
-	private object: THREE.Object3D
+	public object: THREE.Object3D
 	public userData: { [id: string]: any }
 
 	constructor(object: THREE.Object3D, userData: { [id: string]: any }) {

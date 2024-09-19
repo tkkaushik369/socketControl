@@ -26,6 +26,7 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 		this.addToWorld = this.addToWorld.bind(this)
 		this.removeFromWorld = this.removeFromWorld.bind(this)
 		this.Out = this.Out.bind(this)
+		this.Set = this.Set.bind(this)
 
 		// init
 		this.readHelicopterData(gltf)
@@ -280,5 +281,37 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 		msg.data['doors'] = doors
 		msg.data['rotors'] = rotors
 		return msg
+	}
+
+	public Set(messages: any) {
+		super.Set(messages)
+
+		for (let i = 0; i < messages.data.doors.length; i++) {
+			if (this.seats[i].door !== null) {
+				if (this.seats[i].door!.doorObject !== null) {
+					this.seats[i].door!.doorObject.position.set(
+						messages.data.doors[i].position.x,
+						messages.data.doors[i].position.y,
+						messages.data.doors[i].position.z,
+					)
+					this.seats[i].door!.doorObject.quaternion.set(
+						messages.data.doors[i].quaternion.x,
+						messages.data.doors[i].quaternion.y,
+						messages.data.doors[i].quaternion.z,
+						messages.data.doors[i].quaternion.w,
+					)
+				}
+			}
+		}
+		for (let i = 0; i < messages.data.rotors.length; i++) {
+			if (this.rotors[i]) {
+				this.rotors[i].quaternion.set(
+					messages.data.rotors[i].quaternion.x,
+					messages.data.rotors[i].quaternion.y,
+					messages.data.rotors[i].quaternion.z,
+					messages.data.rotors[i].quaternion.w,
+				);
+			}
+		}
 	}
 }

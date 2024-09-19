@@ -67,6 +67,7 @@ export class Car extends Vehicle implements IControllable {
 		this.addToWorld = this.addToWorld.bind(this)
 		this.removeFromWorld = this.removeFromWorld.bind(this)
 		this.Out = this.Out.bind(this)
+		this.Set = this.Set.bind(this)
 
 		// init
 		this.steeringWheel = null
@@ -387,5 +388,49 @@ export class Car extends Vehicle implements IControllable {
 		msg.data['doors'] = doors
 		msg.data['steeringWheel'] = steeringWheel
 		return msg
+	}
+
+	public Set(messages: any) {
+		super.Set(messages)
+		if (messages.data.entity === this.entityType) {
+			for (let i = 0; i < messages.data.wheels.length; i++) {
+				this.wheels[i].wheelObject.position.set(
+					messages.data.wheels[i].position.x,
+					messages.data.wheels[i].position.y,
+					messages.data.wheels[i].position.z,
+				)
+				this.wheels[i].wheelObject.quaternion.set(
+					messages.data.wheels[i].quaternion.x,
+					messages.data.wheels[i].quaternion.y,
+					messages.data.wheels[i].quaternion.z,
+					messages.data.wheels[i].quaternion.w,
+				)
+			}
+			for (let i = 0; i < messages.data.doors.length; i++) {
+				if (this.seats[i].door !== null) {
+					if (this.seats[i].door!.doorObject !== null) {
+						this.seats[i].door!.doorObject.position.set(
+							messages.data.doors[i].position.x,
+							messages.data.doors[i].position.y,
+							messages.data.doors[i].position.z,
+						)
+						this.seats[i].door!.doorObject.quaternion.set(
+							messages.data.doors[i].quaternion.x,
+							messages.data.doors[i].quaternion.y,
+							messages.data.doors[i].quaternion.z,
+							messages.data.doors[i].quaternion.w,
+						)
+					}
+				}
+			}
+			if (this.steeringWheel !== null) {
+				this.steeringWheel!.quaternion.set(
+					messages.data.steeringWheel.quaternion.x,
+					messages.data.steeringWheel.quaternion.y,
+					messages.data.steeringWheel.quaternion.z,
+					messages.data.steeringWheel.quaternion.w,
+				)
+			}
+		}
 	}
 }

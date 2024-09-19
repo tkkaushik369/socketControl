@@ -47,6 +47,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		this.addToWorld = this.addToWorld.bind(this)
 		this.removeFromWorld = this.removeFromWorld.bind(this)
 		this.Out = this.Out.bind(this)
+		this.Set = this.Set.bind(this)
 
 		// init
 		this.rotor = null
@@ -459,5 +460,63 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		msg.data['rudder'] = rudder
 		msg.data['elevators'] = elevators
 		return msg
+	}
+
+	public Set(messages: any) {
+		super.Set(messages)
+
+		for (let i = 0; i < messages.data.wheels.length; i++) {
+			this.wheels[i].wheelObject.position.set(
+				messages.data.wheels[i].position.x,
+				messages.data.wheels[i].position.y,
+				messages.data.wheels[i].position.z,
+			)
+			this.wheels[i].wheelObject.quaternion.set(
+				messages.data.wheels[i].quaternion.x,
+				messages.data.wheels[i].quaternion.y,
+				messages.data.wheels[i].quaternion.z,
+				messages.data.wheels[i].quaternion.w,
+			)
+		}
+		if (this.rotor) {
+			this.rotor!.quaternion.set(
+				messages.data.rotor.quaternion.x,
+				messages.data.rotor.quaternion.y,
+				messages.data.rotor.quaternion.z,
+				messages.data.rotor.quaternion.w,
+			)
+		}
+		if (this.leftAileron) {
+			this.leftAileron!.quaternion.set(
+				messages.data.leftaileron.quaternion.x,
+				messages.data.leftaileron.quaternion.y,
+				messages.data.leftaileron.quaternion.z,
+				messages.data.leftaileron.quaternion.w,
+			)
+		}
+		if (this.rightAileron) {
+			this.rightAileron!.quaternion.set(
+				messages.data.rightaileron.quaternion.x,
+				messages.data.rightaileron.quaternion.y,
+				messages.data.rightaileron.quaternion.z,
+				messages.data.rightaileron.quaternion.w,
+			)
+		}
+		if (this.rudder) {
+			this.rudder!.quaternion.set(
+				messages.data.rudder.quaternion.x,
+				messages.data.rudder.quaternion.y,
+				messages.data.rudder.quaternion.z,
+				messages.data.rudder.quaternion.w,
+			)
+		}
+		for (let i = 0; i < messages.data.elevators.length; i++) {
+			this.elevators[i].quaternion.set(
+				messages.data.elevators[i].quaternion.x,
+				messages.data.elevators[i].quaternion.y,
+				messages.data.elevators[i].quaternion.z,
+				messages.data.elevators[i].quaternion.w,
+			)
+		}
 	}
 }

@@ -84,6 +84,7 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 		this.removeFromWorld = this.removeFromWorld.bind(this)
 		this.update = this.update.bind(this)
 		this.Out = this.Out.bind(this)
+		this.Set = this.Set.bind(this)
 
 		// init
 		this.uID = null
@@ -572,6 +573,34 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 				time: this.material.uniforms['time'].value,
 				floaters: floaters,
 			}
+		}
+	}
+
+	Set(messages: any) {
+		this.material.uniforms['time'].value = messages.data.time
+		for (let i = 0; i < messages.data.floaters.length; i++) {
+			this.floatingBodies[i].position.set(
+				messages.data.floaters[i].position.x,
+				messages.data.floaters[i].position.y,
+				messages.data.floaters[i].position.z,
+			)
+			this.floatingBodies[i].quaternion.set(
+				messages.data.floaters[i].quaternion.x,
+				messages.data.floaters[i].quaternion.y,
+				messages.data.floaters[i].quaternion.z,
+				messages.data.floaters[i].quaternion.w,
+			)
+			this.floatingMeshes[i].position.set(
+				messages.data.floaters[i].position.x,
+				messages.data.floaters[i].position.y,
+				messages.data.floaters[i].position.z,
+			)
+			this.floatingMeshes[i].quaternion.set(
+				messages.data.floaters[i].quaternion.x,
+				messages.data.floaters[i].quaternion.y,
+				messages.data.floaters[i].quaternion.z,
+				messages.data.floaters[i].quaternion.w,
+			)
 		}
 	}
 }

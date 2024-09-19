@@ -70,7 +70,7 @@ class AppServer {
 
 	private OnConnect(socket: Socket) {
 		console.log(`Client Connected: ${socket.id}`)
-		
+
 		const worldId = "World_" + socket.id
 		socket.join(worldId)
 
@@ -158,20 +158,24 @@ class AppServer {
 		socket.to(this.allUsers[socket.id].world.worldId).emit("removeClient", socket.id)
 		socket.leave(this.allUsers[socket.id].world.worldId)
 		socket.join(worldId)
-		
+
 		this.allUsers[socket.id].world = this.allWorlds[worldId]
 		this.allUsers[socket.id].inputManager.world = this.allUsers[socket.id].world
 		this.allUsers[socket.id].cameraOperator.world = this.allUsers[socket.id].world
+		this.allUsers[socket.id].spawnPoint = null
 		this.allWorlds[worldId].users[socket.id] = this.allUsers[socket.id]
 
 		if (this.allWorlds[worldId].runner === null)
 			this.allWorlds[worldId].runner = setInterval(this.allWorlds[worldId].update, this.allWorlds[worldId].physicsFrameTime * 1000)
 
 		this.Status()
-		
+
 		for (let i = 0; i < this.allWorlds[worldId].scenarios.length; i++) {
 			if (this.allWorlds[worldId].scenarios[i].name === this.allWorlds[worldId].lastScenarioID) {
-				this.allUsers[socket.id].setSpawn(this.allWorlds[worldId].scenarios[i].playerPosition, false)
+				if (this.allWorlds[worldId].scenarios[i].playerPosition !== null) {
+					const pos = Utility.GridPosition(this.allWorlds[worldId].users, this.allWorlds[worldId].scenarios[i].playerPosition)
+					this.allUsers[socket.id].setSpawn(pos[pos.length - 1], false)
+				}
 				break
 			}
 		}
@@ -201,56 +205,73 @@ class AppServer {
 
 	private ForSocketLoop(worldId: string) {
 		if (this.allWorlds[worldId] === undefined) return
-		let data: { [id: string]: any } = {}
 
 		// All World Id
-		Object.keys(this.allWorlds).forEach((id) => {
-			const users = []
-			Object.keys(this.allWorlds[id].users).forEach((sID) => {
-				if (this.allWorlds[id].users[sID] !== undefined) {
-					users.push(this.allWorlds[id].users[sID].uID)
+		{
+			let data: { [id: string]: any } = {}
+			Object.keys(this.allWorlds).forEach((id) => {
+				const users = []
+				Object.keys(this.allWorlds[id].users).forEach((sID) => {
+					if (this.allWorlds[id].users[sID] !== undefined) {
+						users.push(this.allWorlds[id].users[sID].uID)
+					}
+				});
+				data[id] = {
+					uID: id,
+					msgType: MessageTypes.World,
+					users: users
 				}
-			});
-			data[id] = {
-				uID: id,
-				msgType: MessageTypes.World,
-				users: users
-			}
-		})
+			})
+			this.io.in(worldId).emit("worlds", data)
+		}
 
 		// All Player Data
-		Object.keys(this.allUsers).forEach((id) => {
-			if ((this.allUsers[id] !== undefined) && (this.allUsers[id].uID != null)) {
-				this.allUsers[id].data.timeScaleTarget = this.allUsers[id].world.timeScaleTarget
-				this.allUsers[id].data.sun.elevation = this.allUsers[id].world.sunConf.elevation
-				this.allUsers[id].data.sun.azimuth = this.allUsers[id].world.sunConf.azimuth
-				let dataClient = this.allUsers[id].Out()
-				data[id] = dataClient
-			}
-		})
+		{
+			let data: { [id: string]: any } = {}
+			Object.keys(this.allUsers).forEach((id) => {
+				if ((this.allUsers[id] !== undefined) && (this.allUsers[id].uID != null)) {
+					this.allUsers[id].data.timeScaleTarget = this.allUsers[id].world.timeScaleTarget
+					this.allUsers[id].data.sun.elevation = this.allUsers[id].world.sunConf.elevation
+					this.allUsers[id].data.sun.azimuth = this.allUsers[id].world.sunConf.azimuth
+					let dataClient = this.allUsers[id].Out()
+					data[id] = dataClient
+				}
+			})
+			this.io.in(worldId).emit("players", data)
+		}
 
 		// Chracter Data
-		this.allWorlds[worldId].characters.forEach((char) => {
-			char.ping = Date.now() - char.timeStamp
-			char.timeStamp = Date.now()
-			data[char.uID] = char.Out()
-		})
+		{
+			let data: { [id: string]: any } = {}
+			this.allWorlds[worldId].characters.forEach((char) => {
+				char.ping = Date.now() - char.timeStamp
+				char.timeStamp = Date.now()
+				data[char.uID] = char.Out()
+			})
+			this.io.in(worldId).emit("characters", data)
+		}
 
 		// Vehicle Data
-		this.allWorlds[worldId].vehicles.forEach((vehi) => {
-			vehi.ping = Date.now() - vehi.timeStamp
-			vehi.timeStamp = Date.now()
-			data[vehi.uID] = vehi.Out()
-		})
+		{
+			let data: { [id: string]: any } = {}
+			this.allWorlds[worldId].vehicles.forEach((vehi) => {
+				vehi.ping = Date.now() - vehi.timeStamp
+				vehi.timeStamp = Date.now()
+				data[vehi.uID] = vehi.Out()
+			})
+			this.io.in(worldId).emit("vehicles", data)
+		}
 
 		// WorldData
-		this.allWorlds[worldId].waters.forEach((water) => {
-			water.ping = Date.now() - water.timeStamp
-			water.timeStamp = Date.now()
-			data[water.uID] = water.Out()
-		})
-
-		this.io.in(worldId).emit("players", data)
+		{
+			let data: { [id: string]: any } = {}
+			this.allWorlds[worldId].waters.forEach((water) => {
+				water.ping = Date.now() - water.timeStamp
+				water.timeStamp = Date.now()
+				data[water.uID] = water.Out()
+			})
+			this.io.in(worldId).emit("decorations", data)
+		}
 	}
 
 	private RemoveUnusedWorlds() {

@@ -44,6 +44,32 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 	constructor(gltf: any, mass: number, handlingSetup?: any) {
 		super()
+		// bind functions
+		this.noDirectionPressed = this.noDirectionPressed.bind(this)
+		this.update = this.update.bind(this)
+		this.forceCharacterOut = this.forceCharacterOut.bind(this)
+		this.onInputChange = this.onInputChange.bind(this)
+		this.resetControls = this.resetControls.bind(this)
+		this.allowSleep = this.allowSleep.bind(this)
+		this.handleKeyboardEvent = this.handleKeyboardEvent.bind(this)
+		this.setFirstPersonView = this.setFirstPersonView.bind(this)
+		this.toggleFirstPersonView = this.toggleFirstPersonView.bind(this)
+		this.triggerAction = this.triggerAction.bind(this)
+		this.handleMouseButton = this.handleMouseButton.bind(this)
+		this.handleMouseMove = this.handleMouseMove.bind(this)
+		this.handleMouseWheel = this.handleMouseWheel.bind(this)
+		this.inputReceiverInit = this.inputReceiverInit.bind(this)
+		this.inputReceiverUpdate = this.inputReceiverUpdate.bind(this)
+		this.setPosition = this.setPosition.bind(this)
+		this.setSteeringValue = this.setSteeringValue.bind(this)
+		this.applyEngineForce = this.applyEngineForce.bind(this)
+		this.setBrake = this.setBrake.bind(this)
+		this.addToWorld = this.addToWorld.bind(this)
+		this.removeFromWorld = this.removeFromWorld.bind(this)
+		this.readVehicleData = this.readVehicleData.bind(this)
+		this.connectSeats = this.connectSeats.bind(this)
+		this.Out = this.Out.bind(this)
+		this.Set = this.Set.bind(this)
 
 		// inint
 		this.uID = null
@@ -110,16 +136,16 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		}
 
 		this.position.set(
-			this.collision.interpolatedPosition.x,
-			this.collision.interpolatedPosition.y,
-			this.collision.interpolatedPosition.z
+			this.collision.position.x,
+			this.collision.position.y,
+			this.collision.position.z
 		)
 
 		this.quaternion.set(
-			this.collision.interpolatedQuaternion.x,
-			this.collision.interpolatedQuaternion.y,
-			this.collision.interpolatedQuaternion.z,
-			this.collision.interpolatedQuaternion.w
+			this.collision.quaternion.x,
+			this.collision.quaternion.y,
+			this.collision.quaternion.z,
+			this.collision.quaternion.w
 		)
 
 		this.seats.forEach((seat: VehicleSeat) => {
@@ -212,7 +238,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 			if (this.controllingCharacter.player !== null) {
 				if ((this.world !== null) && (this.world.player !== null) && (this.world.player.uID === this.controllingCharacter.player.uID))
 					this.controllingCharacter.modelContainer.visible = !value
-				this.controllingCharacter.player.cameraOperator.followMode = value
+				// this.controllingCharacter.player.cameraOperator.followMode = value
 				if (value) {
 					this.controllingCharacter.player.cameraOperator.setRadius(0.04, true)
 				}
@@ -449,5 +475,44 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 				},
 			}
 		}
+	}
+
+	public Set(messages: any) {
+		if (this.world)
+			this.world.zeroBody(this.collision)
+		
+		this.collision.position.set(
+			messages.data.vehiclePosition.x,
+			messages.data.vehiclePosition.y,
+			messages.data.vehiclePosition.z,
+		)
+		this.collision.quaternion.set(
+			messages.data.vehicleQuaternion.x,
+			messages.data.vehicleQuaternion.y,
+			messages.data.vehicleQuaternion.z,
+			messages.data.vehicleQuaternion.w,
+		)
+		this.collision.interpolatedPosition.set(
+			messages.data.vehiclePosition.x,
+			messages.data.vehiclePosition.y,
+			messages.data.vehiclePosition.z,
+		)
+		this.collision.interpolatedQuaternion.set(
+			messages.data.vehicleQuaternion.x,
+			messages.data.vehicleQuaternion.y,
+			messages.data.vehicleQuaternion.z,
+			messages.data.vehicleQuaternion.w,
+		)
+		this.position.set(
+			messages.data.vehiclePosition.x,
+			messages.data.vehiclePosition.y,
+			messages.data.vehiclePosition.z,
+		)
+		this.quaternion.set(
+			messages.data.vehicleQuaternion.x,
+			messages.data.vehicleQuaternion.y,
+			messages.data.vehicleQuaternion.z,
+			messages.data.vehicleQuaternion.w,
+		)
 	}
 }

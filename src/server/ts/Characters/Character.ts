@@ -6,7 +6,7 @@ import { Utility } from '../Core/Utility'
 import { KeyBinding } from '../Core/KeyBinding'
 import { VectorSpringSimulator } from '../Physics/SpringSimulation/VectorSpringSimulator'
 import { RelativeSpringSimulator } from '../Physics/SpringSimulation/RelativeSpringSimulator'
-import { Idle } from './CharacterStates/_CharacterStateLibrary'
+import * as CharState from './CharacterStates/_CharacterStateLibrary'
 import * as VehicalState from './CharacterStates/Vehicles/_VehicleStateLibrary'
 import { WorldBase } from '../World/WorldBase'
 import { IControllable } from '../Interfaces/IControllable'
@@ -140,6 +140,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.addToWorld = this.addToWorld.bind(this)
 		this.removeFromWorld = this.removeFromWorld.bind(this)
 		this.Out = this.Out.bind(this)
+		this.Set = this.Set.bind(this)
 
 		// init
 		this.uID = null
@@ -226,7 +227,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 
 		// States => this.setState(new Idle(this))
 		{
-			this.charState = new Idle(this)
+			this.charState = new CharState.Idle(this)
 			this.charState.onInputChange()
 		}
 	}
@@ -236,7 +237,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.setAnimations(gltf.animations)
 		this.modelContainer.add(gltf.scene)
 		this.mixer = new THREE.AnimationMixer(gltf.scene)
-		this.setState(new Idle(this))
+		this.setState(new CharState.Idle(this))
 	}
 
 	public setAnimations(animations: any[]): void {
@@ -363,8 +364,17 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			}
 			else if (code === 'KeyV' && pressed === true) {
 				this.setFirstPersonView(!this.firstPerson)
-			}
-			else {
+			} else if (code === 'Digit0') {
+				console.log('unarmed')
+			} else if (code === 'Digit1') {
+				console.log('knief')
+			} else if (code === 'Digit2') {
+				console.log('pistol')
+			} else if (code === 'Digit3') {
+				console.log('gun')
+			} else if (code === 'Digit4') {
+				console.log('planter')
+			} else {
 				for (const action in this.actions) {
 					if (this.actions.hasOwnProperty(action)) {
 						const binding = this.actions[action]
@@ -1054,6 +1064,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			ping: this.ping,
 
 			data: {
+				rayHasHit: this.rayHasHit,
 				AiData: {
 					character: charAi,
 					controlledObject: ctrlObjAi,
@@ -1073,5 +1084,194 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 				},
 			}
 		}
+	}
+
+	public async Set(messages: any) {
+		this.rayHasHit = messages.data.rayHasHit
+
+		if (this.world !== null)
+			this.world.zeroBody(this.characterCapsule.body)
+
+		this.characterCapsule.body.position.set(
+			messages.data.characterPosition.x,
+			messages.data.characterPosition.y,
+			messages.data.characterPosition.z,
+		)
+		this.characterCapsule.body.interpolatedPosition.set(
+			messages.data.characterPosition.x,
+			messages.data.characterPosition.y,
+			messages.data.characterPosition.z,
+		)
+		this.position.set(
+			messages.data.characterPosition.x,
+			messages.data.characterPosition.y,
+			messages.data.characterPosition.z,
+		)
+		this.quaternion.set(
+			messages.data.characterQuaternion.x,
+			messages.data.characterQuaternion.y,
+			messages.data.characterQuaternion.z,
+			messages.data.characterQuaternion.w,
+		)
+
+		if ((messages.data.AiData.character !== null) && (this.behaviour !== null)) {
+			this.triggerAction(messages.data.AiData.character.action, messages.data.AiData.character.isPressed)
+			if ((messages.data.AiData.character !== null) && (this.controlledObject !== null))
+				this.controlledObject.triggerAction(messages.data.AiData.controlledObject.action, messages.data.AiData.controlledObject.isPressed)
+		}
+
+		/* if(this.player !== null)
+			console.log(this.charState.state, messages.data.charState) */
+
+		if (this.charState.state !== messages.data.charState) {
+			let isError = null
+			// CharacterStates
+			if (false) this
+			else if ("DropIdle" === messages.data.charState) this.setState(new CharState.DropIdle(this), false)
+			else if ("DropRolling" === messages.data.charState) this.setState(new CharState.DropRolling(this), false)
+			else if ("DropRunning" === messages.data.charState) this.setState(new CharState.DropRunning(this), false)
+			else if ("EndWalk" === messages.data.charState) this.setState(new CharState.EndWalk(this), false)
+			else if ("Falling" === messages.data.charState) this.setState(new CharState.Falling(this), false)
+			else if ("Idle" === messages.data.charState) this.setState(new CharState.Idle(this), false)
+			else if ("IdleRotateLeft" === messages.data.charState) this.setState(new CharState.IdleRotateLeft(this), false)
+			else if ("IdleRotateRight" === messages.data.charState) this.setState(new CharState.IdleRotateRight(this), false)
+			else if ("JumpIdle" === messages.data.charState) this.setState(new CharState.JumpIdle(this), false)
+			else if ("JumpRunning" === messages.data.charState) this.setState(new CharState.JumpRunning(this), false)
+			else if ("Sprint" === messages.data.charState) this.setState(new CharState.Sprint(this), false)
+			else if ("StartWalkBackLeft" === messages.data.charState) this.setState(new CharState.StartWalkBackLeft(this), false)
+			else if ("StartWalkBackRight" === messages.data.charState) this.setState(new CharState.StartWalkBackRight(this), false)
+			else if ("StartWalkForward" === messages.data.charState) this.setState(new CharState.StartWalkForward(this), false)
+			else if ("StartWalkLeft" === messages.data.charState) this.setState(new CharState.StartWalkLeft(this), false)
+			else if ("StartWalkRight" === messages.data.charState) this.setState(new CharState.StartWalkRight(this), false)
+			else if ("Walk" === messages.data.charState) this.setState(new CharState.Walk(this), false)
+			// VehicalStates
+			else if ("CloseVehicleDoorInside" === messages.data.charState) {
+				let seat: VehicleSeat | null = null
+				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				if (vehi !== null) {
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					seat = vehiSeat
+				}
+				if (seat !== null) {
+					this.setState(new VehicalState.CloseVehicleDoorInside(this, seat), false)
+				} else {
+					isError = "CloseVehicleDoorInside Failed"
+				}
+			} else if ("CloseVehicleDoorOutside" === messages.data.charState) {
+				let seat: VehicleSeat | null = null
+				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				if (vehi !== null) {
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					seat = vehiSeat
+				}
+				if (seat !== null) {
+					this.setState(new VehicalState.CloseVehicleDoorOutside(this, seat), false)
+				} else {
+					isError = "CloseVehicleDoorOutside Failed"
+				}
+			} else if ("Driving" === messages.data.charState) {
+				let seat: VehicleSeat | null = null
+				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				if (vehi !== null) {
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					seat = vehiSeat
+				}
+				if (seat !== null) {
+					this.setState(new VehicalState.Driving(this, seat), false)
+				} else {
+					isError = "Driving Failed"
+				}
+			} else if ("EnteringVehicle" === messages.data.charState) {
+				let seat: VehicleSeat | null = null
+				let entryPoint: THREE.Object3D | null = null
+				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				if (vehi !== null) {
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					if (vehiSeat !== null) {
+						let ep = Utility.getEntryPoint(vehiSeat, messages.data.vehicalState.entryPoint)
+						seat = vehiSeat
+						entryPoint = ep
+					}
+				}
+				if ((seat !== null) && (entryPoint !== null)) {
+					this.setState(new VehicalState.EnteringVehicle(this, seat, entryPoint), false)
+				} else {
+					isError = "EnteringVehicle Failed"
+				}
+			} else if ("ExitingAirplane" === messages.data.charState) {
+				let seat: VehicleSeat | null = null
+				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				if (vehi !== null) {
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					seat = vehiSeat
+				}
+				if (seat !== null) {
+					this.setState(new VehicalState.ExitingAirplane(this, seat), false)
+				} else {
+					isError = "ExitingAirplane Failed"
+				}
+			} else if ("ExitingVehicle" === messages.data.charState) {
+				let seat: VehicleSeat | null = null
+				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				if (vehi !== null) {
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					seat = vehiSeat
+				}
+				if (seat !== null) {
+					this.setState(new VehicalState.ExitingVehicle(this, seat), false)
+				} else {
+					isError = "ExitingVehicle Failed"
+				}
+			} else if ("OpenVehicleDoor" === messages.data.charState) {
+				let seat: VehicleSeat | null = null
+				let entryPoint: THREE.Object3D | null = null
+				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				if (vehi !== null) {
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					if (vehiSeat !== null) {
+						let ep = Utility.getEntryPoint(vehiSeat, messages.data.vehicalState.entryPoint)
+						seat = vehiSeat
+						entryPoint = ep
+					}
+				}
+				if ((seat !== null) && (entryPoint !== null)) {
+					this.setState(new VehicalState.OpenVehicleDoor(this, seat, entryPoint), false)
+				} else {
+					isError = "OpenVehicleDoor Failed"
+				}
+			} else if ("Sitting" === messages.data.charState) {
+				let seat: VehicleSeat | null = null
+				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				if (vehi !== null) {
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					seat = vehiSeat
+				}
+				if (seat !== null) {
+					this.setState(new VehicalState.Sitting(this, seat), false)
+				} else {
+					isError = "Sitting Failed"
+				}
+			} else if ("SwitchingSeats" === messages.data.charState) {
+				let fromSeat: VehicleSeat | null = null
+				let toSeat: VehicleSeat | null = null
+				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				if (vehi !== null) {
+					fromSeat = Utility.getSeat(vehi, messages.data.vehicalState.fromSeat)
+					toSeat = Utility.getSeat(vehi, messages.data.vehicalState.toSeat)
+				}
+				if ((fromSeat !== null) && (toSeat !== null)) {
+					this.setState(new VehicalState.SwitchingSeats(this, fromSeat, toSeat), false)
+				} else {
+					isError = "SwitchingSeats Failed"
+				}
+			}
+			else {
+				isError = "Unknown State: " + messages.data.charState
+			}
+			if (isError === null)
+				this.charState.onInputChange()
+			else console.log(isError)
+		}
+		await '';
 	}
 }

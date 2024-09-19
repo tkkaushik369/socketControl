@@ -6,4 +6,5 @@ export interface INetwork {
 	timeStamp: number
 	ping: number
 	Out(): { [id: string]: any }
+	Set(messages: any): void
 }

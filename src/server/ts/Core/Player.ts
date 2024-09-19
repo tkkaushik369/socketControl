@@ -52,6 +52,7 @@ export class Player implements INetwork {
 		this.addUser = this.addUser.bind(this)
 		this.removeUser = this.removeUser.bind(this)
 		this.Out = this.Out.bind(this)
+		this.Set = this.Set.bind(this)
 
 		// init
 		this.sID = sID
@@ -155,5 +156,19 @@ export class Player implements INetwork {
 				cameraQuaternion: this.data.cameraQuaternion,
 			}
 		}
+	}
+
+	Set(messages: any) {
+		this.cameraOperator.camera.position.set(
+			messages.data.cameraPosition.x,
+			messages.data.cameraPosition.y,
+			messages.data.cameraPosition.z,
+		)
+		this.cameraOperator.camera.quaternion.set(
+			messages.data.cameraQuaternion.x,
+			messages.data.cameraQuaternion.y,
+			messages.data.cameraQuaternion.z,
+			messages.data.cameraQuaternion.w,
+		)
 	}
 }

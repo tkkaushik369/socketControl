@@ -5,6 +5,7 @@ import { CharacterSpawnPoint } from './SpawnPoints/CharacterSpawnPoint'
 import { WorldBase } from '../World/WorldBase'
 import { Character } from '../Characters/Character'
 import { Vehicle } from '../Vehicles/Vehicle'
+import { Utility } from '../Core/Utility'
 
 export class Scenario {
 	public name: string
@@ -64,41 +65,6 @@ export class Scenario {
 					if (child.userData.type === 'car' || child.userData.type === 'airplane' || child.userData.type === 'heli') {
 						let sp = new VehicleSpawnPoint(child)
 						this.spawnPoints.push(sp)
-
-						if (child.userData.hasOwnProperty('driver')) {
-							if (child.userData.driver === "player") {
-								let pos = new THREE.Vector3().add(root.position).add(child.position).add(new THREE.Vector3(0, 3, 0))
-								this.playerPosition = new THREE.Vector3().copy(pos)
-								this.isPlayerPositionNearVehical = true
-
-								/* if (this.name.toLowerCase().includes('race')) {
-									let closest = {
-										dist: Number.POSITIVE_INFINITY,
-										pos: new THREE.Vector3()
-									}
-									let distPos: {
-										[id: string]: {
-											dist: number,
-											pos: THREE.Vector3
-										}
-									} = {}
-									world.paths.forEach((path) => {
-										Object.keys(path.nodes).forEach((nodeName) => {
-											const node = path.nodes[nodeName]
-											distPos[nodeName] = {
-												dist: pos.distanceTo(node.object.position),
-												pos: node.object.position
-											}
-
-											if (closest.dist > distPos[nodeName].dist) {
-												closest = distPos[nodeName]
-											}
-										})
-									})
-									console.log(this.name, closest)
-								} */
-							}
-						}
 					}
 					else if (child.userData.type === 'player') {
 						// let sp = new CharacterSpawnPoint(child, child.userData)
@@ -132,21 +98,45 @@ export class Scenario {
 	public launch(world: WorldBase): void {
 		// Spawn Vehicles
 		this.spawnPoints.forEach((sp) => {
-			// console.log(sp.userData)
-			let ent: Character | Vehicle = sp.spawn(world) // only vehicles
-			if (ent === null) {
-				console.log("Unknown Spawn: ", sp.userData)
+			if (sp.userData.hasOwnProperty('driver') && (sp.userData.driver === 'player')) {
+				const pos = Utility.GridPosition(world.users, new THREE.Vector3(), 3, 3, 2)
+				let tot = pos.length
+
+				Object.keys(world.users).forEach((sID) => {
+					if (world.users[sID] !== undefined) {
+						const vsp: VehicleSpawnPoint = new (sp as any).constructor(sp.object, world)
+						console.log(vsp.userData)
+						vsp.playerData = {
+							player: world.users[sID],
+							position: pos[--tot]
+						}
+						let ent = vsp.spawn(world) // only vehicles
+						if (ent === null) {
+							console.log("Unknown Spawn: ", vsp.userData)
+						}
+					}
+				})
+			} else {
+				let ent: Character | Vehicle = sp.spawn(world) // only vehicles
+				if (ent === null) {
+					console.log("Unknown Spawn: ", sp.userData)
+				}
 			}
 		})
 
 		// Spawn Players
 		const playerPosition: THREE.Vector3 | null = this.playerPosition
 		if (!this.spawnAlways && (playerPosition !== null)) {
+			const pos = Utility.GridPosition(world.users, playerPosition)
+			let tot = pos.length
+
 			Object.keys(world.users).forEach((sID) => {
-				world.users[sID].setSpawn(playerPosition, this.isPlayerPositionNearVehical, this.isPlayerPositionNearVehical ? (this.initialCameraAngle + 180) : 0)
-				world.users[sID].cameraOperator.theta = this.initialCameraAngle
-				world.users[sID].cameraOperator.phi = 15
-				world.users[sID].addUser()
+				if (world.users[sID] !== undefined) {
+					world.users[sID].setSpawn(pos[--tot], this.isPlayerPositionNearVehical, this.isPlayerPositionNearVehical ? (this.initialCameraAngle + 180) : 0)
+					world.users[sID].cameraOperator.theta = this.initialCameraAngle
+					world.users[sID].cameraOperator.phi = 15
+					world.users[sID].addUser()
+				}
 			})
 		}
 		this.world = world
