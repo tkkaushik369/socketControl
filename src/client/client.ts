@@ -9,6 +9,7 @@ import { Player, PlayerSetMesssage } from '../server/ts/Core/Player'
 import { ControlsTypes } from '../server/ts/Enums/ControlsTypes'
 import { AttachModels } from './ts/Utils/AttachModels'
 import _ from 'lodash'
+import { MessageTypes } from '../server/ts/Enums/MessagesTypes'
 
 THREE.Cache.enabled = true
 
@@ -54,6 +55,7 @@ export default class AppClient {
 		this.OnCharactors = this.OnCharactors.bind(this)
 		this.OnVehicles = this.OnVehicles.bind(this)
 		this.OnDecorations = this.OnDecorations.bind(this)
+		this.OnUpdate = this.OnUpdate.bind(this)
 		this.OnControls = this.OnControls.bind(this)
 		this.OnMap = this.OnMap.bind(this)
 		this.OnScenario = this.OnScenario.bind(this)
@@ -79,6 +81,7 @@ export default class AppClient {
 		this.io.on("characters", this.OnCharactors);
 		this.io.on("vehicles", this.OnVehicles);
 		this.io.on("decorations", this.OnDecorations);
+		this.io.on("update", this.OnUpdate);
 
 		this.io.on("controls", this.OnControls);
 		this.io.on("map", this.OnMap);
@@ -312,6 +315,144 @@ export default class AppClient {
 				}
 			})
 		})
+	}
+
+	private OnUpdate(messages: { [id: string]: any }) {
+		pingStats.innerHTML = "Ping: " + "<br>"
+		let players = 0
+		let validRooms: string[] = []
+
+		Object.keys(messages).forEach((id) => {
+			if (messages[id].sID !== undefined) {
+				// pingStats.innerHTML += "[" + messages[id].sID + "] "
+				pingStats.innerHTML += "[" + messages[id].data.worldId + "] "
+				if (messages[id].sID == this.sID) {
+					if (this.lastUpdate < Date.now() - 1000) {
+						this.worldClient.networkStats.update(messages[id].ping, 100)
+						this.lastUpdate = Date.now()
+					}
+					pingStats.innerHTML += "(YOU) "
+				}
+				pingStats.innerHTML += messages[id].uID + ": "
+				pingStats.innerHTML += messages[id].ping + "<br>"
+			}
+
+			switch (messages[id].msgType) {
+				case MessageTypes.World: {
+					validRooms.push(messages[id].uID)
+					break
+				}
+				case MessageTypes.Player: {
+					if (messages[id].data.worldId !== null) {
+						if (this.worldClient.roomCallers[messages[id].data.worldId] === undefined) {
+							this.worldClient.roomCallers[messages[id].data.worldId] = () => {
+								this.io.emit('change', messages[id].data.worldId, (worldId: string, lastMapID: string, lastScenarioID: string) => {
+									if (this.worldClient.player !== null) {
+										this.worldClient.worldId = worldId
+										const worldClient  = this.worldClient
+										this.worldClient.mapLoadFinishCallBack = () => {
+											worldClient.launchScenario(lastScenarioID, false)
+											worldClient.mapLoadFinishCallBack = null
+										}
+										this.worldClient.launchMap(lastMapID, false, false)
+									}
+								})
+							}
+							this.worldClient.worldsGUIFolder.add(this.worldClient.roomCallers, messages[id].data.worldId)
+						}
+					}
+					if (messages[id].data.worldId !== this.worldClient.worldId) break
+					players++
+					if (this.worldClient.users[id] === undefined) {
+						const player = new Player(messages[id].sID, this.worldClient, Utility.defaultCamera(), null)
+						// Initialization
+						player.setUID(messages[id].uID)
+						player.cameraOperator.camera.add(AttachModels.makeCamera())
+						player.attachments.push(player.cameraOperator.camera)
+						this.worldClient.addSceneObject(player.cameraOperator.camera)
+						player.addUser()
+
+						console.log("New User: " + player.uID)
+						this.worldClient.users[player.sID] = player
+					}
+
+					if (this.worldClient.users[id] === undefined) {
+						console.log("Undefined Player" + this.worldClient.users[id])
+						break
+					}
+
+					// World Time Scale
+					this.worldClient.timeScaleTarget = messages[id].data.timeScaleTarget
+
+					if (this.worldClient.settings.SyncSun) {
+						this.worldClient.effectController.elevation = messages[id].data.sun.elevation
+						this.worldClient.effectController.azimuth = messages[id].data.sun.azimuth
+						this.worldClient.sunConf.elevation = this.worldClient.effectController.elevation
+						this.worldClient.sunConf.azimuth = this.worldClient.effectController.azimuth
+						this.worldClient.sunGuiChanged()
+						// console.log(JSON.stringify(messages[id].data.sun))
+					}
+
+					if ((this.sID !== messages[id].sID) || this.worldClient.settings.SyncCamera) {
+						this.worldClient.users[id].Set(messages[id])
+					}
+					break
+				}
+				case MessageTypes.Character: {
+					this.worldClient.characters.forEach((char) => {
+						if (char.uID === messages[id].uID) {
+							char.Set(messages[id])
+						}
+					})
+					break
+				}
+				case MessageTypes.Vehical: {
+					this.worldClient.vehicles.forEach((vehi) => {
+						if (vehi.uID === messages[id].uID) {
+							vehi.Set(messages[id])
+						}
+					})
+					break
+				}
+				case MessageTypes.Decoration: {
+					this.worldClient.waters.forEach((water) => {
+						if (water.uID === messages[id].uID) {
+							water.Set(messages[id])
+						}
+					})
+					break
+				}
+				default: {
+					console.log("Unknown Message: ", messages[id].msgType)
+					break
+				}
+			}
+		})
+
+		pingStats.innerHTML += "<br><b>Players: " + players + "</b>"
+		pingStats.innerHTML += "<br><b>Current World: " + this.worldClient.worldId + "</b>"
+
+		let toRemoveRooms: string[] = []
+		if (validRooms.length > 0) {
+			Object.keys(this.worldClient.roomCallers).forEach((wid) => {
+				if (!validRooms.includes(wid)) {
+					toRemoveRooms.push(wid)
+				}
+			})
+		}
+
+		if (toRemoveRooms.length > 0) {
+			let wid = toRemoveRooms.pop()
+			if (wid !== undefined) {
+				for (let i = 0; i < this.worldClient.worldsGUIFolder.children.length; i++) {
+					if ((this.worldClient.worldsGUIFolder.children[i] as any).property.includes(wid)) {
+						(this.worldClient.worldsGUIFolder.children[i] as any).destroy()
+						break
+					}
+				}
+				delete this.worldClient.roomCallers[wid]
+			}
+		}
 	}
 
 	private OnControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {

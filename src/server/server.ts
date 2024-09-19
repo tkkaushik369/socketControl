@@ -205,7 +205,7 @@ class AppServer {
 
 	private ForSocketLoop(worldId: string) {
 		if (this.allWorlds[worldId] === undefined) return
-
+		let alldata: { [id: string]: any } = {}
 		// All World Id
 		{
 			let data: { [id: string]: any } = {}
@@ -221,8 +221,10 @@ class AppServer {
 					msgType: MessageTypes.World,
 					users: users
 				}
+				alldata[id] = data[id]
 			})
-			this.io.in(worldId).emit("worlds", data)
+			if (this.allWorlds[worldId].settings.SplitUpdate)
+				this.io.in(worldId).emit("worlds", data)
 		}
 
 		// All Player Data
@@ -235,9 +237,11 @@ class AppServer {
 					this.allUsers[id].data.sun.azimuth = this.allUsers[id].world.sunConf.azimuth
 					let dataClient = this.allUsers[id].Out()
 					data[id] = dataClient
+					alldata[id] = data[id]
 				}
 			})
-			this.io.in(worldId).emit("players", data)
+			if (this.allWorlds[worldId].settings.SplitUpdate)
+				this.io.in(worldId).emit("players", data)
 		}
 
 		// Chracter Data
@@ -247,8 +251,10 @@ class AppServer {
 				char.ping = Date.now() - char.timeStamp
 				char.timeStamp = Date.now()
 				data[char.uID] = char.Out()
+				alldata[char.uID] = data[char.uID]
 			})
-			this.io.in(worldId).emit("characters", data)
+			if (this.allWorlds[worldId].settings.SplitUpdate)
+				this.io.in(worldId).emit("characters", data)
 		}
 
 		// Vehicle Data
@@ -258,8 +264,10 @@ class AppServer {
 				vehi.ping = Date.now() - vehi.timeStamp
 				vehi.timeStamp = Date.now()
 				data[vehi.uID] = vehi.Out()
+				alldata[vehi.uID] = data[vehi.uID]
 			})
-			this.io.in(worldId).emit("vehicles", data)
+			if (this.allWorlds[worldId].settings.SplitUpdate)
+				this.io.in(worldId).emit("vehicles", data)
 		}
 
 		// WorldData
@@ -269,9 +277,14 @@ class AppServer {
 				water.ping = Date.now() - water.timeStamp
 				water.timeStamp = Date.now()
 				data[water.uID] = water.Out()
+				alldata[water.uID] = data[water.uID]
 			})
-			this.io.in(worldId).emit("decorations", data)
+			if (this.allWorlds[worldId].settings.SplitUpdate)
+				this.io.in(worldId).emit("decorations", data)
 		}
+
+		if (!this.allWorlds[worldId].settings.SplitUpdate)
+			this.io.in(worldId).emit("update", alldata)
 	}
 
 	private RemoveUnusedWorlds() {

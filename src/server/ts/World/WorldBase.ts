@@ -133,6 +133,7 @@ export abstract class WorldBase {
 		// Settings
 		this.settings = {
 			Time_Scale: 1,
+			SplitUpdate: false,
 
 			// Client
 			Pointer_Lock: true,
@@ -143,9 +144,9 @@ export abstract class WorldBase {
 			Debug_Physics_MeshEdges: false,
 			Debug_FPS: true,
 			Debug_Helper: true,
-			PostProcess: true,
-			FXAA: true,
-			Outline: true,
+			PostProcess: false,
+			FXAA: false,
+			Outline: false,
 			SyncSun: false,
 			SyncInputs: true,
 			SyncCamera: true,
