@@ -188,7 +188,7 @@ export class Example extends BaseScene {
 					geometry.setAttribute('position', new THREE.BufferAttribute(Utility.vertInx(indices, vertices), 3))
 					geometry.computeVertexNormals()
 
-					const material1 = new THREE.MeshBasicMaterial({ color: 0xb0b000 });
+					const material1 = new THREE.MeshStandardMaterial({ color: 0xb0b000 });
 					const mesh1 = new THREE.Mesh(geometry, material1);
 					mesh1.userData = {
 						debug: true,
@@ -486,12 +486,12 @@ export class Example extends BaseScene {
 		{
 			// chassy
 			{
-				const upper = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 1.4), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.4 }))
+				const upper = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.5, 1.4), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.4 }))
 				upper.position.set(0, 0.5, -0.2)
 				body.add(upper)
 			}
 			{
-				const lower = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.5, 2.4), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
+				const lower = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.5, 2.4), new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 }))
 				body.add(lower)
 			}
 		}
@@ -746,7 +746,7 @@ export class Example extends BaseScene {
 		{ // collisions
 			{
 				const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
-				bodyColl.scale.set(1.4, 0.5, 2.4)
+				bodyColl.scale.set(1.2, 0.5, 2.4)
 				bodyColl.scale.multiplyScalar(0.5)
 				bodyColl.userData = {
 					data: "collision",
@@ -757,7 +757,7 @@ export class Example extends BaseScene {
 			{
 				const bodyColl = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true }))
 				bodyColl.position.set(0, 0.5, -0.2)
-				bodyColl.scale.set(1.4, 0.5, 1.4)
+				bodyColl.scale.set(1.2, 0.5, 1.4)
 				bodyColl.scale.multiplyScalar(0.5)
 				bodyColl.userData = {
 					data: "collision",

@@ -49,7 +49,7 @@ export class WorldClient extends WorldBase {
 	private updateAnimationCallback: Function | null = null
 
 	constructor(controlsDom: HTMLDivElement, parentDom: HTMLDivElement, updatateCallback: Function, launchMapCallback: Function, launchScenarioCallback: Function) {
-		super()
+		super(true)
 
 		// functions bind
 		this.getGLTF = this.getGLTF.bind(this)
@@ -62,6 +62,8 @@ export class WorldClient extends WorldBase {
 		this.debugPhysicsEdgesFunc = this.debugPhysicsEdgesFunc.bind(this)
 		this.toggleStatsFunc = this.toggleStatsFunc.bind(this)
 		this.toggleHelpersFunc = this.toggleHelpersFunc.bind(this)
+		this.togglePostFXAA = this.togglePostFXAA.bind(this)
+		this.togglePostOutline = this.togglePostOutline.bind(this)
 		this.pointLockFunc = this.pointLockFunc.bind(this)
 		this.mouseSensitivityFunc = this.mouseSensitivityFunc.bind(this)
 		this.timeScaleFunc = this.timeScaleFunc.bind(this)
@@ -74,7 +76,7 @@ export class WorldClient extends WorldBase {
 		this.parentDom = (parentDom !== undefined) ? parentDom : (document.body as HTMLDivElement);
 		// this.updatePhysicsCallback = updatateCallback
 		this.updateAnimationCallback = updatateCallback
-		this.isClient = true
+		// this.isClient = true
 		this.updateControlsCallBack = this.updateControls
 		this.launchMapCallback = launchMapCallback
 		this.launchScenarioCallback = launchScenarioCallback
@@ -146,6 +148,11 @@ export class WorldClient extends WorldBase {
 
 		{ // Post Processing
 			//
+			const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
+			const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { samples: 4, type: THREE.HalfFloatType });
+			this.composer = new EffectComposer(this.renderer, renderTarget)
+
+			//
 			this.renderPass = new RenderPass(this.scene, this.camera);
 			// this.renderPass.clearAlpha = 0;
 			const pixelRatio = this.renderer.getPixelRatio();
@@ -154,14 +161,6 @@ export class WorldClient extends WorldBase {
 			this.fxaaPass = new ShaderPass(FXAAShader)
 			this.fxaaPass.material['uniforms'].resolution.value.x = 1 / (window.innerWidth * pixelRatio)
 			this.fxaaPass.material['uniforms'].resolution.value.y = 1 / (window.innerHeight * pixelRatio)
-
-			//
-			this.outputPass = new OutputPass();
-
-			//
-			const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
-			const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { samples: 4, type: THREE.HalfFloatType });
-			this.composer = new EffectComposer(this.renderer, renderTarget)
 
 			//
 			this.outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), this.scene, this.camera)
@@ -177,6 +176,9 @@ export class WorldClient extends WorldBase {
 			})
 			this.outlinePass.selectedObjects = []
 			this.outlinePass.usePatternTexture = false
+
+			//
+			this.outputPass = new OutputPass();
 
 			this.composer.addPass(this.renderPass);
 			this.composer.addPass(this.outlinePass)
@@ -208,6 +210,8 @@ export class WorldClient extends WorldBase {
 
 		let postProcess = folderSettings.addFolder('Post Process')
 		postProcess.add(this.settings, 'PostProcess')
+		postProcess.add(this.settings, 'FXAA').onChange(this.togglePostFXAA)
+		postProcess.add(this.settings, 'Outline').onChange(this.togglePostOutline)
 		postProcess.close()
 
 		let inputFolder = folderSettings.addFolder('Input')
@@ -232,6 +236,7 @@ export class WorldClient extends WorldBase {
 		syncFolder.add(this.settings, 'SyncSun')
 		syncFolder.add(this.settings, 'SyncInputs')
 		syncFolder.add(this.settings, 'SyncCamera')
+		syncFolder.close()
 
 		// Maps
 		this.mapGUIFolder = this.gui.addFolder('Maps')
@@ -258,6 +263,8 @@ export class WorldClient extends WorldBase {
 			this.debugPhysicsEdgesFunc(this.settings.Debug_Physics_MeshEdges)
 			this.toggleStatsFunc(this.settings.Debug_FPS)
 			this.toggleHelpersFunc(this.settings.Debug_Helper)
+			this.togglePostFXAA(this.settings.FXAA)
+			this.togglePostOutline(this.settings.Outline)
 			this.pointLockFunc(this.settings.Pointer_Lock)
 			this.mouseSensitivityFunc(this.settings.Mouse_Sensitivity)
 			this.timeScaleFunc(this.settings.Time_Scale)
@@ -267,8 +274,6 @@ export class WorldClient extends WorldBase {
 		if (true) {
 			this.scene.add(AttachModels.makePointHighlight())
 		}
-
-		setInterval(this.update, this.physicsFrameTime * 1000)
 	}
 
 	public getGLTF(path: string, callback: Function) {
@@ -369,6 +374,14 @@ export class WorldClient extends WorldBase {
 		})
 	}
 
+	private togglePostFXAA(enable: boolean) {
+		this.fxaaPass.enabled = enable
+	}
+
+	private togglePostOutline(enable: boolean) {
+		this.outlinePass.enabled = enable
+	}
+
 	private pointLockFunc(enabled: boolean) {
 		if (this.player !== null)
 			this.player.inputManager.setPointerLock(enabled)
@@ -409,6 +422,7 @@ export class WorldClient extends WorldBase {
 	}
 
 	private animate() {
+		this.update()
 		this.csm.update()
 		this.oceans.forEach((ocean) => {
 			ocean.update(this.timeScaleTarget * 1.0 / 60.0)
@@ -417,14 +431,16 @@ export class WorldClient extends WorldBase {
 		{
 			this.outlinePass.selectedObjects = []
 			Object.keys(this.users).forEach((sID) => {
-				const user = this.users[sID]
-				if (user.character !== null) {
-					if (user.character.controlledObject !== null) {
-						if (!_.includes(this.outlinePass.selectedObjects, user.character.controlledObject))
-							this.outlinePass.selectedObjects.push(user.character.controlledObject)
-					} else {
-						if (!_.includes(this.outlinePass.selectedObjects, user.character))
-							this.outlinePass.selectedObjects.push(user.character)
+				if (this.users[sID] !== undefined) {
+					const user = this.users[sID]
+					if (user.character !== null) {
+						if (user.character.controlledObject !== null) {
+							if (!_.includes(this.outlinePass.selectedObjects, user.character.controlledObject))
+								this.outlinePass.selectedObjects.push(user.character.controlledObject)
+						} else {
+							if (!_.includes(this.outlinePass.selectedObjects, user.character))
+								this.outlinePass.selectedObjects.push(user.character)
+						}
 					}
 				}
 			})

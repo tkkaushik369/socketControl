@@ -69,7 +69,7 @@ export abstract class WorldBase {
 	public launchScenarioCallback: Function | null
 	public boxSize: THREE.Vector3 = new THREE.Vector3()
 
-	constructor() {
+	constructor(isClient: boolean = false) {
 		// bind functions
 		this.getGLTF = this.getGLTF.bind(this)
 		this.registerUpdatable = this.registerUpdatable.bind(this)
@@ -123,7 +123,7 @@ export abstract class WorldBase {
 		this.updatePhysicsCallback = null
 		this.runner = null
 
-		this.isClient = false
+		this.isClient = isClient
 		this.doPhysics = true
 		this.updateControlsCallBack = null
 		this.scenarioGUIFolderCallback = null
@@ -144,6 +144,8 @@ export abstract class WorldBase {
 			Debug_FPS: true,
 			Debug_Helper: true,
 			PostProcess: true,
+			FXAA: true,
+			Outline: true,
 			SyncSun: false,
 			SyncInputs: true,
 			SyncCamera: true,
@@ -222,12 +224,14 @@ export abstract class WorldBase {
 	}
 
 	public addWorldObject(object: CANNON.Body) {
+		if (this.isClient) return
 		if (_.includes(this.worldObjects, object)) return
 		this.worldObjects.push(object)
 		this.world.addBody(object)
 	}
 
 	public removeWorldObject(object: CANNON.Body) {
+		if (this.isClient) return
 		if (!_.includes(this.worldObjects, object)) return
 		this.world.removeBody(object)
 		_.pull(this.worldObjects, object)
@@ -464,7 +468,7 @@ export abstract class WorldBase {
 
 					if (this.isClient) {
 						Object.keys(this.users).forEach((sID) => {
-							if (this.users !== undefined) {
+							if (this.users[sID] !== undefined) {
 								this.users[sID].inputManager.onKeyDown({ code: 'w' } as KeyboardEvent)
 								this.users[sID].inputManager.update(this.physicsFrameTime * this.settings.Time_Scale, this.physicsFrameTime)
 								this.users[sID].inputManager.onKeyUp({ code: 'w' } as KeyboardEvent)
@@ -523,12 +527,25 @@ export abstract class WorldBase {
 
 	public update() {
 		if (this.worldId === null) return
-		if (Object.keys(this.users).length === 0) {
+		/* if (Object.keys(this.users).length === 0) {
 			if (this.runner !== null) {
 				clearInterval(this.runner)
 				this.runner = null
 			}
-		}
+		} */
+			if ((this.player !== null) && !this.player.world.isClient) {
+				let count = 0
+	
+				Object.keys(this.users).forEach((sID) => {
+					if (this.users[sID] !== undefined) count++
+				})
+	
+				if (count === 0) {
+					if (this.runner !== null)
+						clearInterval(this.runner)
+					this.runner = null
+				}
+			}
 
 		this.requestDelta = this.worldClock.getDelta()
 
@@ -536,10 +553,10 @@ export abstract class WorldBase {
 		let timeStep = unscaledTimeStep * this.settings.Time_Scale
 		timeStep = Math.min(timeStep, 1 / 30)
 
-		this.updatePhysics(timeStep, unscaledTimeStep)
 
 		// Update registred objects
 		if (!this.isClient) {
+			this.updatePhysics(timeStep, unscaledTimeStep)
 			this.updatables.forEach((entity) => { entity.update(timeStep, unscaledTimeStep) })
 
 			// Sun Update
@@ -577,19 +594,6 @@ export abstract class WorldBase {
 	}
 
 	private updatePhysics(timeStep: number, unscaledTimeStep: number) {
-		if ((this.player !== null) && !this.player.world.isClient) {
-			let count = 0
-
-			Object.keys(this.users).forEach((sID) => {
-				if (this.users[sID] !== undefined) count++
-			})
-
-			if (count === 0) {
-				if (this.runner !== null)
-					clearInterval(this.runner)
-				this.runner = null
-			}
-		}
 
 		if (this.doPhysics) {
 			this.world.step(this.physicsFrameTime, timeStep)
