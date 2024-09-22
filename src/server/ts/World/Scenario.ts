@@ -18,7 +18,7 @@ export class Scenario {
 	private rootNode: THREE.Object3D
 	public spawnPoints: ISpawnPoint[] = []
 	private invisible: boolean = false // vehical spwn
-	private initialCameraAngle: number
+	public initialCameraAngle: number
 
 	public playerPosition: THREE.Vector3 | null
 	public isPlayerPositionNearVehical: boolean

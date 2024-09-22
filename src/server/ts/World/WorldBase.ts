@@ -569,9 +569,9 @@ export abstract class WorldBase {
 				char.charState.update(timeStep)
 				if (char.mixer !== null) char.mixer.update(timeStep)
 			})
-			this.vehicles.forEach((vehi) => {
+			/* this.vehicles.forEach((vehi) => {
 				vehi.update(timeStep)
-			})
+			}) */
 			if ((this.player !== null) && !this.settings.SyncCamera) {
 				this.player.inputManager.update(timeStep, unscaledTimeStep)
 				this.player.cameraOperator.update(timeStep, unscaledTimeStep)

@@ -38,6 +38,7 @@ if (isAndroid) {
 
 export default class AppClient {
 
+	private ws: WebSocket | null
 	private io: Socket
 	private worldClient: WorldClient
 	private sID: string
@@ -65,12 +66,29 @@ export default class AppClient {
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 
 		// init
+		try {
+			this.ws = new WebSocket("ws://localhost:3000", 'echo-protocol');
+		} catch (error) {
+			console.error(error);
+			this.ws = null
+		}
 		this.io = io({ parser: parser })
 		this.worldClient = new WorldClient(controls, workBox, this.ForSocketLoop, this.ForLaunchMap, this.ForLaunchScenario)
 		this.sID = ""
 		this.lastUpdate = Date.now()
 
 		// socket
+		if (this.ws !== null) {
+			const ws = this.ws
+			ws.onopen = (event) => {
+				ws.send("Hello");
+			}
+
+			ws.onmessage = (event) => {
+				this.OnUpdate(JSON.parse(event.data))
+			}
+		}
+
 		this.io.on("connect", this.OnConnect);
 		this.io.on("disconnect", this.OnDisConnect);
 		this.io.on("setID", this.OnSetID);

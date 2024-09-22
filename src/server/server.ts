@@ -11,6 +11,7 @@
 import express from 'express'
 import path from 'path'
 import http from 'http'
+import { WebSocketServer } from 'ws';
 import { Server, Socket } from 'socket.io'
 import parser from 'socket.io-msgpack-parser'
 import { Utility } from './ts/Core/Utility'
@@ -25,10 +26,12 @@ const privateHost: boolean = false
 class AppServer {
 	private server: http.Server
 	private port: number
+	// private wss: WebSocketServer
 	private io: Server
 
 	private allUsers: { [id: string]: Player }
 	private allWorlds: { [id: string]: WorldServer }
+	private conn: { [id: string]: { ws: any, socket: Socket } }
 	private uid: number = 1
 
 	constructor(port: number) {
@@ -51,14 +54,21 @@ class AppServer {
 		app.use(express.static(path.join(__dirname, "../client")))
 
 		this.server = new http.Server(app)
+		// this.wss = new WebSocketServer({ port: port });
 		this.io = new Server(this.server, { parser: parser })
 		this.io.engine.on("connection", (rawSocket) => { rawSocket.request = null })
 
 		this.allUsers = {}
 		this.allWorlds = {}
+		this.conn = {}
 
+		// this.wss.on('connection', (ws) => {
+		// ws.on('message', (data) => { console.log('received: %s', data); });
+		// ws.send('something');
 		this.io.on("connection", (socket: Socket) => {
-			this.OnConnect(socket)
+			let tws = undefined
+			// tws = ws
+			this.OnConnect(socket, tws)
 			socket.on("disconnect", () => this.OnDisConnect(socket))
 			socket.on("controls", (controls: { type: ControlsTypes, data: { [id: string]: any } }) => this.OnControls(socket, controls))
 			socket.on("change", (worldId: string, callBack: Function) => this.OnChange(socket, worldId, callBack))
@@ -66,9 +76,10 @@ class AppServer {
 			socket.on("scenario", (scenarioName: string) => this.OnScenario(socket, scenarioName))
 			socket.on("update", (message: any, callBack: Function) => this.OnUpdate(socket, message, callBack))
 		})
+		// })
 	}
 
-	private OnConnect(socket: Socket) {
+	private OnConnect(socket: Socket, ws: any /*WebSocket*/) {
 		console.log(`Client Connected: ${socket.id}`)
 
 		const worldId = "World_" + socket.id
@@ -96,7 +107,10 @@ class AppServer {
 			this.allUsers[socket.id].setUID(userName)
 			this.allUsers[socket.id].addUser()
 			console.log(`Player Created: ${socket.id} -> ${userName}`)
-
+			this.conn[userName] = {
+				ws: ws,
+				socket: socket
+			}
 			this.Status()
 		})
 	}
@@ -175,6 +189,8 @@ class AppServer {
 				if (this.allWorlds[worldId].scenarios[i].playerPosition !== null) {
 					const pos = Utility.GridPosition(this.allWorlds[worldId].users, this.allWorlds[worldId].scenarios[i].playerPosition)
 					this.allUsers[socket.id].setSpawn(pos[pos.length - 1], false)
+					this.allUsers[socket.id].cameraOperator.theta = this.allWorlds[worldId].scenarios[i].initialCameraAngle
+					this.allUsers[socket.id].cameraOperator.phi = 15
 				}
 				break
 			}
@@ -283,8 +299,24 @@ class AppServer {
 				this.io.in(worldId).emit("decorations", data)
 		}
 
-		if (!this.allWorlds[worldId].settings.SplitUpdate)
-			this.io.in(worldId).emit("update", alldata)
+		if (!this.allWorlds[worldId].settings.SplitUpdate) {
+			let send = 0
+			if (true) {
+				Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
+					if (
+						(this.allWorlds[worldId].users[sID] !== undefined) &&
+						(this.conn[this.allWorlds[worldId].users[sID].uID] !== undefined) &&
+						(this.conn[this.allWorlds[worldId].users[sID].uID].ws !== undefined)
+					) {
+						this.conn[this.allWorlds[worldId].users[sID].uID].ws.send(JSON.stringify(alldata))
+						send += 1
+					}
+				})
+			}
+			if (send === 0) {
+				this.io.in(worldId).emit("update", alldata)
+			}
+		}
 	}
 
 	private RemoveUnusedWorlds() {
