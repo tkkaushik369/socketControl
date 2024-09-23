@@ -60,8 +60,8 @@ export class OpenVehicleDoor extends CharacterStateBase {
 		this.factorSimluator.target = 1
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 
 		if (this.timer > 0.3 && !this.hasOpenedDoor) {
 			this.hasOpenedDoor = true

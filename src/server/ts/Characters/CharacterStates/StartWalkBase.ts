@@ -26,8 +26,8 @@ export class StartWalkBase extends CharacterStateBase {
 		this.character.setArcadeVelocityTarget(0.8)
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 
 		if (this.animationEnded(timeStep)) {
 			this.character.setState(new Walk(this.character))

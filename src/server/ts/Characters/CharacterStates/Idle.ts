@@ -22,8 +22,8 @@ export class Idle extends CharacterStateBase implements ICharacterState {
 		this.playAnimation('idle', 0.1)
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 
 		this.fallInAir()
 	}

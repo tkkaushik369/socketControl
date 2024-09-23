@@ -41,8 +41,8 @@ export class Sitting extends CharacterStateBase {
 		this.playAnimation('sitting', 0.1)
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 		if ((this.seat.door !== null) && !this.seat.door.achievingTargetRotation && (this.seat.door.rotation > 0) && this.noDirection()) {
 			this.character.setState(new CloseVehicleDoorInside(this.character, this.seat))
 		}

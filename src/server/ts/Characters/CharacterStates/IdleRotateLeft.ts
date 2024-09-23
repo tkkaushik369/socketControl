@@ -26,8 +26,8 @@ export class IdleRotateLeft extends CharacterStateBase implements ICharacterStat
 		this.playAnimation('rotate_left', 0.1)
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 
 		if (this.animationEnded(timeStep)) {
 			this.character.setState(new Idle(this.character))

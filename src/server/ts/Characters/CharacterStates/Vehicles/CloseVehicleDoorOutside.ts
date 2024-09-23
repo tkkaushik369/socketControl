@@ -32,8 +32,8 @@ export class CloseVehicleDoorOutside extends CharacterStateBase {
 		}
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 
 		if (this.timer > 0.3 && !this.hasClosedDoor) {
 			this.hasClosedDoor = true

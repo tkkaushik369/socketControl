@@ -37,8 +37,8 @@ export class ExitingVehicle extends ExitingStateBase {
 		}
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 
 		if (this.animationEnded(timeStep)) {
 			this.detachCharacterFromVehicle()

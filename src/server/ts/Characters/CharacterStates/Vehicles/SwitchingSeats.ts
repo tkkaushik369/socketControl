@@ -57,8 +57,8 @@ export class SwitchingSeats extends CharacterStateBase {
 		this.endRotation.copy(toSeat.seatPointObject.quaternion)
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 
 		if (this.animationEnded(timeStep)) {
 			if (this.toSeat.type === SeatType.Driver) {

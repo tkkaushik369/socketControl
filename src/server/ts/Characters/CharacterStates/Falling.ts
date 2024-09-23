@@ -21,8 +21,8 @@ export class Falling extends CharacterStateBase implements ICharacterState {
 		this.playAnimation('falling', 0.3)
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 
 		this.character.setCameraRelativeOrientationTarget()
 		this.character.setArcadeVelocityTarget(this.anyDirection() ? 0.8 : 0)

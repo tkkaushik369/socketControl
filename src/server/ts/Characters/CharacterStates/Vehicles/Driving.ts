@@ -24,8 +24,8 @@ export class Driving extends CharacterStateBase {
 		this.character.vehicleEntryInstance = null
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 		if (this.seat.door === null) return
 
 		if (!this.seat.door.achievingTargetRotation && this.seat.door.rotation > 0 && this.seat.vehicle.noDirectionPressed()) {

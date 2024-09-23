@@ -566,12 +566,12 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			}
 
 			this.mixer.stopAllAction()
-			action.fadeIn(((this.world !== null) && !this.world.isClient) ? fadeIn : 0.03)
+			action.fadeIn(/* ((this.world !== null) && !this.world.isClient) ? */ fadeIn /* : 0.03 */)
 			action.play()
 
 			let fast = 0
-			if ((this.world !== null) && !this.world.isClient)
-				fast = this.world.physicsFrameTime
+			/* if ((this.world !== null) && !this.world.isClient)
+				fast = this.world.physicsFrameTime */
 			return action.getClip().duration - fast
 		}
 		let duration: number = 0.1

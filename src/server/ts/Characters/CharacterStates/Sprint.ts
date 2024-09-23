@@ -25,8 +25,8 @@ export class Sprint extends CharacterStateBase {
 		this.playAnimation('sprint', 0.1)
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 		this.character.setCameraRelativeOrientationTarget()
 		this.fallInAir()
 	}

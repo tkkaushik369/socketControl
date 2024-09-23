@@ -57,8 +57,8 @@ export abstract class CharacterStateBase implements ICharacterState {
 		this.timer = 0
 	}
 
-	public update(timeStep: number): void {
-		this.timer += timeStep
+	public async update(timeStep: number): Promise<void> {
+		this.timer += await timeStep
 	}
 
 	public onInputChange(): void {

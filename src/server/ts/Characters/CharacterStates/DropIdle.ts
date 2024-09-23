@@ -27,8 +27,8 @@ export class DropIdle extends CharacterStateBase implements ICharacterState {
 		}
 	}
 
-	public update(timeStep: number): void {
-		super.update(timeStep)
+	public async update(timeStep: number): Promise<void> {
+		await super.update(timeStep)
 		this.character.setCameraRelativeOrientationTarget()
 		if (this.animationEnded(timeStep)) {
 			this.character.setState(new Idle(this.character))
