@@ -155,7 +155,7 @@ export default class AppClient {
 			this.worldClient.users[this.worldClient.player.sID] = this.worldClient.player
 
 			try {
-				this.ws = new WebSocket("ws://localhost:3000", 'echo-protocol');
+				this.ws = new WebSocket("ws://"+window.location.host, 'echo-protocol');
 			} catch (error) {
 				console.error(error);
 			}
