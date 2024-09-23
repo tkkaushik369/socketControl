@@ -11,7 +11,7 @@
 import express from 'express'
 import path from 'path'
 import http from 'http'
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 import { Server, Socket } from 'socket.io'
 import parser from 'socket.io-msgpack-parser'
 import { Utility } from './ts/Core/Utility'
@@ -26,12 +26,11 @@ const privateHost: boolean = false
 class AppServer {
 	private server: http.Server
 	private port: number
-	// private wss: WebSocketServer
+	private wss: WebSocketServer
 	private io: Server
 
 	private allUsers: { [id: string]: Player }
 	private allWorlds: { [id: string]: WorldServer }
-	private conn: { [id: string]: { ws: any, socket: Socket } }
 	private uid: number = 1
 
 	constructor(port: number) {
@@ -54,21 +53,25 @@ class AppServer {
 		app.use(express.static(path.join(__dirname, "../client")))
 
 		this.server = new http.Server(app)
-		// this.wss = new WebSocketServer({ port: port });
+		this.wss = new WebSocketServer({ server: this.server });
 		this.io = new Server(this.server, { parser: parser })
 		this.io.engine.on("connection", (rawSocket) => { rawSocket.request = null })
 
 		this.allUsers = {}
 		this.allWorlds = {}
-		this.conn = {}
 
-		// this.wss.on('connection', (ws) => {
-		// ws.on('message', (data) => { console.log('received: %s', data); });
-		// ws.send('something');
+		this.wss.on('connection', (ws) => {
+			ws.on('message', (rawdata: string) => {
+				const data = JSON.parse(rawdata)
+				console.log('received: %s', data)
+				if ((data.sID !== undefined) && (this.allUsers[data.sID] !== undefined)) {
+					this.allUsers[data.sID].ws = ws
+				}
+			})
+			ws.send(JSON.stringify({ conn: 'WS-Connected' }))
+		})
 		this.io.on("connection", (socket: Socket) => {
-			let tws = undefined
-			// tws = ws
-			this.OnConnect(socket, tws)
+			this.OnConnect(socket)
 			socket.on("disconnect", () => this.OnDisConnect(socket))
 			socket.on("controls", (controls: { type: ControlsTypes, data: { [id: string]: any } }) => this.OnControls(socket, controls))
 			socket.on("change", (worldId: string, callBack: Function) => this.OnChange(socket, worldId, callBack))
@@ -76,10 +79,9 @@ class AppServer {
 			socket.on("scenario", (scenarioName: string) => this.OnScenario(socket, scenarioName))
 			socket.on("update", (message: any, callBack: Function) => this.OnUpdate(socket, message, callBack))
 		})
-		// })
 	}
 
-	private OnConnect(socket: Socket, ws: any /*WebSocket*/) {
+	private OnConnect(socket: Socket) {
 		console.log(`Client Connected: ${socket.id}`)
 
 		const worldId = "World_" + socket.id
@@ -107,10 +109,6 @@ class AppServer {
 			this.allUsers[socket.id].setUID(userName)
 			this.allUsers[socket.id].addUser()
 			console.log(`Player Created: ${socket.id} -> ${userName}`)
-			this.conn[userName] = {
-				ws: ws,
-				socket: socket
-			}
 			this.Status()
 		})
 	}
@@ -224,7 +222,6 @@ class AppServer {
 		let alldata: { [id: string]: any } = {}
 		// All World Id
 		{
-			let data: { [id: string]: any } = {}
 			Object.keys(this.allWorlds).forEach((id) => {
 				const users = []
 				Object.keys(this.allWorlds[id].users).forEach((sID) => {
@@ -232,90 +229,63 @@ class AppServer {
 						users.push(this.allWorlds[id].users[sID].uID)
 					}
 				});
-				data[id] = {
+				alldata[id] = {
 					uID: id,
 					msgType: MessageTypes.World,
 					users: users
 				}
-				alldata[id] = data[id]
 			})
-			if (this.allWorlds[worldId].settings.SplitUpdate)
-				this.io.in(worldId).emit("worlds", data)
 		}
 
 		// All Player Data
 		{
-			let data: { [id: string]: any } = {}
 			Object.keys(this.allUsers).forEach((id) => {
 				if ((this.allUsers[id] !== undefined) && (this.allUsers[id].uID != null)) {
 					this.allUsers[id].data.timeScaleTarget = this.allUsers[id].world.timeScaleTarget
 					this.allUsers[id].data.sun.elevation = this.allUsers[id].world.sunConf.elevation
 					this.allUsers[id].data.sun.azimuth = this.allUsers[id].world.sunConf.azimuth
 					let dataClient = this.allUsers[id].Out()
-					data[id] = dataClient
-					alldata[id] = data[id]
+					alldata[id] = dataClient
 				}
 			})
-			if (this.allWorlds[worldId].settings.SplitUpdate)
-				this.io.in(worldId).emit("players", data)
 		}
 
 		// Chracter Data
 		{
-			let data: { [id: string]: any } = {}
 			this.allWorlds[worldId].characters.forEach((char) => {
 				char.ping = Date.now() - char.timeStamp
 				char.timeStamp = Date.now()
-				data[char.uID] = char.Out()
-				alldata[char.uID] = data[char.uID]
+				alldata[char.uID] = char.Out()
 			})
-			if (this.allWorlds[worldId].settings.SplitUpdate)
-				this.io.in(worldId).emit("characters", data)
 		}
 
 		// Vehicle Data
 		{
-			let data: { [id: string]: any } = {}
 			this.allWorlds[worldId].vehicles.forEach((vehi) => {
 				vehi.ping = Date.now() - vehi.timeStamp
 				vehi.timeStamp = Date.now()
-				data[vehi.uID] = vehi.Out()
-				alldata[vehi.uID] = data[vehi.uID]
+				alldata[vehi.uID] = vehi.Out()
 			})
-			if (this.allWorlds[worldId].settings.SplitUpdate)
-				this.io.in(worldId).emit("vehicles", data)
 		}
 
 		// WorldData
 		{
-			let data: { [id: string]: any } = {}
 			this.allWorlds[worldId].waters.forEach((water) => {
 				water.ping = Date.now() - water.timeStamp
 				water.timeStamp = Date.now()
-				data[water.uID] = water.Out()
-				alldata[water.uID] = data[water.uID]
+				alldata[water.uID] = water.Out()
 			})
-			if (this.allWorlds[worldId].settings.SplitUpdate)
-				this.io.in(worldId).emit("decorations", data)
 		}
 
-		if (!this.allWorlds[worldId].settings.SplitUpdate) {
-			let send = 0
-			if (true) {
-				Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
-					if (
-						(this.allWorlds[worldId].users[sID] !== undefined) &&
-						(this.conn[this.allWorlds[worldId].users[sID].uID] !== undefined) &&
-						(this.conn[this.allWorlds[worldId].users[sID].uID].ws !== undefined)
-					) {
-						this.conn[this.allWorlds[worldId].users[sID].uID].ws.send(JSON.stringify(alldata))
-						send += 1
-					}
-				})
-			}
-			if (send === 0) {
-				this.io.in(worldId).emit("update", alldata)
-			}
+		if (true) {
+			Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
+				if ((this.allWorlds[worldId].users[sID] !== undefined) && (this.allWorlds[worldId].users[sID].uID !== undefined)) {
+					if (this.allWorlds[worldId].users[sID].ws !== null)
+						this.allWorlds[worldId].users[sID].ws.send(JSON.stringify(alldata))
+					else
+						this.io.to(sID).emit("update", alldata)
+				}
+			})
 		}
 	}
 

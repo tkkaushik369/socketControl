@@ -7,6 +7,7 @@ import { CameraOperator } from '../Core/CameraOperator'
 import { CharacterSpawnPoint } from '../World/SpawnPoints/CharacterSpawnPoint'
 import { Character } from '../Characters/Character'
 import _ from 'lodash'
+import { WebSocket } from 'ws'
 
 export type PlayerSetMesssage = {
 	sID: string,
@@ -19,6 +20,7 @@ export type PlayerSetMesssage = {
 export class Player implements INetwork {
 	sID: string
 	world: WorldBase
+	ws: WebSocket | null
 
 	uID: string | null
 	msgType: MessageTypes
@@ -57,6 +59,7 @@ export class Player implements INetwork {
 		// init
 		this.sID = sID
 		this.world = world
+		this.ws = null
 
 		this.uID = null
 		this.msgType = MessageTypes.Player
@@ -64,7 +67,7 @@ export class Player implements INetwork {
 		this.ping = 0
 		this.inputManager = new InputManager(this, this.world, domElement)
 		this.cameraOperator = new CameraOperator(this, this.world, camera, domElement ? this.world.settings.Mouse_Sensitivity : 0.2)
-		
+
 		this.attachments = []
 
 		const camHelper = new THREE.CameraHelper(this.cameraOperator.camera)
@@ -146,6 +149,7 @@ export class Player implements INetwork {
 			ping: this.ping,
 
 			data: {
+				isWS: (this.ws !== null),
 				worldId: this.world.worldId,
 				sun: {
 					elevation: this.data.sun.elevation,

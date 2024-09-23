@@ -133,7 +133,6 @@ export abstract class WorldBase {
 		// Settings
 		this.settings = {
 			Time_Scale: 1,
-			SplitUpdate: false,
 
 			// Client
 			Pointer_Lock: true,
@@ -534,19 +533,19 @@ export abstract class WorldBase {
 				this.runner = null
 			}
 		} */
-			if ((this.player !== null) && !this.player.world.isClient) {
-				let count = 0
-	
-				Object.keys(this.users).forEach((sID) => {
-					if (this.users[sID] !== undefined) count++
-				})
-	
-				if (count === 0) {
-					if (this.runner !== null)
-						clearInterval(this.runner)
-					this.runner = null
-				}
+		if ((this.player !== null) && !this.player.world.isClient) {
+			let count = 0
+
+			Object.keys(this.users).forEach((sID) => {
+				if (this.users[sID] !== undefined) count++
+			})
+
+			if (count === 0) {
+				if (this.runner !== null)
+					clearInterval(this.runner)
+				this.runner = null
 			}
+		}
 
 		this.requestDelta = this.worldClock.getDelta()
 
