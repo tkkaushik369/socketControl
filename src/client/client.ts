@@ -154,11 +154,16 @@ export default class AppClient {
 			console.log(`Username: ${UID}`)
 			this.worldClient.users[this.worldClient.player.sID] = this.worldClient.player
 
-			try {
-				this.ws = new WebSocket("ws://"+window.location.host, 'echo-protocol');
-			} catch (error) {
-				console.error(error);
-			}
+			/* try {
+				this.ws = new WebSocket("wss://" + window.location.host, 'echo-protocol');
+			} catch (error1) {
+				console.error("WSS: " + error1);
+				try {
+					this.ws = new WebSocket("ws://" + window.location.host, 'echo-protocol');
+				} catch (error2) {
+					console.error("WS:" + error2);
+				}
+			} */
 
 			// socket
 			if (this.ws !== null) {

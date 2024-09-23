@@ -26,7 +26,7 @@ const privateHost: boolean = false
 class AppServer {
 	private server: http.Server
 	private port: number
-	private wss: WebSocketServer
+	// private wss: WebSocketServer
 	private io: Server
 
 	private allUsers: { [id: string]: Player }
@@ -53,14 +53,14 @@ class AppServer {
 		app.use(express.static(path.join(__dirname, "../client")))
 
 		this.server = new http.Server(app)
-		this.wss = new WebSocketServer({ server: this.server });
+		// this.wss = new WebSocketServer({ server: this.server });
 		this.io = new Server(this.server, { parser: parser })
-		this.io.engine.on("connection", (rawSocket) => { rawSocket.request = null })
+		// this.io.engine.on("connection", (rawSocket) => { rawSocket.request = null })
 
 		this.allUsers = {}
 		this.allWorlds = {}
 
-		this.wss.on('connection', (ws) => {
+		/* this.wss.on('connection', (ws) => {
 			ws.on('message', (rawdata: string) => {
 				const data = JSON.parse(rawdata)
 				console.log('received: %s', data)
@@ -69,7 +69,7 @@ class AppServer {
 				}
 			})
 			ws.send(JSON.stringify({ conn: 'WS-Connected' }))
-		})
+		}) */
 		this.io.on("connection", (socket: Socket) => {
 			this.OnConnect(socket)
 			socket.on("disconnect", () => this.OnDisConnect(socket))
@@ -277,16 +277,23 @@ class AppServer {
 			})
 		}
 
-		if (true) {
+		let WsCount = 0
+		let playersCount = 0
+		Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
+			if ((this.allWorlds[worldId].users[sID] !== undefined) && (this.allWorlds[worldId].users[sID].uID !== undefined)) {
+				playersCount++
+				if (this.allWorlds[worldId].users[sID].ws !== null) WsCount++
+			}
+		})
+
+		/* if (playersCount === WsCount) {
 			Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
 				if ((this.allWorlds[worldId].users[sID] !== undefined) && (this.allWorlds[worldId].users[sID].uID !== undefined)) {
 					if (this.allWorlds[worldId].users[sID].ws !== null)
 						this.allWorlds[worldId].users[sID].ws.send(JSON.stringify(alldata))
-					else
-						this.io.to(sID).emit("update", alldata)
 				}
 			})
-		}
+		} else */ this.io.in(worldId).emit("update", alldata)
 	}
 
 	private RemoveUnusedWorlds() {
