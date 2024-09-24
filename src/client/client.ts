@@ -8,6 +8,7 @@ import { WorldClient } from './ts/World/WorldClient'
 import { Player, PlayerSetMesssage } from '../server/ts/Core/Player'
 import { ControlsTypes } from '../server/ts/Enums/ControlsTypes'
 import { AttachModels } from './ts/Utils/AttachModels'
+import { Pane } from 'tweakpane';
 import _ from 'lodash'
 import { MessageTypes } from '../server/ts/Enums/MessagesTypes'
 
@@ -235,7 +236,7 @@ export default class AppClient {
 									}
 								})
 							}
-							this.worldClient.worldsGUIFolder.add(this.worldClient.roomCallers, messages[id].data.worldId)
+							this.worldClient.worldsGUIFolder.addButton({ title: messages[id].data.worldId }).on('click', (ev: any) => { this.worldClient.roomCallers[messages[id].data.worldId]() })
 						}
 					}
 					if (messages[id].data.worldId !== this.worldClient.worldId) break
@@ -322,8 +323,9 @@ export default class AppClient {
 			let wid = toRemoveRooms.pop()
 			if (wid !== undefined) {
 				for (let i = 0; i < this.worldClient.worldsGUIFolder.children.length; i++) {
-					if ((this.worldClient.worldsGUIFolder.children[i] as any).property.includes(wid)) {
-						(this.worldClient.worldsGUIFolder.children[i] as any).destroy()
+					const name = this.worldClient.worldsGUIFolder.children[i].element.textContent
+					if ((name !== null) && name.includes(wid)) {
+						this.worldClient.worldsGUIFolder.children[i].dispose()
 						break
 					}
 				}

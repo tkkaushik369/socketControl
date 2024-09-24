@@ -9,7 +9,7 @@ import { TrimeshCollider } from '../Physics/Colliders/TrimeshCollider'
 import { CollisionGroups } from '../Enums/CollisionGroups'
 import { Path } from './Path'
 import { Scenario } from './Scenario'
-import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
+import { TabPageApi } from 'tweakpane';
 import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { Character } from '../Characters/Character'
 import { Vehicle } from '../Vehicles/Vehicle'
@@ -63,7 +63,7 @@ export abstract class WorldBase {
 	public isClient: boolean
 	protected doPhysics: boolean
 	public updateControlsCallBack: Function | null
-	public scenarioGUIFolderCallback: GUI | null
+	public scenarioGUIFolderCallback: TabPageApi | null
 	public launchMapCallback: Function | null
 	public launchScenarioCallback: Function | null
 	public boxSize: THREE.Vector3 = new THREE.Vector3()
@@ -313,9 +313,9 @@ export abstract class WorldBase {
 			this.removeSceneObject(this.sceneObjects[i])
 			i--
 		}
-		if (this.scenarioGUIFolderCallback) {
+		if (this.scenarioGUIFolderCallback !== null) {
 			for (let i = 0; i < this.scenarioGUIFolderCallback.children.length; i++) {
-				this.scenarioGUIFolderCallback.children[i].destroy()
+				this.scenarioGUIFolderCallback.children[i].dispose()
 				i--
 			}
 		}
@@ -452,7 +452,8 @@ export abstract class WorldBase {
 				this.launchScenario(defaultScenarioID, false)
 	}
 
-	public launchScenario(scenarioID: string, isCallback: boolean): void {
+	public launchScenario(scenarioID: string | null, isCallback: boolean): void {
+		if (scenarioID === null) return
 		if (isCallback) {
 			if (this.launchScenarioCallback !== null) {
 				this.launchScenarioCallback(scenarioID)

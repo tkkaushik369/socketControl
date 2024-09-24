@@ -91,7 +91,7 @@ export class Scenario {
 		}
 
 		if (this.world.scenarioGUIFolderCallback !== null) {
-			this.world.scenarioGUIFolderCallback.add(this.world.scenariosCalls, this.name)
+			this.world.scenarioGUIFolderCallback.addButton({ title: this.name }).on('click', (ev: any) => { this.world.scenariosCalls[this.name]() })
 		}
 	}
 

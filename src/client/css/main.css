@@ -39,8 +39,10 @@ body {
 	user-select: none;
 	overflow-y: scroll;
 	scrollbar-width: none;
+	color: #1a1a1a
+		/* text-shadow: 1px 0px #000000, -1px 0px #000000, 0px 1px #000000, 0px -1px #000000; */
 
-	background-color: rgba(10, 10, 10, 0.3);
+		/* background-color: rgba(10, 10, 10, 0.3); */
 }
 
 #pingStats::-webkit-scrollbar {
@@ -54,6 +56,7 @@ body {
 .ping {
 	border-bottom: 1px solid green;
 }
+
 .noPing {
 	border-bottom: 1px solid red;
 }

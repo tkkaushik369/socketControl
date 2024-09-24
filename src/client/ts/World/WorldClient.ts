@@ -7,7 +7,8 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
 import { Utility } from '../../../server/ts/Core/Utility'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
-import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
+import { Pane } from 'tweakpane';
+import { FolderApi, TabApi, TabPageApi } from '@tweakpane/core'
 import { WorldBase } from '../../../server/ts/World/WorldBase'
 import { CannonDebugRenderer } from '../Utils/CannonDebugRenderer'
 import { AttachModels } from '../Utils/AttachModels'
@@ -40,11 +41,10 @@ export class WorldClient extends WorldBase {
 
 	public stats: Stats
 	public networkStats: Stats.Panel
-	private gui: GUI
-	private mapGUIFolder: GUI
-	private scenarioGUIFolder: GUI
+	private gui: Pane
+	private mapGUIFolder: TabApi
 	public roomCallers: { [id: string]: any } = {}
-	public worldsGUIFolder: GUI
+	public worldsGUIFolder: TabPageApi
 	public cannonDebugRenderer: CannonDebugRenderer
 	private updateAnimationCallback: Function | null = null
 
@@ -195,80 +195,81 @@ export class WorldClient extends WorldBase {
 		this.parentDom.appendChild(this.stats.dom)
 
 		// GUI
-		this.gui = new GUI()
-		let folderSettings = this.gui.addFolder('Settings')
-		let cannonSettings = folderSettings.addFolder('Cannon Renderer')
-		cannonSettings.add(this.settings, 'Debug_Physics').onChange(this.debugPhysicsFunc)
-		// cannonSettings.add(this.settings, 'Debug_Physics_Wireframe').onChange(this.debugPhysicsWireframeFunc)
-		cannonSettings.add(this.settings, 'Debug_Physics_MeshOpacity', 0, 1).listen().onChange(this.debugPhysicsOpacityFunc)
-		cannonSettings.add(this.settings, 'Debug_Physics_MeshEdges').onChange(this.debugPhysicsEdgesFunc)
-		cannonSettings.close()
+		this.gui = new Pane()
+		let folderSettings = this.gui.addFolder({ title: 'Settings', expanded: false })
+		let cannonSettings = folderSettings.addFolder({ title: 'Cannon Renderer', expanded: false })
+		// cannonSettings.addBinding(this.settings, 'Debug_Physics_Engine').on('change', this.debugPhysicsEngineFunc)
+		cannonSettings.addBinding(this.settings, 'Debug_Physics').on('change', this.debugPhysicsFunc)
+		// cannonSettings.addBinding(this.settings, 'Debug_Physics_Wireframe').on('change', this.debugPhysicsWireframeFunc)
+		cannonSettings.addBinding(this.settings, 'Debug_Physics_MeshOpacity', { min: 0, max: 1 }).on('change', this.debugPhysicsOpacityFunc)
+		cannonSettings.addBinding(this.settings, 'Debug_Physics_MeshEdges').on('change', this.debugPhysicsEdgesFunc)
 
-		let debugSettings = folderSettings.addFolder('Helpers')
-		debugSettings.add(this.settings, 'Debug_FPS').onChange(this.toggleStatsFunc)
-		debugSettings.add(this.settings, 'Debug_Helper').onChange(this.toggleHelpersFunc)
-		debugSettings.close()
+		let debugSettings = folderSettings.addFolder({ title: 'Helpers', expanded: false })
+		debugSettings.addBinding(this.settings, 'Debug_FPS').on('change', this.toggleStatsFunc)
+		debugSettings.addBinding(this.settings, 'Debug_Helper').on('change', this.toggleHelpersFunc)
 
-		let postProcess = folderSettings.addFolder('Post Process')
-		postProcess.add(this.settings, 'PostProcess')
-		postProcess.add(this.settings, 'FXAA').onChange(this.togglePostFXAA)
-		postProcess.add(this.settings, 'Outline').onChange(this.togglePostOutline)
-		postProcess.close()
+		let postProcess = folderSettings.addFolder({ title: 'Post Process', expanded: false })
+		postProcess.addBinding(this.settings, 'PostProcess')
+		postProcess.addBinding(this.settings, 'FXAA').on('change', this.togglePostFXAA)
+		postProcess.addBinding(this.settings, 'Outline').on('change', this.togglePostOutline)
 
-		let inputFolder = folderSettings.addFolder('Input')
-		inputFolder.add(this.settings, 'Pointer_Lock').onChange(this.pointLockFunc)
-		inputFolder.add(this.settings, 'Mouse_Sensitivity', 0.01, 0.5, 0.01).onChange(this.mouseSensitivityFunc).name("Mouse")
-		inputFolder.add(this.settings, 'Time_Scale', 0, 1).listen().onChange(this.timeScaleFunc).disable(true)
-		inputFolder.close()
-		folderSettings.close()
+		let inputFolder = folderSettings.addFolder({ title: 'Input', expanded: false })
+		inputFolder.addBinding(this.settings, 'Pointer_Lock').on('change', this.pointLockFunc)
+		inputFolder.addBinding(this.settings, 'Mouse_Sensitivity', { min: 0.01, max: 0.5, step: 0.01, label: 'Mouse' }).on('change', this.mouseSensitivityFunc)
+		inputFolder.addBinding(this.settings, 'Time_Scale', { min: -0.2, max: 1.2, readonly: true, view: 'graph', /* disabled: true */ }).on('change', this.timeScaleFunc)
 
-		let sunFolder = folderSettings.addFolder('Sun')
-		sunFolder.add(this.effectController, 'turbidity', 0.0, 20.0, 0.1).onChange(this.sunGuiChanged)
-		sunFolder.add(this.effectController, 'rayleigh', 0.0, 4, 0.001).onChange(this.sunGuiChanged)
-		sunFolder.add(this.effectController, 'mieCoefficient', 0.0, 0.1, 0.001).onChange(this.sunGuiChanged)
-		sunFolder.add(this.effectController, 'mieDirectionalG', 0.0, 1, 0.001).onChange(this.sunGuiChanged)
-		sunFolder.add(this.effectController, 'elevation', -90, 90, 0.1).onChange(this.sunGuiChanged)
-		sunFolder.add(this.effectController, 'azimuth', - 180, 180, 0.1).onChange(this.sunGuiChanged)
-		sunFolder.add(this.effectController, 'exposure', 0, 1, 0.0001).onChange(this.sunGuiChanged)
-		sunFolder.close()
+		let sunFolder = folderSettings.addFolder({ title: 'Sun', expanded: false })
+		sunFolder.addBinding(this.effectController, 'turbidity', { min: 0.0, max: 20.0, step: 0.1 }).on('change', this.sunGuiChanged)
+		sunFolder.addBinding(this.effectController, 'rayleigh', { min: 0.0, max: 4, step: 0.001 }).on('change', this.sunGuiChanged)
+		sunFolder.addBinding(this.effectController, 'mieCoefficient', { min: 0.0, max: 0.1, step: 0.001 }).on('change', this.sunGuiChanged)
+		sunFolder.addBinding(this.effectController, 'mieDirectionalG', { min: 0.0, max: 1, step: 0.001 }).on('change', this.sunGuiChanged)
+		sunFolder.addBinding(this.effectController, 'elevation', { min: -90, max: 90, step: 0.1 }).on('change', this.sunGuiChanged)
+		sunFolder.addBinding(this.effectController, 'azimuth', { min: - 180, max: 180, step: 0.1 }).on('change', this.sunGuiChanged)
+		sunFolder.addBinding(this.effectController, 'exposure', { min: 0, max: 1, step: 0.0001 }).on('change', this.sunGuiChanged)
 
 		// Sync Server
-		let syncFolder = folderSettings.addFolder('SYNC')
-		syncFolder.add(this.settings, 'SyncSun')
-		syncFolder.add(this.settings, 'SyncInputs')
-		syncFolder.add(this.settings, 'SyncCamera')
-		syncFolder.close()
+		let syncFolder = folderSettings.addFolder({ title: 'SYNC', expanded: false })
+		syncFolder.addBinding(this.settings, 'SyncSun')
+		syncFolder.addBinding(this.settings, 'SyncInputs')
+		syncFolder.addBinding(this.settings, 'SyncCamera')
+
+		// World Scene Folder
+		let sceneFolder = this.gui.addFolder({ title: 'Scenes', expanded: false })
+		this.mapGUIFolder = sceneFolder.addTab({
+			pages: [
+				{ title: 'Map' },
+				{ title: 'Scenarios' },
+				{ title: 'World' },
+			]
+		})
 
 		// Maps
-		this.mapGUIFolder = this.gui.addFolder('Maps')
 		Object.keys(this.maps).forEach((key) => {
-			this.mapGUIFolder.add(this.maps, key)
+			this.mapGUIFolder.pages[0].addButton({ title: key }).on('click', (ev: any) => { this.maps[key]() })
 		})
-		this.mapGUIFolder.close()
 
 		// Scenarios
-		this.scenarioGUIFolder = this.gui.addFolder('Scenarios')
-		this.scenarioGUIFolderCallback = this.scenarioGUIFolder
-		this.scenarioGUIFolder.close()
+		this.scenarioGUIFolderCallback = this.mapGUIFolder.pages[1]
 
 		// Worlds
-		this.worldsGUIFolder = this.gui.addFolder('Worlds')
+		this.worldsGUIFolder = this.mapGUIFolder.pages[2]
 
 		// Resize
 		window.addEventListener('resize', this.onWindowResize, false)
 		{
 			this.onWindowResize()
-			this.debugPhysicsFunc(this.settings.Debug_Physics)
-			this.debugPhysicsWireframeFunc(this.settings.Debug_Physics_Wireframe)
-			this.debugPhysicsOpacityFunc(this.settings.Debug_Physics_MeshOpacity)
-			this.debugPhysicsEdgesFunc(this.settings.Debug_Physics_MeshEdges)
-			this.toggleStatsFunc(this.settings.Debug_FPS)
-			this.toggleHelpersFunc(this.settings.Debug_Helper)
-			this.togglePostFXAA(this.settings.FXAA)
-			this.togglePostOutline(this.settings.Outline)
-			this.pointLockFunc(this.settings.Pointer_Lock)
-			this.mouseSensitivityFunc(this.settings.Mouse_Sensitivity)
-			this.timeScaleFunc(this.settings.Time_Scale)
+			this.debugPhysicsEngineFunc({ value: this.settings.Debug_Physics_Engine })
+			this.debugPhysicsFunc({ value: this.settings.Debug_Physics })
+			this.debugPhysicsWireframeFunc({ value: this.settings.Debug_Physics_Wireframe })
+			this.debugPhysicsOpacityFunc({ value: this.settings.Debug_Physics_MeshOpacity })
+			this.debugPhysicsEdgesFunc({ value: this.settings.Debug_Physics_MeshEdges })
+			this.toggleStatsFunc({ value: this.settings.Debug_FPS })
+			this.toggleHelpersFunc({ value: this.settings.Debug_Helper })
+			this.togglePostFXAA({ value: this.settings.FXAA })
+			this.togglePostOutline({ value: this.settings.Outline })
+			this.pointLockFunc({ value: this.settings.Pointer_Lock })
+			this.mouseSensitivityFunc({ value: this.settings.Mouse_Sensitivity })
+			this.timeScaleFunc({ value: this.settings.Time_Scale })
 			this.sunGuiChanged()
 		}
 
@@ -333,27 +334,31 @@ export class WorldClient extends WorldBase {
 	}
 
 	// Gui Functions
-	private debugPhysicsFunc(enabled: boolean) {
-		this.cannonDebugRenderer.showMesh(enabled)
+	private debugPhysicsEngineFunc(en: { value: boolean }) {
+		this.restartScenario()
 	}
 
-	private debugPhysicsWireframeFunc(enabled: boolean) {
-		this.cannonDebugRenderer.setWireframe(enabled)
+	private debugPhysicsFunc(en: { value: boolean }) {
+		this.cannonDebugRenderer.showMesh(en.value)
 	}
 
-	private debugPhysicsOpacityFunc(value: number) {
-		this.cannonDebugRenderer.setOpacity(value)
+	private debugPhysicsWireframeFunc(en: { value: boolean }) {
+		this.cannonDebugRenderer.setWireframe(en.value)
 	}
 
-	private debugPhysicsEdgesFunc(enabled: boolean) {
-		this.cannonDebugRenderer.setEdges(enabled)
+	private debugPhysicsOpacityFunc(en: { value: number }) {
+		this.cannonDebugRenderer.setOpacity(en.value)
 	}
 
-	private toggleStatsFunc(enabled: boolean) {
-		this.stats.dom.style.display = enabled ? 'block' : 'none'
+	private debugPhysicsEdgesFunc(en: { value: boolean }) {
+		this.cannonDebugRenderer.setEdges(en.value)
 	}
 
-	private toggleHelpersFunc(enabled: boolean) {
+	private toggleStatsFunc(en: { value: boolean }) {
+		this.stats.dom.style.display = en.value ? 'block' : 'none'
+	}
+
+	private toggleHelpersFunc(en: { value: boolean }) {
 		this.vehicles.forEach((vehi) => {
 			vehi.seats.forEach((seat) => {
 				seat.entryPoints.forEach((ep) => {
@@ -365,37 +370,37 @@ export class WorldClient extends WorldBase {
 								}
 							}
 						} */
-						ep.visible = enabled
+						ep.visible = en.value
 					})
 				})
 			})
 		})
 		this.paths.forEach((path) => {
-			path.rootNode.visible = enabled
+			path.rootNode.visible = en.value
 		})
 	}
 
-	private togglePostFXAA(enable: boolean) {
-		this.fxaaPass.enabled = enable
+	private togglePostFXAA(en: { value: boolean }) {
+		this.fxaaPass.enabled = en.value
 	}
 
-	private togglePostOutline(enable: boolean) {
-		this.outlinePass.enabled = enable
+	private togglePostOutline(en: { value: boolean }) {
+		this.outlinePass.enabled = en.value
 	}
 
-	private pointLockFunc(enabled: boolean) {
+	private pointLockFunc(en: { value: boolean }) {
 		if (this.player !== null)
-			this.player.inputManager.setPointerLock(enabled)
+			this.player.inputManager.setPointerLock(en.value)
 	}
 
-	private mouseSensitivityFunc(value: number) {
+	private mouseSensitivityFunc(en: { value: number }) {
 		if (this.player !== null)
-			this.player.cameraOperator.setSensitivity(value * 0.7, value * 0.7)
+			this.player.cameraOperator.setSensitivity(en.value * 0.7, en.value * 0.7)
 	}
 
-	private timeScaleFunc(value: number) {
-		this.settings.timeScaleTarget = value
-		this.timeScaleTarget = value
+	private timeScaleFunc(en: { value: number }) {
+		this.settings.timeScaleTarget = en.value
+		this.timeScaleTarget = en.value
 	}
 
 	public sunGuiChanged() {
@@ -424,6 +429,7 @@ export class WorldClient extends WorldBase {
 
 	private animate() {
 		this.update()
+		this.gui.refresh()
 		this.csm.update()
 		this.oceans.forEach((ocean) => {
 			ocean.update(this.timeScaleTarget * 1.0 / 60.0)
