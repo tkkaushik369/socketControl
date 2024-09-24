@@ -56,6 +56,7 @@ export class WorldClient extends WorldBase {
 		this.loadScene = this.loadScene.bind(this)
 		this.onWindowResize = this.onWindowResize.bind(this)
 		this.updateControls = this.updateControls.bind(this)
+		this.debugPhysicsEngineFunc = this.debugPhysicsEngineFunc.bind(this)
 		this.debugPhysicsFunc = this.debugPhysicsFunc.bind(this)
 		this.debugPhysicsWireframeFunc = this.debugPhysicsWireframeFunc.bind(this)
 		this.debugPhysicsOpacityFunc = this.debugPhysicsOpacityFunc.bind(this)

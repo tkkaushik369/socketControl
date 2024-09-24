@@ -13,7 +13,6 @@ import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js'
 import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { Character } from '../Characters/Character'
 import { Vehicle } from '../Vehicles/Vehicle'
-import { VehicleSeat } from '../Vehicles/VehicleSeat'
 import { MapConfig, MapConfigType } from './MapConfigs'
 import { Water } from './Water'
 import { BaseScene } from './BaseScene'
@@ -137,6 +136,7 @@ export abstract class WorldBase {
 			// Client
 			Pointer_Lock: true,
 			Mouse_Sensitivity: 0.2,
+			Debug_Physics_Engine: false,
 			Debug_Physics: false,
 			Debug_Physics_Wireframe: true,
 			Debug_Physics_MeshOpacity: 1,
@@ -224,14 +224,14 @@ export abstract class WorldBase {
 	}
 
 	public addWorldObject(object: CANNON.Body) {
-		if (this.isClient) return
+		if (!this.settings.Debug_Physics_Engine && this.isClient) return
 		if (_.includes(this.worldObjects, object)) return
 		this.worldObjects.push(object)
 		this.world.addBody(object)
 	}
 
 	public removeWorldObject(object: CANNON.Body) {
-		if (this.isClient) return
+		if (!this.settings.Debug_Physics_Engine && this.isClient) return
 		if (!_.includes(this.worldObjects, object)) return
 		this.world.removeBody(object)
 		_.pull(this.worldObjects, object)
@@ -527,12 +527,7 @@ export abstract class WorldBase {
 
 	public update() {
 		if (this.worldId === null) return
-		/* if (Object.keys(this.users).length === 0) {
-			if (this.runner !== null) {
-				clearInterval(this.runner)
-				this.runner = null
-			}
-		} */
+
 		if ((this.player !== null) && !this.player.world.isClient) {
 			let count = 0
 
@@ -553,10 +548,11 @@ export abstract class WorldBase {
 		let timeStep = unscaledTimeStep * this.settings.Time_Scale
 		timeStep = Math.min(timeStep, 1 / 30)
 
+		if (this.settings.Debug_Physics_Engine || !this.isClient)
+			this.updatePhysics(timeStep, unscaledTimeStep)
 
 		// Update registred objects
 		if (!this.isClient) {
-			this.updatePhysics(timeStep, unscaledTimeStep)
 			this.updatables.forEach((entity) => { entity.update(timeStep, unscaledTimeStep) })
 
 			// Sun Update
@@ -568,9 +564,9 @@ export abstract class WorldBase {
 				char.charState.update(timeStep)
 				if (char.mixer !== null) char.mixer.update(timeStep)
 			})
-			/* this.vehicles.forEach((vehi) => {
+			this.vehicles.forEach((vehi) => {
 				vehi.update(timeStep)
-			}) */
+			})
 			if ((this.player !== null) && !this.settings.SyncCamera) {
 				this.player.inputManager.update(timeStep, unscaledTimeStep)
 				this.player.cameraOperator.update(timeStep, unscaledTimeStep)
@@ -600,27 +596,12 @@ export abstract class WorldBase {
 		}
 
 		this.characters.forEach((char) => {
-			/* if (char.uID == 'car_ai_driver') {
-				let full: any[] = []
-				if (char.controlledObject !== null)
-					console.log(char.controlledObject.seats)
-			} */
 			if (this.isOutOfBounds(char.characterCapsule.body.position)) {
 				this.outOfBoundsRespawn(char.characterCapsule.body)
 			}
 		})
 
 		this.vehicles.forEach((vehicle) => {
-			/* if (vehicle.uID == 'car_ai') {
-				let full: any[] = []
-				vehicle.seats.forEach((seat) => {
-					let data: { [id: string]: any } = {}
-					data['name'] = seat.seatPointObject.userData.name
-					data['occupies'] = (seat.occupiedBy !== null) ? seat.occupiedBy.uID : null
-					full.push(data)
-				})
-				console.log(full)
-			} */
 			if (this.isOutOfBounds(vehicle.rayCastVehicle.chassisBody.position)) {
 				let worldPos = new THREE.Vector3()
 				if (vehicle.spawnPoint !== null) vehicle.spawnPoint.getWorldPosition(worldPos)
