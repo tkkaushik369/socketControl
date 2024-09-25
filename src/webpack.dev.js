@@ -2,8 +2,6 @@ const { merge } = require("webpack-merge")
 const common = require("./webpack.common.js")
 const path = require("path");
 
-var isHosted = false
-
 module.exports = merge(common, {
 	mode: "development",
 	devtool: "eval-source-map",
@@ -14,8 +12,16 @@ module.exports = merge(common, {
 		hot: true,
 		proxy: [{
 			context: "/socket.io",
-			target: isHosted ? "https://socketcontrol.onrender.com" : "http://127.0.0.1:3000",
+			target: "http://127.0.0.1:3000",
+			changeOrigin: true,
 			ws: true,
-		},],
+		},
+		{
+			context: '*',
+			target: 'ws://127.0.0.1:3000',
+			changeOrigin: true,
+			ws: true,
+		},
+		],
 	},
 })

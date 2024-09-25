@@ -45,8 +45,12 @@ npm run dev
 - **Node.js & Express**: Backend server setup.
 
 ### Todo
-- Add Sky and Ocean
-- Boat Vehicle
+- Loadout Page
+- Fix Few Syncing issues in client
+- Record and Playback
+
+- Boat Vehicle - Postponed
+- Cannon-es to Rapier.js (Maybe)
 
 ## Contributing
 Contributions are welcome! If you have ideas, feature requests, or bug reports, please open an issue or submit a pull request.

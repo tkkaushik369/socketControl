@@ -105,7 +105,6 @@ export class Scenario {
 				Object.keys(world.users).forEach((sID) => {
 					if (world.users[sID] !== undefined) {
 						const vsp: VehicleSpawnPoint = new (sp as any).constructor(sp.object, world)
-						console.log(vsp.userData)
 						vsp.playerData = {
 							player: world.users[sID],
 							position: pos[--tot]

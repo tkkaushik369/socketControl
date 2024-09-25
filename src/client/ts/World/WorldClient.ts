@@ -44,6 +44,8 @@ export class WorldClient extends WorldBase {
 	private gui: Pane
 	private mapGUIFolder: TabApi
 	public roomCallers: { [id: string]: any } = {}
+	public playersFolderTabs: TabApi
+	public playerMessages: { [id: string]: string } = {}
 	public worldsGUIFolder: TabPageApi
 	public cannonDebugRenderer: CannonDebugRenderer
 	private updateAnimationCallback: Function | null = null
@@ -254,6 +256,26 @@ export class WorldClient extends WorldBase {
 		// Worlds
 		this.worldsGUIFolder = this.mapGUIFolder.pages[2]
 
+		// Players Gui
+		let playersGui = new Pane({ container: document.getElementById('gui-players') as HTMLDivElement })
+		let playersFolder = playersGui.addFolder({ title: '#', expanded: false })
+		this.playersFolderTabs = playersFolder.addTab({
+			pages: [
+				{ title: 'Chat' },
+				{ title: 'World Players' },
+				{ title: 'All Players' },
+			]
+		})
+
+		// Chat
+		/* playersFolderTabs.pages[0].addBinding(this.playerMessages, this.player!.uID as string, {
+			readonly: true,
+			bufferSize: 10,
+			multiline: true,
+			rows: 5,
+		}); */
+
+
 		// Resize
 		window.addEventListener('resize', this.onWindowResize, false)
 		{
@@ -429,7 +451,7 @@ export class WorldClient extends WorldBase {
 
 	private animate() {
 		this.update()
-		this.gui.refresh()
+		// this.gui.refresh()
 		this.csm.update()
 		this.oceans.forEach((ocean) => {
 			ocean.update(this.timeScaleTarget * 1.0 / 60.0)

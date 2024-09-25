@@ -1,4 +1,5 @@
 import './css/main.css'
+import { Common } from '../server/Common'
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import { Utility } from '../server/ts/Core/Utility'
@@ -11,6 +12,7 @@ import { AttachModels } from './ts/Utils/AttachModels'
 import { Pane } from 'tweakpane';
 import _ from 'lodash'
 import { MessageTypes } from '../server/ts/Enums/MessagesTypes'
+import { Communication } from '../server/ts/Enums/Communication'
 
 THREE.Cache.enabled = true
 
@@ -18,6 +20,7 @@ const pingStats = document.getElementById('pingStats') as HTMLDivElement
 const controls = document.getElementById('controls') as HTMLDivElement
 const controlsMain = document.getElementById('controls-main') as HTMLDivElement
 const workBox = document.getElementById('work') as HTMLDivElement
+const guiPlayersDom = document.getElementById('gui-players') as HTMLDivElement
 
 const isElectronApp = Utility.isElectron()
 const isAndroid = Utility.deviceState()
@@ -39,8 +42,8 @@ if (isAndroid) {
 
 export default class AppClient {
 
+	private io: Socket | null
 	private ws: WebSocket | null
-	private io: Socket
 	private worldClient: WorldClient
 	private sID: string
 	private lastUpdate: number
@@ -56,26 +59,83 @@ export default class AppClient {
 		this.OnControls = this.OnControls.bind(this)
 		this.OnMap = this.OnMap.bind(this)
 		this.OnScenario = this.OnScenario.bind(this)
+		this.OnChange = this.OnChange.bind(this)
 		this.ForControls = this.ForControls.bind(this)
 		this.ForLaunchMap = this.ForLaunchMap.bind(this)
 		this.ForLaunchScenario = this.ForLaunchScenario.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
+		this.ForSocketLoopCallBack = this.ForSocketLoopCallBack.bind(this)
 
 		// init
-		this.ws = null
-		this.io = io({ parser: parser })
+		if (Common.conn === Communication.SocketIO) {
+			this.io = io({ parser: parser })
+			this.ws = null
+		} else if (Common.conn === Communication.WebSocket) {
+			this.io = null
+			if (window.location.protocol.includes('https'))
+				this.ws = new WebSocket("wss://" + window.location.host, 'echo-protocol');
+			else
+				this.ws = new WebSocket("ws://" + window.location.host, 'echo-protocol')
+		} else {
+			this.io = null
+			this.ws = null
+		}
 		this.worldClient = new WorldClient(controls, workBox, this.ForSocketLoop, this.ForLaunchMap, this.ForLaunchScenario)
 		this.sID = ""
 		this.lastUpdate = Date.now()
 
-		this.io.on("connect", this.OnConnect);
-		this.io.on("disconnect", this.OnDisConnect);
-		this.io.on("setID", this.OnSetID);
-		this.io.on("removeClient", this.OnRemoveClient);
-		this.io.on("update", this.OnUpdate);
-		this.io.on("controls", this.OnControls);
-		this.io.on("map", this.OnMap);
-		this.io.on("scenario", this.OnScenario);
+		if (this.io !== null) {
+			this.io.on("connect", this.OnConnect);
+			this.io.on("disconnect", this.OnDisConnect);
+			this.io.on("setID", this.OnSetID);
+			this.io.on("removeClient", this.OnRemoveClient);
+			this.io.on("update", this.OnUpdate);
+			this.io.on("controls", this.OnControls);
+			this.io.on("map", this.OnMap);
+			this.io.on("scenario", this.OnScenario);
+		}
+		if (this.ws !== null) {
+			const ws = this.ws
+			this.ws.onopen = (event) => { this.OnConnect() }
+			this.ws.onmessage = (event) => {
+				let data = JSON.parse(event.data)
+				switch (data.type) {
+					case "setID":
+						this.OnSetID(data.params, (uID: string, sID: string) => {
+							ws.send(JSON.stringify({ type: 'setIDCallBack', params: { uID: uID, sID: sID } }))
+						})
+						break;
+					case "update":
+						this.OnUpdate(data.params)
+						break
+					case "ForSocketLoopCallBack":
+						this.ForSocketLoopCallBack()
+						break
+					case "controls":
+						this.OnControls(data.params)
+						break
+					case "map":
+						this.OnMap(data.params.map)
+						break
+					case "scenario":
+						this.OnScenario(data.params.scenario)
+						break
+					case "removeClient":
+						this.OnRemoveClient(data.params.sID)
+						break
+					case "change":
+						this.OnChange(data.params.worldId, data.params.lastMapID, data.params.lastScenarioID)
+						break
+					default:
+						console.log(data)
+						break;
+				}
+			}
+			this.ws.onclose = (event) => {
+				console.log("Close: ", JSON.stringify(event))
+				this.OnDisConnect(this.sID)
+			}
+		}
 	}
 
 	private OnConnect() {
@@ -140,7 +200,7 @@ export default class AppClient {
 			const UID: string = "Player_" + message.count
 			this.worldClient.worldId = message.worldId
 			this.worldClient.launchScenario(message.lastScenarioID, false)
-			this.worldClient.player = new Player(message.sID, this.worldClient, this.worldClient.camera, this.worldClient.renderer.domElement)
+			this.worldClient.player = new Player(message.sID, this.worldClient, this.worldClient.camera, workBox)
 			this.worldClient.player.setUID(UID)
 			this.sID = this.worldClient.player.sID
 
@@ -155,25 +215,7 @@ export default class AppClient {
 			console.log(`Username: ${UID}`)
 			this.worldClient.users[this.worldClient.player.sID] = this.worldClient.player
 
-			/* try {
-				this.ws = new WebSocket("wss://" + window.location.host, 'echo-protocol');
-			} catch (error1) {
-				console.error("WSS: " + error1);
-				try {
-					this.ws = new WebSocket("ws://" + window.location.host, 'echo-protocol');
-				} catch (error2) {
-					console.error("WS:" + error2);
-				}
-			} */
-
-			// socket
-			if (this.ws !== null) {
-				const ws = this.ws
-				ws.onopen = (event) => { ws.send(JSON.stringify({ data: "use-ws", sID: this.worldClient.player!.sID })) }
-				ws.onmessage = (event) => { this.OnUpdate(JSON.parse(event.data)) }
-			}
-
-			callBack(UID)
+			callBack(UID, message.sID)
 			this.MapLoader()
 
 			this.worldClient.mapLoadFinishCallBack = null
@@ -224,17 +266,12 @@ export default class AppClient {
 					if (messages[id].data.worldId !== null) {
 						if (this.worldClient.roomCallers[messages[id].data.worldId] === undefined) {
 							this.worldClient.roomCallers[messages[id].data.worldId] = () => {
-								this.io.emit('change', messages[id].data.worldId, (worldId: string, lastMapID: string, lastScenarioID: string) => {
-									if (this.worldClient.player !== null) {
-										this.worldClient.worldId = worldId
-										const worldClient = this.worldClient
-										this.worldClient.mapLoadFinishCallBack = () => {
-											worldClient.launchScenario(lastScenarioID, false)
-											worldClient.mapLoadFinishCallBack = null
-										}
-										this.worldClient.launchMap(lastMapID, false, false)
-									}
-								})
+								{
+									if (this.io !== null)
+										this.io.emit('change', messages[id].data.worldId, this.OnChange)
+									if (this.ws !== null)
+										this.ws.send(JSON.stringify({ type: 'change', params: { sID: this.sID, worldId: messages[id].data.worldId } }))
+								}
 							}
 							this.worldClient.worldsGUIFolder.addButton({ title: messages[id].data.worldId }).on('click', (ev: any) => { this.worldClient.roomCallers[messages[id].data.worldId]() })
 						}
@@ -353,31 +390,69 @@ export default class AppClient {
 		this.worldClient.launchScenario(scenarioName, false)
 	}
 
-	private ForControls(controls: { type: ControlsTypes, data: { [id: string]: any } }) {
+	private OnChange(worldId: string, lastMapID: string, lastScenarioID: string) {
 		if (this.worldClient.player !== null) {
-			this.io.emit("controls", controls)
-			if (this.worldClient.settings.SyncInputs)
-				this.worldClient.player.inputManager.setControls(controls)
+			this.worldClient.worldId = worldId
+			const worldClient = this.worldClient
+			this.worldClient.mapLoadFinishCallBack = () => {
+				worldClient.launchScenario(lastScenarioID, false)
+				worldClient.mapLoadFinishCallBack = null
+			}
+			this.worldClient.launchMap(lastMapID, false, false)
 		}
 	}
 
+	private ForControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {
+		if (this.worldClient.player === null) return
+		controls.sID = this.worldClient.player.sID
+		{
+			if (this.io !== null)
+				this.io.emit("controls", controls)
+			if (this.ws !== null)
+				this.ws.send(JSON.stringify({ type: "controls", params: controls }))
+		}
+		if (this.worldClient.settings.SyncInputs)
+			this.worldClient.player.inputManager.setControls(controls)
+	}
+
 	private ForLaunchMap(mapName: string) {
-		if (this.worldClient.player !== null) this.io.emit("map", mapName)
+		if (this.worldClient.player === null) return
+
+		{
+			if (this.io !== null)
+				this.io.emit("map", mapName)
+			if (this.ws !== null)
+				this.ws.send(JSON.stringify({ type: "map", params: { sID: this.worldClient.player.sID, map: mapName } }))
+		}
 	}
 
 	private ForLaunchScenario(scenarioName: string) {
-		if (this.worldClient.player !== null) this.io.emit("scenario", scenarioName)
+		if (this.worldClient.player === null) return
+
+		{
+			if (this.io !== null)
+				this.io.emit("scenario", scenarioName)
+			if (this.ws !== null)
+				this.ws.send(JSON.stringify({ type: "scenario", params: { sID: this.worldClient.player.sID, scenario: scenarioName } }))
+		}
 	}
 
 	private ForSocketLoop() {
 		if (this.worldClient.player !== null) {
 			this.worldClient.player.timeStamp = Date.now()
 
-			const player = this.worldClient.player
-			this.io.emit("update", this.worldClient.player.Out(), () => {
-				player.ping = Date.now() - player.timeStamp
-			})
+			{
+				if (this.io !== null)
+					this.io.emit("update", this.worldClient.player.Out(), this.ForSocketLoopCallBack)
+				if (this.ws !== null)
+					this.ws.send(JSON.stringify({ type: "update", params: this.worldClient.player.Out() }))
+			}
 		}
+	}
+
+	private ForSocketLoopCallBack() {
+		if (this.worldClient.player === null) return
+		this.worldClient.player.ping = Date.now() - this.worldClient.player.timeStamp
 	}
 }
 
