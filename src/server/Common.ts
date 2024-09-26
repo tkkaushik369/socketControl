@@ -1,7 +1,10 @@
-import { Communication } from "./ts/Enums/Communication"
+import { Communication, DataSender } from "./ts/Enums/Communication"
+
 
 export var Common: {
-	conn: Communication
+	conn: Communication,
+	sender: DataSender,
 } = {
 	conn: Communication.WebSocket,
+	sender: DataSender.SocketLoop
 }

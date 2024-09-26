@@ -20,7 +20,7 @@ import { Player, PlayerSetMesssage } from './ts/Core/Player'
 import { WorldServer } from './ts/World/WorldServer'
 import { ControlsTypes } from './ts/Enums/ControlsTypes'
 import { MessageTypes } from './ts/Enums/MessagesTypes'
-import { Communication } from './ts/Enums/Communication';
+import { Communication, DataSender } from './ts/Enums/Communication';
 
 const port: number = Number(process.env.PORT) || 3000;
 const privateHost: boolean = false
@@ -47,6 +47,7 @@ class AppServer {
 		this.OnMap = this.OnMap.bind(this)
 		this.OnScenario = this.OnScenario.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
+		this.GetLatestWorldData = this.GetLatestWorldData.bind(this)
 		this.RemoveUnusedWorlds = this.RemoveUnusedWorlds.bind(this)
 		this.Status = this.Status.bind(this)
 		this.Start = this.Start.bind(this)
@@ -105,7 +106,11 @@ class AppServer {
 						case "update":
 							{
 								this.OnUpdate(data.params.sID, data.params, () => {
-									ws.send(JSON.stringify({ type: "ForSocketLoopCallBack" }))
+									let alldata: { [id: string]: any } = {}
+									if (Common.sender === DataSender.PingPong)
+										if (this.allUsers[data.params.sID] !== undefined)
+											alldata = this.GetLatestWorldData(this.allUsers[data.params.sID].world.worldId)
+									ws.send(JSON.stringify({ type: "ForSocketLoopCallBack", params: alldata }))
 								})
 								break
 							}
@@ -342,7 +347,23 @@ class AppServer {
 	}
 
 	private ForSocketLoop(worldId: string) {
+		if (Common.sender !== DataSender.SocketLoop) return
 		if (this.allWorlds[worldId] === undefined) return
+
+		let alldata = this.GetLatestWorldData(worldId)
+		{
+			if (this.io !== null)
+				this.io.in(worldId).emit("update", alldata)
+			Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
+				if ((this.allWorlds[worldId].users[sID] !== undefined) && (this.allWorlds[worldId].users[sID].uID !== undefined)) {
+					if (this.allWorlds[worldId].users[sID].ws !== null)
+						this.allWorlds[worldId].users[sID].ws.send(JSON.stringify({ type: "update", params: alldata }))
+				}
+			})
+		}
+	}
+
+	private GetLatestWorldData(worldId: string) {
 		let alldata: { [id: string]: any } = {}
 		// All World Id
 		{
@@ -401,16 +422,7 @@ class AppServer {
 			})
 		}
 
-		{
-			if (this.io !== null)
-				this.io.in(worldId).emit("update", alldata)
-			Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
-				if ((this.allWorlds[worldId].users[sID] !== undefined) && (this.allWorlds[worldId].users[sID].uID !== undefined)) {
-					if (this.allWorlds[worldId].users[sID].ws !== null)
-						this.allWorlds[worldId].users[sID].ws.send(JSON.stringify({ type: "update", params: alldata }))
-				}
-			})
-		}
+		return alldata
 	}
 
 	private RemoveUnusedWorlds() {

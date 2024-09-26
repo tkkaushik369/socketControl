@@ -12,7 +12,7 @@ import { AttachModels } from './ts/Utils/AttachModels'
 import { Pane } from 'tweakpane';
 import _ from 'lodash'
 import { MessageTypes } from '../server/ts/Enums/MessagesTypes'
-import { Communication } from '../server/ts/Enums/Communication'
+import { Communication, DataSender } from '../server/ts/Enums/Communication'
 
 THREE.Cache.enabled = true
 
@@ -101,34 +101,56 @@ export default class AppClient {
 				let data = JSON.parse(event.data)
 				switch (data.type) {
 					case "setID":
-						this.OnSetID(data.params, (uID: string, sID: string) => {
-							ws.send(JSON.stringify({ type: 'setIDCallBack', params: { uID: uID, sID: sID } }))
-						})
-						break;
+						{
+							this.OnSetID(data.params, (uID: string, sID: string) => {
+								ws.send(JSON.stringify({ type: 'setIDCallBack', params: { uID: uID, sID: sID } }))
+							})
+							break;
+						}
 					case "update":
-						this.OnUpdate(data.params)
-						break
+						{
+							console.log(data.type)
+							this.OnUpdate(data.params)
+							break
+						}
 					case "ForSocketLoopCallBack":
-						this.ForSocketLoopCallBack()
-						break
+						{
+							this.ForSocketLoopCallBack()
+							if(Common.sender === DataSender.PingPong) {
+								this.OnUpdate(data.params)
+							}
+							break
+						}
 					case "controls":
-						this.OnControls(data.params)
-						break
+						{
+							this.OnControls(data.params)
+							break
+						}
 					case "map":
-						this.OnMap(data.params.map)
-						break
+						{
+							this.OnMap(data.params.map)
+							break
+						}
 					case "scenario":
-						this.OnScenario(data.params.scenario)
-						break
+						{
+							this.OnScenario(data.params.scenario)
+							break
+						}
 					case "removeClient":
-						this.OnRemoveClient(data.params.sID)
-						break
+						{
+							this.OnRemoveClient(data.params.sID)
+							break
+						}
 					case "change":
-						this.OnChange(data.params.worldId, data.params.lastMapID, data.params.lastScenarioID)
-						break
+						{
+							this.OnChange(data.params.worldId, data.params.lastMapID, data.params.lastScenarioID)
+							break
+						}
 					default:
-						console.log(data)
-						break;
+						{
+							console.log(data)
+							break;
+						}
 				}
 			}
 			this.ws.onclose = (event) => {
@@ -200,7 +222,7 @@ export default class AppClient {
 			const UID: string = "Player_" + message.count
 			this.worldClient.worldId = message.worldId
 			this.worldClient.launchScenario(message.lastScenarioID, false)
-			this.worldClient.player = new Player(message.sID, this.worldClient, this.worldClient.camera, workBox)
+			this.worldClient.player = new Player(message.sID, this.worldClient, this.worldClient.camera, this.worldClient.renderer.domElement)
 			this.worldClient.player.setUID(UID)
 			this.sID = this.worldClient.player.sID
 
