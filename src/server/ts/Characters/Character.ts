@@ -26,6 +26,7 @@ import { IInputReceiver } from '../Interfaces/IInputReceiver'
 import { ICharacterState } from '../Interfaces/ICharacterState'
 import { ICharacterAI } from '../Interfaces/ICharacterAI'
 import { Player } from '../Core/Player'
+import { UiControlsGroup } from '../Enums/UiControlsGroup'
 
 export class Character extends THREE.Object3D implements IWorldEntity, INetwork, IInputReceiver {
 	public uID: string | null
@@ -506,34 +507,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	}
 
 	public displayControls(): void {
-		if (this.world === null) return
-		if (this.world.updateControlsCallBack === null) return
-		this.world.updateControlsCallBack([
-			{
-				keys: ['W', 'A', 'S', 'D'],
-				desc: 'Movement'
-			},
-			{
-				keys: ['Shift'],
-				desc: 'Sprint'
-			},
-			{
-				keys: ['Space'],
-				desc: 'Jump'
-			},
-			{
-				keys: ['F', 'or', 'G'],
-				desc: 'Enter vehicle'
-			},
-			{
-				keys: ['Shift', '+', 'R'],
-				desc: 'Respawn'
-			},
-			{
-				keys: ['Shift', '+', 'C'],
-				desc: 'Free camera'
-			},
-		])
+		if (this.player !== null) this.player.uiControls = UiControlsGroup.Character
 	}
 
 	public inputReceiverUpdate(timeStep: number): void {

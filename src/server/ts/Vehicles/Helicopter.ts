@@ -8,6 +8,7 @@ import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { KeyBinding } from '../Core/KeyBinding'
 import { WorldBase } from '../World/WorldBase'
 import { EntityType } from '../Enums/EntityType'
+import { UiControlsGroup } from '../Enums/UiControlsGroup'
 
 export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 	public entityType: EntityType = EntityType.Helicopter
@@ -197,46 +198,8 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 
 	public inputReceiverInit(): void {
 		super.inputReceiverInit()
-		if (this.world === null) return
-		if (this.world.updateControlsCallBack === null) return
-		this.world.updateControlsCallBack([
-			{
-				keys: ['Shift'],
-				desc: 'Ascend'
-			},
-			{
-				keys: ['Space'],
-				desc: 'Descend'
-			},
-			{
-				keys: ['W', 'S'],
-				desc: 'Pitch'
-			},
-			{
-				keys: ['Q', 'E'],
-				desc: 'Yaw'
-			},
-			{
-				keys: ['A', 'D'],
-				desc: 'Roll'
-			},
-			{
-				keys: ['V'],
-				desc: 'View select'
-			},
-			{
-				keys: ['F'],
-				desc: 'Exit vehicle'
-			},
-			{
-				keys: ['Shift', '+', 'R'],
-				desc: 'Respawn'
-			},
-			{
-				keys: ['Shift', '+', 'C'],
-				desc: 'Free camera'
-			},
-		])
+		if (this.controllingCharacter === null) return
+		if (this.controllingCharacter.player !== null) this.controllingCharacter.player.uiControls = UiControlsGroup.Helicopter
 	}
 	public addToWorld(world: WorldBase): void {
 		super.addToWorld(world)

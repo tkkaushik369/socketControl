@@ -22,22 +22,9 @@ export class Sitting extends CharacterStateBase {
 		// init
 		this.seat = seat
 		this.canFindVehiclesToEnter = false
+		this.character.stopControllingVehicle()
 
-		if (this.character.world !== null) {
-			if (this.character.world.updateControlsCallBack !== null) {
-				this.character.world.updateControlsCallBack([
-					{
-						keys: ['X'],
-						desc: 'Switch seats',
-					},
-					{
-						keys: ['F'],
-						desc: 'Leave seat',
-					}
-				])
-			}
-		}
-
+		if (this.character.player !== null) this.character.player.uiControls = UiControlsGroup.Sitting
 		this.playAnimation('sitting', 0.1)
 	}
 

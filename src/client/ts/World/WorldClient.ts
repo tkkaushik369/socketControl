@@ -7,8 +7,8 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
 import { Utility } from '../../../server/ts/Core/Utility'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
-import { Pane } from 'tweakpane';
-import { FolderApi, TabApi, TabPageApi } from '@tweakpane/core'
+import { Pane } from 'tweakpane'
+import { TabApi, TabPageApi } from '@tweakpane/core'
 import { WorldBase } from '../../../server/ts/World/WorldBase'
 import { CannonDebugRenderer } from '../Utils/CannonDebugRenderer'
 import { AttachModels } from '../Utils/AttachModels'
@@ -17,6 +17,8 @@ import { CSM } from 'three/examples/jsm/csm/CSM'
 import { Sky } from 'three/examples/jsm/objects/Sky'
 import { Ocean } from './Ocean'
 import _ from 'lodash'
+import { UiControlsGroup } from '../../../server/ts/Enums/UiControlsGroup'
+import { UiControls, UiControlsType } from '../../../server/ts/Constants'
 
 export class WorldClient extends WorldBase {
 
@@ -25,6 +27,7 @@ export class WorldClient extends WorldBase {
 	public renderer: THREE.WebGLRenderer
 	public camera: THREE.PerspectiveCamera
 	private clientClock: THREE.Clock
+	public uiControls: UiControlsGroup
 
 	private renderPass: RenderPass
 	private fxaaPass: ShaderPass
@@ -44,7 +47,7 @@ export class WorldClient extends WorldBase {
 	private gui: Pane
 	private mapGUIFolder: TabApi
 	public roomCallers: { [id: string]: any } = {}
-	public playersFolderTabs: TabApi
+	// public playersFolderTabs: TabApi
 	public playerMessages: { [id: string]: string } = {}
 	public worldsGUIFolder: TabPageApi
 	public cannonDebugRenderer: CannonDebugRenderer
@@ -65,6 +68,8 @@ export class WorldClient extends WorldBase {
 		this.debugPhysicsEdgesFunc = this.debugPhysicsEdgesFunc.bind(this)
 		this.toggleStatsFunc = this.toggleStatsFunc.bind(this)
 		this.toggleHelpersFunc = this.toggleHelpersFunc.bind(this)
+		this.togglePingsFunc = this.togglePingsFunc.bind(this)
+		this.toggleControlsFunc = this.toggleControlsFunc.bind(this)
 		this.togglePostFXAA = this.togglePostFXAA.bind(this)
 		this.togglePostOutline = this.togglePostOutline.bind(this)
 		this.pointLockFunc = this.pointLockFunc.bind(this)
@@ -76,13 +81,11 @@ export class WorldClient extends WorldBase {
 
 		// init
 		this.controlsDom = controlsDom
-		this.parentDom = (parentDom !== undefined) ? parentDom : (document.body as HTMLDivElement);
-		// this.updatePhysicsCallback = updatateCallback
+		this.parentDom = (parentDom !== undefined) ? parentDom : (document.body as HTMLDivElement)
 		this.updateAnimationCallback = updatateCallback
-		// this.isClient = true
-		this.updateControlsCallBack = this.updateControls
 		this.launchMapCallback = launchMapCallback
 		this.launchScenarioCallback = launchScenarioCallback
+		this.uiControls = UiControlsGroup.None
 
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -105,7 +108,7 @@ export class WorldClient extends WorldBase {
 		this.clientClock = new THREE.Clock()
 
 		// Ambient Light
-		// this.scene.add(new THREE.AmbientLight(0xaacccc));
+		// this.scene.add(new THREE.AmbientLight(0xaacccc))
 		const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.0)
 		hemiLight.color.setHSL(0.59, 0.4, 0.6)
 		hemiLight.groundColor.setHSL(0.095, 0.2, 0.75)
@@ -125,7 +128,7 @@ export class WorldClient extends WorldBase {
 			elevation: 60,
 			azimuth: 45,
 			exposure: this.renderer.toneMappingExposure
-		};
+		}
 		this.scene.add(this.sky)
 
 		// Shadows
@@ -142,7 +145,7 @@ export class WorldClient extends WorldBase {
 			shadowMapSize: 1024 * 4,
 			lightDirection: new THREE.Vector3(-1, -1, -1).normalize(),
 			camera: this.camera,
-		});
+		})
 		this.csm.fade = true
 
 
@@ -151,14 +154,14 @@ export class WorldClient extends WorldBase {
 
 		{ // Post Processing
 			//
-			const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
-			const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { samples: 4, type: THREE.HalfFloatType });
+			const size = this.renderer.getDrawingBufferSize(new THREE.Vector2())
+			const renderTarget = new THREE.WebGLRenderTarget(size.width, size.height, { samples: 4, type: THREE.HalfFloatType })
 			this.composer = new EffectComposer(this.renderer, renderTarget)
 
 			//
-			this.renderPass = new RenderPass(this.scene, this.camera);
-			// this.renderPass.clearAlpha = 0;
-			const pixelRatio = this.renderer.getPixelRatio();
+			this.renderPass = new RenderPass(this.scene, this.camera)
+			// this.renderPass.clearAlpha = 0
+			const pixelRatio = this.renderer.getPixelRatio()
 
 			//
 			this.fxaaPass = new ShaderPass(FXAAShader)
@@ -171,22 +174,22 @@ export class WorldClient extends WorldBase {
 			this.outlinePass.edgeGlow = 0.0
 			this.outlinePass.edgeThickness = 0.5
 			this.outlinePass.pulsePeriod = 0.0
-			const textureLoader = new THREE.TextureLoader();
+			const textureLoader = new THREE.TextureLoader()
 			textureLoader.load('/images/tri_pattern.jpg', (texture) => {
-				this.outlinePass.patternTexture = texture;
-				texture.wrapS = THREE.RepeatWrapping;
-				texture.wrapT = THREE.RepeatWrapping;
+				this.outlinePass.patternTexture = texture
+				texture.wrapS = THREE.RepeatWrapping
+				texture.wrapT = THREE.RepeatWrapping
 			})
 			this.outlinePass.selectedObjects = []
 			this.outlinePass.usePatternTexture = false
 
 			//
-			this.outputPass = new OutputPass();
+			this.outputPass = new OutputPass()
 
-			this.composer.addPass(this.renderPass);
+			this.composer.addPass(this.renderPass)
 			this.composer.addPass(this.outlinePass)
-			this.composer.addPass(this.fxaaPass);
-			this.composer.addPass(this.outputPass);
+			this.composer.addPass(this.fxaaPass)
+			this.composer.addPass(this.outputPass)
 		}
 
 		// Stats
@@ -209,6 +212,8 @@ export class WorldClient extends WorldBase {
 		let debugSettings = folderSettings.addFolder({ title: 'Helpers', expanded: false })
 		debugSettings.addBinding(this.settings, 'Debug_FPS').on('change', this.toggleStatsFunc)
 		debugSettings.addBinding(this.settings, 'Debug_Helper').on('change', this.toggleHelpersFunc)
+		debugSettings.addBinding(this.settings, 'Debug_Pings').on('change', this.togglePingsFunc)
+		debugSettings.addBinding(this.settings, 'Debug_Controls').on('change', this.toggleControlsFunc)
 
 		let postProcess = folderSettings.addFolder({ title: 'Post Process', expanded: false })
 		postProcess.addBinding(this.settings, 'PostProcess')
@@ -257,7 +262,7 @@ export class WorldClient extends WorldBase {
 		this.worldsGUIFolder = this.mapGUIFolder.pages[2]
 
 		// Players Gui
-		let playersGui = new Pane({ container: document.getElementById('gui-players') as HTMLDivElement })
+		/* let playersGui = new Pane({ container: document.getElementById('gui-players') as HTMLDivElement })
 		let playersFolder = playersGui.addFolder({ title: '#', expanded: false })
 		this.playersFolderTabs = playersFolder.addTab({
 			pages: [
@@ -265,15 +270,15 @@ export class WorldClient extends WorldBase {
 				{ title: 'World Players' },
 				{ title: 'All Players' },
 			]
-		})
+		}) */
 
 		// Chat
-		/* playersFolderTabs.pages[0].addBinding(this.playerMessages, this.player!.uID as string, {
+		/* this.playersFolderTabs.pages[0].addBinding(this.playerMessages, this.player!.uID as string, {
 			readonly: true,
 			bufferSize: 10,
 			multiline: true,
 			rows: 5,
-		}); */
+		}) */
 
 
 		// Resize
@@ -286,7 +291,9 @@ export class WorldClient extends WorldBase {
 			this.debugPhysicsOpacityFunc({ value: this.settings.Debug_Physics_MeshOpacity })
 			this.debugPhysicsEdgesFunc({ value: this.settings.Debug_Physics_MeshEdges })
 			this.toggleStatsFunc({ value: this.settings.Debug_FPS })
-			this.toggleHelpersFunc({ value: this.settings.Debug_Helper })
+			this.toggleHelpersFunc({ value: this.settings.Debug_Controls })
+			this.togglePingsFunc({ value: this.settings.Debug_Pings })
+			this.toggleControlsFunc({ value: this.settings.Debug_Helper })
 			this.togglePostFXAA({ value: this.settings.FXAA })
 			this.togglePostOutline({ value: this.settings.Outline })
 			this.pointLockFunc({ value: this.settings.Pointer_Lock })
@@ -314,7 +321,7 @@ export class WorldClient extends WorldBase {
 		gltf.scene.traverse((child: any) => {
 			if (child.hasOwnProperty('userData')) {
 				if (child.type === 'Mesh') {
-					this.csm.setupMaterial(child.material);
+					this.csm.setupMaterial(child.material)
 
 					if (child.material.name === 'ocean') { // only sketchbook
 						this.oceans.push(new Ocean(child, this))
@@ -338,7 +345,40 @@ export class WorldClient extends WorldBase {
 		this.composer.setSize(width, height)
 	}
 
-	private updateControls(controls: { keys: string[], desc: string }[]): void {
+	public updateControls(type: UiControlsGroup): void {
+		let controls: UiControlsType
+
+		switch (type) {
+			case UiControlsGroup.CameraOperator: {
+				controls = UiControls.CameraOperator
+				break
+			}
+			case UiControlsGroup.Character: {
+				controls = UiControls.Character
+				break
+			}
+			case UiControlsGroup.Sitting: {
+				controls = UiControls.Sitting
+				break
+			}
+			case UiControlsGroup.Car: {
+				controls = UiControls.Car
+				break
+			}
+			case UiControlsGroup.Helicopter: {
+				controls = UiControls.Helicopter
+				break
+			}
+			case UiControlsGroup.Airplane: {
+				controls = UiControls.Airplane
+				break
+			}
+			default: {
+				controls = []
+				break
+			}
+		}
+
 		let html = ''
 		html += '<h2 class="controls-title">Controls:</h2>'
 
@@ -353,6 +393,7 @@ export class WorldClient extends WorldBase {
 		})
 
 		this.controlsDom.innerHTML = html
+		this.uiControls = type
 	}
 
 	// Gui Functions
@@ -402,6 +443,14 @@ export class WorldClient extends WorldBase {
 		})
 	}
 
+	private togglePingsFunc(en: { value: boolean }) {
+		(document.getElementById("pingStats") as HTMLDivElement).style.display = en.value ? "block" : "none"
+	}
+
+	private toggleControlsFunc(en: { value: boolean }) {
+		this.controlsDom.style.display = en.value ? "block" : "none"
+	}
+
 	private togglePostFXAA(en: { value: boolean }) {
 		this.fxaaPass.enabled = en.value
 	}
@@ -426,22 +475,22 @@ export class WorldClient extends WorldBase {
 	}
 
 	public sunGuiChanged() {
-		const uniforms = this.sky.material.uniforms;
-		uniforms['turbidity'].value = this.effectController.turbidity;
-		uniforms['rayleigh'].value = this.effectController.rayleigh;
-		uniforms['mieCoefficient'].value = this.effectController.mieCoefficient;
-		uniforms['mieDirectionalG'].value = this.effectController.mieDirectionalG;
+		const uniforms = this.sky.material.uniforms
+		uniforms['turbidity'].value = this.effectController.turbidity
+		uniforms['rayleigh'].value = this.effectController.rayleigh
+		uniforms['mieCoefficient'].value = this.effectController.mieCoefficient
+		uniforms['mieDirectionalG'].value = this.effectController.mieDirectionalG
 
-		const phi = THREE.MathUtils.degToRad(90 - this.effectController.elevation);
-		const theta = THREE.MathUtils.degToRad(this.effectController.azimuth);
+		const phi = THREE.MathUtils.degToRad(90 - this.effectController.elevation)
+		const theta = THREE.MathUtils.degToRad(this.effectController.azimuth)
 
-		this.sun.setFromSphericalCoords(1, phi, theta);
+		this.sun.setFromSphericalCoords(1, phi, theta)
 
-		uniforms['sunPosition'].value.copy(this.sun);
+		uniforms['sunPosition'].value.copy(this.sun)
 		this.csm.lightDirection = new THREE.Vector3().copy(this.sun).normalize().multiplyScalar(-1)
 
-		this.renderer.toneMappingExposure = this.effectController.exposure;
-		this.renderer.render(this.scene, this.camera);
+		this.renderer.toneMappingExposure = this.effectController.exposure
+		this.renderer.render(this.scene, this.camera)
 	}
 
 	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
@@ -480,7 +529,7 @@ export class WorldClient extends WorldBase {
 		if (this.settings.Debug_Physics) this.cannonDebugRenderer.update()
 
 		if (this.settings.PostProcess)
-			this.composer.render();
+			this.composer.render()
 		else
 			this.renderer.render(this.scene, this.camera)
 	}

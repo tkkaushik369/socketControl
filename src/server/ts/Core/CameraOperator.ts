@@ -7,6 +7,7 @@ import { WorldBase } from '../World/WorldBase'
 import { Player } from '../Core/Player'
 import { KeyBinding } from './KeyBinding'
 import { Character } from '../Characters/Character'
+import { UiControlsGroup } from '../Enums/UiControlsGroup'
 
 export class CameraOperator implements IUpdatable, IInputReceiver {
 	public updateOrder: number = 4
@@ -36,9 +37,6 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	public followMode: boolean = false
 
 	public characterCaller: Character | null
-
-	// client
-	public updateControlsCallBack: Function | null
 
 	constructor(player: Player, world: WorldBase, camera: THREE.PerspectiveCamera, sensitivityX: number = 1, sensitivityY: number = sensitivityX * 0.8) {
 		// bind functions
@@ -109,8 +107,7 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 			this.camera.position.x = newPos.x
 			this.camera.position.y = newPos.y
 			this.camera.position.z = newPos.z
-		}
-		else {
+		} else {
 			this.radius = THREE.MathUtils.lerp(this.radius, this.targetRadius, 0.1)
 
 			this.camera.position.x = this.target.x + this.radius * Math.sin(this.theta * Math.PI / 180) * Math.cos(this.phi * Math.PI / 180)
@@ -175,26 +172,7 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 		this.target.copy(this.camera.position)
 		this.setRadius(0, true)
 
-		if (this.world.updateControlsCallBack !== null) {
-			this.world.updateControlsCallBack([
-				{
-					keys: ['W', 'S', 'A', 'D'],
-					desc: 'Move around'
-				},
-				{
-					keys: ['E', 'Q'],
-					desc: 'Move up / down'
-				},
-				{
-					keys: ['Shift'],
-					desc: 'Speed up'
-				},
-				{
-					keys: ['Shift', '+', 'C'],
-					desc: 'Exit free camera mode'
-				},
-			])
-		}
+		if (this.player !== null) this.player.uiControls = UiControlsGroup.CameraOperator
 	}
 
 	public inputReceiverUpdate(timeStep: number) {

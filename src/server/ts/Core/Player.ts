@@ -8,6 +8,7 @@ import { CharacterSpawnPoint } from '../World/SpawnPoints/CharacterSpawnPoint'
 import { Character } from '../Characters/Character'
 import _ from 'lodash'
 import { WebSocket } from 'ws'
+import { UiControlsGroup } from '../Enums/UiControlsGroup'
 
 export type PlayerSetMesssage = {
 	sID: string,
@@ -28,18 +29,21 @@ export class Player implements INetwork {
 	ping: number
 
 	data: {
+		isWS: boolean,
 		worldId: string | null,
 		sun: {
 			elevation: number, // 0 to 90
 			azimuth: number, // -180 to 180
 		},
 		timeScaleTarget: number,
-		cameraPosition: { x: number; y: number; z: number }
-		cameraQuaternion: { x: number; y: number; z: number, w: number }
+		cameraPosition: { x: number, y: number, z: number }
+		cameraQuaternion: { x: number, y: number, z: number, w: number }
 	}
 
 	inputManager: InputManager
 	cameraOperator: CameraOperator
+
+	uiControls: UiControlsGroup
 
 	spawnPoint: CharacterSpawnPoint | null
 	character: Character | null
@@ -77,8 +81,10 @@ export class Player implements INetwork {
 
 		this.spawnPoint = null
 		this.character = null
+		this.uiControls = UiControlsGroup.CameraOperator
 
 		this.data = {
+			isWS: false,
 			worldId: this.world.worldId,
 			sun: { elevation: 0, azimuth: 0 },
 			timeScaleTarget: 1,
@@ -99,7 +105,7 @@ export class Player implements INetwork {
 		}))
 	}
 
-	public setSpawn(pos: THREE.Vector3, isPlayerNearVehical: boolean, deg?: number) {
+	public setSpawn(pos: THREE.Vector3, isPlayerNearVehicle: boolean, deg?: number) {
 		let spawnPlayer = new THREE.Object3D()
 		spawnPlayer.userData = {
 			name: this.uID + "_character",
@@ -107,7 +113,7 @@ export class Player implements INetwork {
 			type: "player",
 		}
 		spawnPlayer.position.copy(pos)
-		if (isPlayerNearVehical && (deg !== undefined)) {
+		if (isPlayerNearVehicle && (deg !== undefined)) {
 			const angle = deg * (Math.PI / 180)
 			const dist = 1
 			spawnPlayer.rotateY(angle)
@@ -149,6 +155,7 @@ export class Player implements INetwork {
 			ping: this.ping,
 
 			data: {
+				uiControls: this.uiControls,
 				isWS: (this.ws !== null),
 				worldId: this.world.worldId,
 				sun: {

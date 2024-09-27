@@ -50,7 +50,6 @@ export abstract class ExitingStateBase extends CharacterStateBase {
 		if ((this.character.world !== null) && !this.character.world.isClient)
 			this.character.setPosition(this.character.position.x, this.character.position.y, this.character.position.z)
 		this.character.inputReceiverUpdate(16)
-		this.character.inputReceiverUpdate(16)
 		this.character.characterCapsule.body.velocity.copy(this.vehicle.rayCastVehicle.chassisBody.velocity)
 		this.character.feetRaycast()
 	}

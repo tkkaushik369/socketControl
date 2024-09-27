@@ -8,7 +8,7 @@ import { SpringSimulator } from '../Physics/SpringSimulation/SpringSimulator'
 import { Utility } from '../Core/Utility'
 import { EntityType } from '../Enums/EntityType'
 import { WorldBase } from '../World/WorldBase'
-import { MessageTypes } from '../Enums/MessagesTypes'
+import { UiControlsGroup } from '../Enums/UiControlsGroup'
 
 export class Airplane extends Vehicle implements IWorldEntity {
 	public entityType: EntityType = EntityType.Airplane
@@ -335,50 +335,8 @@ export class Airplane extends Vehicle implements IWorldEntity {
 
 	public inputReceiverInit(): void {
 		super.inputReceiverInit()
-		if (this.world === null) return
-		if (this.world.updateControlsCallBack === null) return
-		this.world.updateControlsCallBack([
-			{
-				keys: ['Shift'],
-				desc: 'Accelerate'
-			},
-			{
-				keys: ['Space'],
-				desc: 'Decelerate'
-			},
-			{
-				keys: ['W', 'S'],
-				desc: 'Elevators'
-			},
-			{
-				keys: ['A', 'D'],
-				desc: 'Ailerons'
-			},
-			{
-				keys: ['Q', 'E'],
-				desc: 'Rudder / Steering'
-			},
-			{
-				keys: ['B'],
-				desc: 'Brake'
-			},
-			{
-				keys: ['V'],
-				desc: 'View select'
-			},
-			{
-				keys: ['F'],
-				desc: 'Exit vehicle'
-			},
-			{
-				keys: ['Shift', '+', 'R'],
-				desc: 'Respawn'
-			},
-			{
-				keys: ['Shift', '+', 'C'],
-				desc: 'Free camera'
-			},
-		])
+		if (this.controllingCharacter === null) return
+		if (this.controllingCharacter.player !== null) this.controllingCharacter.player.uiControls = UiControlsGroup.Airplane
 	}
 
 	public addToWorld(world: WorldBase): void {

@@ -12,7 +12,7 @@ import { Common } from './Common'
 import express from 'express'
 import path from 'path'
 import http from 'http'
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws'
 import { Server, Socket } from 'socket.io'
 import parser from 'socket.io-msgpack-parser'
 import { Utility } from './ts/Core/Utility'
@@ -20,9 +20,9 @@ import { Player, PlayerSetMesssage } from './ts/Core/Player'
 import { WorldServer } from './ts/World/WorldServer'
 import { ControlsTypes } from './ts/Enums/ControlsTypes'
 import { MessageTypes } from './ts/Enums/MessagesTypes'
-import { Communication, DataSender } from './ts/Enums/Communication';
+import { Communication, DataSender } from './ts/Enums/Communication'
 
-const port: number = Number(process.env.PORT) || 3000;
+const port: number = Number(process.env.PORT) || 3000
 const privateHost: boolean = false
 
 class AppServer {
@@ -46,6 +46,7 @@ class AppServer {
 		this.OnChange = this.OnChange.bind(this)
 		this.OnMap = this.OnMap.bind(this)
 		this.OnScenario = this.OnScenario.bind(this)
+		this.OnMessage = this.OnMessage.bind(this)
 		this.ForSocketLoop = this.ForSocketLoop.bind(this)
 		this.GetLatestWorldData = this.GetLatestWorldData.bind(this)
 		this.RemoveUnusedWorlds = this.RemoveUnusedWorlds.bind(this)
@@ -64,7 +65,7 @@ class AppServer {
 			this.wss = null
 		} else if (Common.conn === Communication.WebSocket) {
 			this.io = null
-			this.wss = new WebSocketServer({ server: this.server/* port: 3001 */ });
+			this.wss = new WebSocketServer({ server: this.server/* port: 3001 */ })
 		} else {
 			this.io = null
 			this.wss = null
@@ -81,10 +82,10 @@ class AppServer {
 				socket.on("change", (worldId: string, callBack: Function) => this.OnChange(socket, worldId, callBack))
 				socket.on("map", (mapName: string) => this.OnMap(socket.id, mapName))
 				socket.on("scenario", (scenarioName: string) => this.OnScenario(socket.id, scenarioName))
+				socket.on("message", (messageData: { [id: string]: string }) => this.OnMessage(messageData))
 				socket.on("update", (message: any, callBack: Function) => this.OnUpdate(socket.id, message, callBack))
 			})
-		}
-		if (this.wss !== null) {
+		} else if (this.wss !== null) {
 			this.wss.on('connection', (ws) => {
 				const sID = "soc_" + this.uid
 				{ // OnConnect
@@ -95,60 +96,53 @@ class AppServer {
 					const data = JSON.parse(rawdata)
 
 					switch (data.type) {
-						case "setIDCallBack":
-							{
-								this.CreatePlayerWorldCallBack(data.params.uID, data.params.sID)
-								if ((data.params.sID !== undefined) && (this.allUsers[data.params.sID] !== undefined)) {
-									this.allUsers[data.params.sID].ws = ws
+						case "setIDCallBack": {
+							this.CreatePlayerWorldCallBack(data.params.uID, data.params.sID)
+							if ((data.params.sID !== undefined) && (this.allUsers[data.params.sID] !== undefined)) {
+								this.allUsers[data.params.sID].ws = ws
+							}
+							break
+						}
+						case "update": {
+							this.OnUpdate(data.params.sID, data.params, () => {
+								let alldata: { [id: string]: any } = {}
+								if (Common.sender === DataSender.PingPong)
+									if (this.allUsers[data.params.sID] !== undefined)
+										alldata = this.GetLatestWorldData(this.allUsers[data.params.sID].world.worldId)
+								ws.send(JSON.stringify({ type: "ForSocketLoopCallBack", params: alldata }))
+							})
+							break
+						}
+						case "controls": {
+							this.OnControls(data.params.sID, data.params)
+							break
+						}
+						case "map": {
+							this.OnMap(data.params.sID, data.params.map)
+							break
+						}
+						case "scenario": {
+							this.OnScenario(data.params.sID, data.params.scenario)
+							break
+						}
+						case "message": {
+							this.OnMessage(data.params)
+							break
+						}
+						case "change": {
+							this.OnChange({ id: data.params.sID }, data.params.worldId, (params: { worldId: string, lastMapID: string, lastScenarioID: string }) => {
+								if (this.allUsers[sID].ws !== null) {
+									this.allUsers[sID].ws.send(JSON.stringify({
+										type: "change", params
+									}))
 								}
-								break;
-							}
-						case "update":
-							{
-								this.OnUpdate(data.params.sID, data.params, () => {
-									let alldata: { [id: string]: any } = {}
-									if (Common.sender === DataSender.PingPong)
-										if (this.allUsers[data.params.sID] !== undefined)
-											alldata = this.GetLatestWorldData(this.allUsers[data.params.sID].world.worldId)
-									ws.send(JSON.stringify({ type: "ForSocketLoopCallBack", params: alldata }))
-								})
-								break
-							}
-						case "controls":
-							{
-								this.OnControls(data.params.sID, data.params)
-								break
-							}
-						case "map":
-							{
-								this.OnMap(data.params.sID, data.params.map)
-								break
-							}
-						case "scenario":
-							{
-								this.OnScenario(data.params.sID, data.params.scenario)
-								break
-							}
-						case "change":
-							{
-								this.OnChange({ id: data.params.sID }, data.params.worldId, (worldId: string, lastMapID: string, lastScenarioID: string) => {
-									if (this.allUsers[sID].ws !== null) {
-										this.allUsers[sID].ws.send(JSON.stringify({
-											type: "change", params: {
-												worldId: this.allUsers[sID].world.worldId,
-												lastMapID: this.allUsers[sID].world.lastMapID,
-												lastScenarioID: this.allUsers[sID].world.lastScenarioID
-											}
-										}))
-									}
-								})
-								break
-							}
-						default:
-							{
-								console.log('received: %s', rawdata)
-								break;
-							}
+							})
+							break
+						}
+						default: {
+							console.log('received: %s', rawdata)
+							break
+						}
 					}
 				})
 
@@ -203,15 +197,18 @@ class AppServer {
 
 		const onFinish = () => {
 			console.log(`Client disconnected: ${sID} <- ${this.allUsers[sID].uID}`)
+
 			{
 				if (this.io !== null)
 					this.io.emit("removeClient", sID)
-				Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
-					if (this.allUsers[sID].world.users[wsID] !== undefined) {
-						if (this.allUsers[sID].world.users[wsID].ws !== null)
-							this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "removeClient", params: { sID: sID } }))
-					}
-				})
+				else {
+					Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
+						if (this.allUsers[sID].world.users[wsID] !== undefined) {
+							if (this.allUsers[sID].world.users[wsID].ws !== null)
+								this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "removeClient", params: { sID: sID } }))
+						}
+					})
+				}
 			}
 			this.allUsers[sID].removeUser()
 
@@ -237,7 +234,7 @@ class AppServer {
 							clearInterval(myInterval)
 							onFinish()
 						}
-					}, 15);
+					}, 15)
 				} else onFinish()
 			}
 		}
@@ -246,16 +243,19 @@ class AppServer {
 	private OnControls(sID: string, controls: { type: ControlsTypes, data: { [id: string]: any } }) {
 		if (this.allUsers[sID] !== undefined) {
 			this.allUsers[sID].inputManager.setControls(controls)
-			controls['sID'] = sID;
+			controls['sID'] = sID
+
 			{
 				if (this.io !== null)
 					this.io.emit('controls', controls)
-				Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
-					if (this.allUsers[sID].world.users[wsID] !== undefined) {
-						if (this.allUsers[sID].world.users[wsID].ws !== null)
-							this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "controls", params: controls }))
-					}
-				})
+				else {
+					Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
+						if (this.allUsers[sID].world.users[wsID] !== undefined) {
+							if (this.allUsers[sID].world.users[wsID].ws !== null)
+								this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "controls", params: controls }))
+						}
+					})
+				}
 			}
 		}
 	}
@@ -301,40 +301,49 @@ class AppServer {
 			}
 		}
 		this.allUsers[socket.id].addUser()
-		callBack(this.allUsers[socket.id].world.worldId, this.allUsers[socket.id].world.lastMapID, this.allUsers[socket.id].world.lastScenarioID)
+		callBack({
+			worldId: this.allUsers[socket.id].world.worldId,
+			lastMapID: this.allUsers[socket.id].world.lastMapID,
+			lastScenarioID: this.allUsers[socket.id].world.lastScenarioID
+		})
 	}
 
 	private OnMap(sID: string, mapName: string) {
 		console.log(`Map: ${mapName}`)
 		if (this.allUsers[sID] === undefined) return
-
 		this.allUsers[sID].world.launchMap(mapName, false, true)
+
 		{
 			if (this.io !== null)
 				this.io.in(this.allUsers[sID].world.worldId).emit("map", mapName)
-			Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
-				if (this.allUsers[sID].world.users[wsID] !== undefined) {
-					if (this.allUsers[sID].world.users[wsID].ws !== null) {
-						this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "map", params: { map: mapName } }))
+			else {
+				Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
+					if (this.allUsers[sID].world.users[wsID] !== undefined) {
+						if (this.allUsers[sID].world.users[wsID].ws !== null) {
+							this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "map", params: { map: mapName } }))
+						}
 					}
-				}
-			})
+				})
+			}
 		}
 	}
 
 	private OnScenario(sID: string, scenarioName: string) {
 		console.log(`Scenario: ${scenarioName}`)
 		this.allUsers[sID].world.launchScenario(scenarioName, false)
+
 		{
 			if (this.io !== null)
 				this.io.in(this.allUsers[sID].world.worldId).emit("scenario", scenarioName)
-			Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
-				if (this.allUsers[sID].world.users[wsID] !== undefined) {
-					if (this.allUsers[sID].world.users[wsID].ws !== null) {
-						this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "scenario", params: { scenario: scenarioName } }))
+			else {
+				Object.keys(this.allUsers[sID].world.users).forEach((wsID) => {
+					if (this.allUsers[sID].world.users[wsID] !== undefined) {
+						if (this.allUsers[sID].world.users[wsID].ws !== null) {
+							this.allUsers[sID].world.users[wsID].ws.send(JSON.stringify({ type: "scenario", params: { scenario: scenarioName } }))
+						}
 					}
-				}
-			})
+				})
+			}
 		}
 	}
 
@@ -346,20 +355,45 @@ class AppServer {
 		callBack()
 	}
 
+	private OnMessage(messageData: { [id: string]: string }) {
+		if (messageData.sID === undefined) return
+		if (this.allUsers[messageData.sID] === undefined) return
+		if (this.allUsers[messageData.sID].uID === null) return
+		if (this.allUsers[messageData.sID].world.worldId === null) return
+		this.allUsers[messageData.sID].world.chatData.push({ from: this.allUsers[messageData.sID].uID, message: messageData.message })
+
+		{
+			if (this.io !== null)
+				this.io.in(this.allUsers[messageData.sID].world.worldId).emit("message", messageData)
+			else {
+				Object.keys(this.allUsers[messageData.sID].world.users).forEach((wsID) => {
+					if (this.allUsers[messageData.sID].world.users[wsID] !== undefined) {
+						if (this.allUsers[messageData.sID].world.users[wsID].ws !== null) {
+							this.allUsers[messageData.sID].world.users[wsID].ws.send(JSON.stringify({ type: "message", params: messageData }))
+						}
+					}
+				})
+			}
+		}
+	}
+
 	private ForSocketLoop(worldId: string) {
 		if (Common.sender !== DataSender.SocketLoop) return
 		if (this.allWorlds[worldId] === undefined) return
 
 		let alldata = this.GetLatestWorldData(worldId)
+
 		{
 			if (this.io !== null)
 				this.io.in(worldId).emit("update", alldata)
-			Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
-				if ((this.allWorlds[worldId].users[sID] !== undefined) && (this.allWorlds[worldId].users[sID].uID !== undefined)) {
-					if (this.allWorlds[worldId].users[sID].ws !== null)
-						this.allWorlds[worldId].users[sID].ws.send(JSON.stringify({ type: "update", params: alldata }))
-				}
-			})
+			else {
+				Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
+					if ((this.allWorlds[worldId].users[sID] !== undefined) && (this.allWorlds[worldId].users[sID].uID !== undefined)) {
+						if (this.allWorlds[worldId].users[sID].ws !== null)
+							this.allWorlds[worldId].users[sID].ws.send(JSON.stringify({ type: "update", params: alldata }))
+					}
+				})
+			}
 		}
 	}
 
@@ -373,7 +407,7 @@ class AppServer {
 					if (this.allWorlds[id].users[sID] !== undefined) {
 						users.push(this.allWorlds[id].users[sID].uID)
 					}
-				});
+				})
 				alldata[id] = {
 					uID: id,
 					msgType: MessageTypes.World,

@@ -18,7 +18,7 @@ import { IInputReceiver } from '../Interfaces/IInputReceiver'
 
 export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, IInputReceiver, IControllable, INetwork {
 	public uID: string | null
-	public msgType: MessageTypes = MessageTypes.Vehical
+	public msgType: MessageTypes = MessageTypes.Vehicle
 	public timeStamp: number
 	public ping: number
 

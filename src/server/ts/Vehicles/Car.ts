@@ -8,6 +8,7 @@ import { Utility } from '../Core/Utility'
 import { SpringSimulator } from '../Physics/SpringSimulation/SpringSimulator'
 import { WorldBase } from '../World/WorldBase'
 import { EntityType } from '../Enums/EntityType'
+import { UiControlsGroup } from '../Enums/UiControlsGroup'
 
 export class Car extends Vehicle implements IControllable {
 	public entityType: EntityType = EntityType.Car
@@ -283,39 +284,8 @@ export class Car extends Vehicle implements IControllable {
 
 	public inputReceiverInit(): void {
 		super.inputReceiverInit()
-		if (this.world === null) return
-		if (this.world.updateControlsCallBack === null) return
-
-		this.world.updateControlsCallBack([
-			{
-				keys: ['W', 'S'],
-				desc: 'Accelerate, Brake / Reverse'
-			},
-			{
-				keys: ['A', 'D'],
-				desc: 'Steering'
-			},
-			{
-				keys: ['Space'],
-				desc: 'Handbrake'
-			},
-			{
-				keys: ['V'],
-				desc: 'View select'
-			},
-			{
-				keys: ['F'],
-				desc: 'Exit vehicle'
-			},
-			{
-				keys: ['Shift', '+', 'R'],
-				desc: 'Respawn'
-			},
-			{
-				keys: ['Shift', '+', 'C'],
-				desc: 'Free camera'
-			},
-		])
+		if (this.controllingCharacter === null) return
+		if (this.controllingCharacter.player !== null) this.controllingCharacter.player.uiControls = UiControlsGroup.Car
 	}
 
 	public readCarData(gltf: any): void {

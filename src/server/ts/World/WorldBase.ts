@@ -62,7 +62,6 @@ export abstract class WorldBase {
 	public player: Player | null
 	public isClient: boolean
 	protected doPhysics: boolean
-	public updateControlsCallBack: Function | null
 	public scenarioGUIFolderCallback: TabPageApi | null
 	public launchMapCallback: Function | null
 	public launchScenarioCallback: Function | null
@@ -118,13 +117,13 @@ export abstract class WorldBase {
 
 		this.sceneObjects = []
 		this.worldObjects = []
+		this.chatData = []
 
 		this.updatePhysicsCallback = null
 		this.runner = null
 
 		this.isClient = isClient
 		this.doPhysics = true
-		this.updateControlsCallBack = null
 		this.scenarioGUIFolderCallback = null
 		this.launchMapCallback = null
 		this.launchScenarioCallback = null
@@ -143,6 +142,8 @@ export abstract class WorldBase {
 			Debug_Physics_MeshEdges: false,
 			Debug_FPS: true,
 			Debug_Helper: true,
+			Debug_Pings: true,
+			Debug_Controls: true,
 			PostProcess: false,
 			FXAA: false,
 			Outline: false,

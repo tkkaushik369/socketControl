@@ -41,9 +41,6 @@ body {
 	overflow-y: scroll;
 	scrollbar-width: none;
 	color: #1a1a1a
-		/* text-shadow: 1px 0px #000000, -1px 0px #000000, 0px 1px #000000, 0px -1px #000000; */
-
-		/* background-color: rgba(10, 10, 10, 0.3); */
 }
 
 #pingStats::-webkit-scrollbar {
@@ -109,6 +106,16 @@ body {
 	font-family: 'Courier New', Courier, monospace;
 	user-select: none;
 	opacity: 0.4;
+
+	background-color: #1a1a1a;
+	padding: 4px;
+	min-width: 160px;
+
+}
+
+#chat-messages {
+	min-width: 160px;
+	min-height: 64px;
 }
 
 #controls-main {

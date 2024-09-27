@@ -127,10 +127,16 @@ export class InputManager implements IUpdatable {
 	}
 
 	public onKeyDown(event: KeyboardEvent): void {
+		if (event.target instanceof HTMLInputElement) {
+			return
+		}
 		this.setKeyboard(event.code, event.shiftKey, true, true)
 	}
 
 	public onKeyUp(event: KeyboardEvent): void {
+		if (event.target instanceof HTMLInputElement) {
+			return
+		}
 		this.setKeyboard(event.code, event.shiftKey, false, true)
 	}
 
