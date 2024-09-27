@@ -29,14 +29,11 @@ export class RandomBehaviour extends CharacterAIBase implements ICharacterAI {
 			this.setCharacterTriggerAction('up', true)
 			this.character.charState.update(timeStep)
 			this.setCharacterTriggerAction('up', false)
-		}
-		else if (rndInt === 1) {
+		} else if (rndInt === 1) {
 			this.setCharacterTriggerAction('up', rndBool)
-		}
-		else if (rndInt === 2) {
+		} else if (rndInt === 2) {
 			this.setCharacterTriggerAction('run', rndBool)
-		}
-		else if (rndInt === 3) {
+		} else if (rndInt === 3) {
 			this.setCharacterTriggerAction('jump', rndBool)
 		}
 	}

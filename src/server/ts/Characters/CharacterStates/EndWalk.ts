@@ -9,8 +9,8 @@ import { ICharacterState } from '../../Interfaces/ICharacterState'
 import { Character } from '../Character'
 
 export class EndWalk extends CharacterStateBase implements ICharacterState {
-	
 	state = 'EndWalk'
+	
 	constructor(character: Character) {
 		super(character)
 		// bind function
@@ -26,7 +26,6 @@ export class EndWalk extends CharacterStateBase implements ICharacterState {
 		await super.update(timeStep)
 
 		if (this.animationEnded(timeStep)) {
-
 			this.character.setState(new Idle(this.character))
 		}
 
@@ -43,12 +42,10 @@ export class EndWalk extends CharacterStateBase implements ICharacterState {
 		if (this.anyDirection()) {
 			if (this.character.actions.run.isPressed) {
 				this.character.setState(new Sprint(this.character))
-			}
-			else {
+			} else {
 				if (this.character.velocity.length() > 0.5) {
 					this.character.setState(new Walk(this.character))
-				}
-				else {
+				} else {
 					this.setAppropriateStartWalkState()
 				}
 			}

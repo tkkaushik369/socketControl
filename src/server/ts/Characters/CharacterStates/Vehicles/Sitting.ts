@@ -8,6 +8,7 @@ import {
 import { Character } from '../../Character'
 import { VehicleSeat } from '../../../Vehicles/VehicleSeat'
 import { SeatType } from '../../../Enums/SeatType'
+import { UiControlsGroup } from '../../../Enums/UiControlsGroup'
 
 export class Sitting extends CharacterStateBase {
 	state = 'Sitting'
@@ -32,8 +33,7 @@ export class Sitting extends CharacterStateBase {
 		await super.update(timeStep)
 		if ((this.seat.door !== null) && !this.seat.door.achievingTargetRotation && (this.seat.door.rotation > 0) && this.noDirection()) {
 			this.character.setState(new CloseVehicleDoorInside(this.character, this.seat))
-		}
-		else if (this.character.vehicleEntryInstance !== null) {
+		} else if (this.character.vehicleEntryInstance !== null) {
 			if (this.character.vehicleEntryInstance.wantsToDrive) {
 				for (const possibleDriverSeat of this.seat.connectedSeats) {
 					if (possibleDriverSeat.type === SeatType.Driver) {
@@ -43,8 +43,7 @@ export class Sitting extends CharacterStateBase {
 						break
 					}
 				}
-			}
-			else {
+			} else {
 				this.character.vehicleEntryInstance = null
 			}
 		}

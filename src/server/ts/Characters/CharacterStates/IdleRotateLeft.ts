@@ -9,6 +9,7 @@ import { Character } from '../Character'
 
 export class IdleRotateLeft extends CharacterStateBase implements ICharacterState {
 	state = 'IdleRotateLeft'
+	
 	constructor(character: Character) {
 		super(character)
 		// bind functions
@@ -46,8 +47,7 @@ export class IdleRotateLeft extends CharacterStateBase implements ICharacterStat
 		if (this.anyDirection()) {
 			if (this.character.velocity.length() > 0.5) {
 				this.character.setState(new Walk(this.character))
-			}
-			else {
+			} else {
 				this.setAppropriateStartWalkState()
 			}
 		}

@@ -37,11 +37,9 @@ export class JumpRunning extends CharacterStateBase implements ICharacterState {
 			this.character.rotationSimulator.damping = 0.3
 			this.character.arcadeVelocityIsAdditive = true
 			this.character.setArcadeVelocityInfluence(0.05, 0, 0.05)
-		}
-		else if (this.timer > 0.24 && this.character.rayHasHit) {
+		} else if (this.timer > 0.24 && this.character.rayHasHit) {
 			this.setAppropriateDropState()
-		}
-		else if (this.animationEnded(timeStep)) {
+		} else if (this.animationEnded(timeStep)) {
 			this.character.setState(new Falling(this.character))
 		}
 	}

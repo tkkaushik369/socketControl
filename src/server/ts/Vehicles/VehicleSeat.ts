@@ -48,15 +48,13 @@ export class VehicleSeat {
 						}
 					}
 				}
-			}
-			else {
+			} else {
 				console.error('Seat object ' + object + ' has no entry point reference property.')
 			}
 
 			if (object.userData.hasOwnProperty('seat_type')) {
 				this.type = object.userData.seat_type
-			}
-			else {
+			} else {
 				console.error('Seat object ' + object + ' has no seat type property.')
 			}
 

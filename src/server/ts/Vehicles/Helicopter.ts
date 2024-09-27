@@ -63,8 +63,7 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 		if (this.controllingCharacter !== null) {
 			if (this.enginePower < 1) this.enginePower += timeStep * 0.2
 			if (this.enginePower > 1) this.enginePower = 1
-		}
-		else {
+		} else {
 			if (this.enginePower > 0) this.enginePower -= timeStep * 0.06
 			if (this.enginePower < 0) this.enginePower = 0
 		}
@@ -215,11 +214,11 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 		const msg = super.Out()
 		const doors: { [id: string]: any }[] = []
 		this.seats.forEach((seat) => {
-			if ((seat.door !== null) &&(seat.door.doorObject !== null)) doors.push({
+			if ((seat.door !== null) && (seat.door.doorObject !== null)) doors.push({
 				position: {
 					x: seat.door.doorObject.position.x,
 					y: seat.door.doorObject.position.y,
-					z: seat.door.doorObject.position.z	
+					z: seat.door.doorObject.position.z
 				},
 				quaternion: {
 					x: seat.door.doorObject.quaternion.x,
@@ -273,7 +272,7 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 					messages.data.rotors[i].quaternion.y,
 					messages.data.rotors[i].quaternion.z,
 					messages.data.rotors[i].quaternion.w,
-				);
+				)
 			}
 		}
 	}

@@ -19,7 +19,7 @@ export class FollowPath extends FollowTarget implements ICharacterAI {
 		super(character, firstNode.object, 0)
 		// bind functions
 		this.update = this.update.bind(this)
-		this.setVehicalTriggerAction = this.setVehicalTriggerAction.bind(this)
+		this.setVehicleTriggerAction = this.setVehicleTriggerAction.bind(this)
 
 		// init
 		this.nodeRadius = nodeRadius
@@ -38,7 +38,6 @@ export class FollowPath extends FollowTarget implements ICharacterAI {
 		viewVector.y = 0
 
 		if (this.targetNode.nextNode !== null) {
-
 			let targetToNextNode = this.targetNode.nextNode.object.position.clone().sub(this.targetNode.object.position)
 			targetToNextNode.y = 0
 			targetToNextNode.normalize()
@@ -48,8 +47,8 @@ export class FollowPath extends FollowTarget implements ICharacterAI {
 
 				if ((slowDownAngle < 0.7 && viewVector.length() < 50 && speed > 10)) {
 					if (this.character.controlledObject !== null) {
-						this.setVehicalTriggerAction('reverse', true)
-						this.setVehicalTriggerAction('throttle', false)
+						this.setVehicleTriggerAction('reverse', true)
+						this.setVehicleTriggerAction('throttle', false)
 					}
 				}
 
@@ -74,8 +73,7 @@ export class FollowPath extends FollowTarget implements ICharacterAI {
 			if (this.reverse && (this.targetNode.previousNode !== null)) {
 				super.setTarget(this.targetNode.previousNode.object)
 				this.targetNode = this.targetNode.previousNode
-			}
-			else {
+			} else {
 				if (this.targetNode.nextNode) {
 					super.setTarget(this.targetNode.nextNode.object)
 					this.targetNode = this.targetNode.nextNode
@@ -84,8 +82,8 @@ export class FollowPath extends FollowTarget implements ICharacterAI {
 		}
 	}
 
-	public setVehicalTriggerAction(action: string, isPressed: boolean) {
-		super.setVehicalTriggerAction(action, isPressed)
+	public setVehicleTriggerAction(action: string, isPressed: boolean) {
+		super.setVehicleTriggerAction(action, isPressed)
 		if (this.character.controlledObject !== null)
 			this.character.controlledObject.triggerAction(action, isPressed)
 	}

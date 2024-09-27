@@ -63,8 +63,7 @@ export class SwitchingSeats extends CharacterStateBase {
 		if (this.animationEnded(timeStep)) {
 			if (this.toSeat.type === SeatType.Driver) {
 				this.character.setState(new Driving(this.character, this.toSeat))
-			}
-			else if (this.toSeat.type === SeatType.Passenger) {
+			} else if (this.toSeat.type === SeatType.Passenger) {
 				this.character.setState(new Sitting(this.character, this.toSeat))
 			}
 		}

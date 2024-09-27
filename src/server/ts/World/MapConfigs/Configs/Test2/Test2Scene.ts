@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { BaseScene } from '../../../BaseScene'
 
 export class Test2Scene extends BaseScene {
+
 	constructor() {
 		super()
 
@@ -58,15 +59,15 @@ export class Test2Scene extends BaseScene {
 
 				{
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(4, 2, 0)
-						spawnVehical.userData = {
+						let spawnVehicle = new THREE.Object3D()
+						spawnVehicle.position.set(4, 2, 0)
+						spawnVehicle.userData = {
 							data: "spawn",
 							type: "car",
 							subtype: "car_test",
 							name: "car",
 						}
-						scenario2.add(spawnVehical)
+						scenario2.add(spawnVehicle)
 					}
 				}
 				this.scene.add(scenario2)

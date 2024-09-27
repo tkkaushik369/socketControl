@@ -2,7 +2,6 @@ import * as THREE from 'three'
 import { ICharacterAI } from '../../Interfaces/ICharacterAI'
 import { CharacterAIBase } from '../../Characters/CharacterAI/CharacterAIBase'
 import { Utility } from '../../Core/Utility'
-import { Vehicle } from '../../Vehicles/Vehicle'
 import { Character } from '../Character'
 
 export class FollowTarget extends CharacterAIBase implements ICharacterAI {
@@ -19,7 +18,7 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 		this.setTarget = this.setTarget.bind(this)
 		this.update = this.update.bind(this)
 		this.setCharacterTriggerAction = this.setCharacterTriggerAction.bind(this)
-		this.setVehicalTriggerAction = this.setVehicalTriggerAction.bind(this)
+		this.setVehicleTriggerAction = this.setVehicleTriggerAction.bind(this)
 
 		// init
 		this.character = character
@@ -45,8 +44,7 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 			// Follow character
 			if (viewVector.length() > this.stopDistance) {
 				this.isTargetReached = false
-			}
-			else {
+			} else {
 				this.isTargetReached = true
 			}
 
@@ -61,44 +59,38 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 
 				if (this.character.controlledObject !== null) {
 					if (forward.dot(viewVector) < 0.0) {
-						this.setVehicalTriggerAction('reverse', true)
-						this.setVehicalTriggerAction('throttle', false)
-					}
-					else {
-						this.setVehicalTriggerAction('throttle', true)
-						this.setVehicalTriggerAction('reverse', false)
+						this.setVehicleTriggerAction('reverse', true)
+						this.setVehicleTriggerAction('throttle', false)
+					} else {
+						this.setVehicleTriggerAction('throttle', true)
+						this.setVehicleTriggerAction('reverse', false)
 					}
 
 					if (Math.abs(angle) > 0.15) {
 						if (forward.dot(viewVector) > 0 || goingForward) {
 							if (angle > 0) {
-								this.setVehicalTriggerAction('left', true)
-								this.setVehicalTriggerAction('right', false)
+								this.setVehicleTriggerAction('left', true)
+								this.setVehicleTriggerAction('right', false)
+							} else {
+								this.setVehicleTriggerAction('right', true)
+								this.setVehicleTriggerAction('left', false)
 							}
-							else {
-								this.setVehicalTriggerAction('right', true)
-								this.setVehicalTriggerAction('left', false)
-							}
-						}
-						else {
+						} else {
 							if (angle > 0) {
-								this.setVehicalTriggerAction('right', true)
-								this.setVehicalTriggerAction('left', false)
-							}
-							else {
-								this.setVehicalTriggerAction('left', true)
-								this.setVehicalTriggerAction('right', false)
+								this.setVehicleTriggerAction('right', true)
+								this.setVehicleTriggerAction('left', false)
+							} else {
+								this.setVehicleTriggerAction('left', true)
+								this.setVehicleTriggerAction('right', false)
 							}
 						}
-					}
-					else {
-						this.setVehicalTriggerAction('left', false)
-						this.setVehicalTriggerAction('right', false)
+					} else {
+						this.setVehicleTriggerAction('left', false)
+						this.setVehicleTriggerAction('right', false)
 					}
 				}
 			}
-		}
-		else {
+		} else {
 			let viewVector = new THREE.Vector3().subVectors(this.target.position, this.character.position)
 			this.character.setViewVector(viewVector)
 
@@ -106,9 +98,7 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 			if (viewVector.length() > this.stopDistance) {
 				this.isTargetReached = false
 				this.setCharacterTriggerAction('up', true)
-			}
-			// Stand still
-			else {
+			} else { // Stand still
 				this.isTargetReached = true
 				this.setCharacterTriggerAction('up', false)
 
@@ -123,8 +113,8 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 		this.character.triggerAction(action, isPressed)
 	}
 
-	public setVehicalTriggerAction(action: string, isPressed: boolean) {
-		super.setVehicalTriggerAction(action, isPressed)
+	public setVehicleTriggerAction(action: string, isPressed: boolean) {
+		super.setVehicleTriggerAction(action, isPressed)
 		if (this.character.controlledObject !== null)
 			this.character.controlledObject.triggerAction(action, isPressed)
 	}

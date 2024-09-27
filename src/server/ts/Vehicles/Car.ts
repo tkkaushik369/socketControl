@@ -110,8 +110,7 @@ export class Car extends Vehicle implements IControllable {
 			// Timer grows when car is off ground, resets once you touch the ground again
 			this.airSpinTimer += timeStep
 			if (!this.actions.throttle.isPressed) this.canTiltForwards = true
-		}
-		else {
+		} else {
 			this.canTiltForwards = false
 			this.airSpinTimer = 0
 		}
@@ -119,16 +118,14 @@ export class Car extends Vehicle implements IControllable {
 		if (this.shiftTimer > 0) {
 			this.shiftTimer -= timeStep
 			if (this.shiftTimer < 0) this.shiftTimer = 0
-		}
-		else {
+		} else {
 			// Transmission 
 			if (this.actions.reverse.isPressed) {
 				const powerFactor = (this.gearsMaxSpeeds['-1'] - this.speed) / Math.abs(this.gearsMaxSpeeds['-1'])
 				const force = (this.engineForce / this.gear) * (Math.abs(powerFactor) ** 1)
 
 				this.applyEngineForce(force)
-			}
-			else {
+			} else {
 				const powerFactor = (this.gearsMaxSpeeds[this.gear] - this.speed) / (this.gearsMaxSpeeds[this.gear] - this.gearsMaxSpeeds[this.gear - 1])
 
 				if (powerFactor < 0.1 && this.gear < this.maxGears) this.shiftUp()
@@ -155,8 +152,7 @@ export class Car extends Vehicle implements IControllable {
 
 			if (speed > 0.1 && speed < 4) {
 				this.triggerAction('brake', true)
-			}
-			else {
+			} else {
 				this.forceCharacterOut()
 			}
 		}
@@ -210,26 +206,26 @@ export class Car extends Vehicle implements IControllable {
 			if (angVel.dot(spinVectorForward) < maxAirSpinMagnitude) {
 				angVel.vadd(effectiveSpinVectorForward, angVel)
 			}
-		} else
-			// Left
+		} else {	// Left
 			if (this.actions.left.isPressed && !this.actions.right.isPressed) {
 				if (angVel.dot(spinVectorForward) > -maxAirSpinMagnitude) {
 					angVel.vsub(effectiveSpinVectorForward, angVel)
 				}
 			}
+		}
 
 		// Forwards
 		if (this.canTiltForwards && this.actions.throttle.isPressed && !this.actions.reverse.isPressed) {
 			if (angVel.dot(spinVectorRight) < maxAirSpinMagnitude) {
 				angVel.vadd(effectiveSpinVectorRight, angVel)
 			}
-		} else
-			// Backwards
+		} else {	// Backwards
 			if (this.actions.reverse.isPressed && !this.actions.throttle.isPressed) {
 				if (angVel.dot(spinVectorRight) > -maxAirSpinMagnitude) {
 					angVel.vsub(effectiveSpinVectorRight, angVel)
 				}
 			}
+		}
 
 		// Steering
 		const velocity = new CANNON.Vec3().copy(this.collision.velocity)
@@ -242,12 +238,10 @@ export class Car extends Vehicle implements IControllable {
 		if (this.actions.right.isPressed) {
 			let steering = Math.min(-maxSteerVal / speedFactor, -driftCorrection)
 			this.steeringSimulator.target = THREE.MathUtils.clamp(steering, -maxSteerVal, maxSteerVal)
-		}
-		else if (this.actions.left.isPressed) {
+		} else if (this.actions.left.isPressed) {
 			let steering = Math.max(maxSteerVal / speedFactor, -driftCorrection)
 			this.steeringSimulator.target = THREE.MathUtils.clamp(steering, -maxSteerVal, maxSteerVal)
-		}
-		else this.steeringSimulator.target = 0
+		} else this.steeringSimulator.target = 0
 
 		// Update doors
 		this.seats.forEach((seat) => {

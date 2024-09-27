@@ -6,6 +6,7 @@ import { Character } from '../Character'
 
 export class Falling extends CharacterStateBase implements ICharacterState {
 	state = 'Falling'
+	
 	constructor(character: Character) {
 		super(character)
 		// bind functions

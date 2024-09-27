@@ -8,6 +8,7 @@ import { Character } from '../Character'
 
 export class Idle extends CharacterStateBase implements ICharacterState {
 	state = 'Idle'
+	
 	constructor(character: Character) {
 		super(character)
 		// bind functions
@@ -37,8 +38,7 @@ export class Idle extends CharacterStateBase implements ICharacterState {
 		if (this.anyDirection()) {
 			if (this.character.velocity.length() > 0.5) {
 				this.character.setState(new Walk(this.character))
-			}
-			else {
+			} else {
 				this.setAppropriateStartWalkState()
 			}
 		}

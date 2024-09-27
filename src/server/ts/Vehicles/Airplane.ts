@@ -98,8 +98,7 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		if (this.controllingCharacter !== null) {
 			if (this.enginePower < 1) this.enginePower += timeStep * 0.4
 			if (this.enginePower > 1) this.enginePower = 1
-		}
-		else {
+		} else {
 			if (this.enginePower > 0) this.enginePower -= timeStep * 0.12
 			if (this.enginePower < 0) this.enginePower = 0
 		}
@@ -110,16 +109,13 @@ export class Airplane extends Vehicle implements IWorldEntity {
 			if ((this.actions.yawLeft.isPressed || this.actions.rollLeft.isPressed)
 				&& !this.actions.yawRight.isPressed && !this.actions.rollRight.isPressed) {
 				this.steeringSimulator.target = 0.8
-			}
-			else if ((this.actions.yawRight.isPressed || this.actions.rollRight.isPressed)
+			} else if ((this.actions.yawRight.isPressed || this.actions.rollRight.isPressed)
 				&& !this.actions.yawLeft.isPressed && !this.actions.rollLeft.isPressed) {
 				this.steeringSimulator.target = -0.8
-			}
-			else {
+			} else {
 				this.steeringSimulator.target = 0
 			}
-		}
-		else {
+		} else {
 			this.steeringSimulator.target = 0
 		}
 		this.steeringSimulator.simulate(timeStep)
@@ -130,33 +126,27 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		// Ailerons
 		if (this.actions.rollLeft.isPressed && !this.actions.rollRight.isPressed) {
 			this.aileronSimulator.target = partsRotationAmount
-		}
-		else if (!this.actions.rollLeft.isPressed && this.actions.rollRight.isPressed) {
+		} else if (!this.actions.rollLeft.isPressed && this.actions.rollRight.isPressed) {
 			this.aileronSimulator.target = -partsRotationAmount
-		}
-		else {
+		} else {
 			this.aileronSimulator.target = 0
 		}
 
 		// Elevators
 		if (this.actions.pitchUp.isPressed && !this.actions.pitchDown.isPressed) {
 			this.elevatorSimulator.target = partsRotationAmount
-		}
-		else if (!this.actions.pitchUp.isPressed && this.actions.pitchDown.isPressed) {
+		} else if (!this.actions.pitchUp.isPressed && this.actions.pitchDown.isPressed) {
 			this.elevatorSimulator.target = -partsRotationAmount
-		}
-		else {
+		} else {
 			this.elevatorSimulator.target = 0
 		}
 
 		// Rudder
 		if (this.actions.yawLeft.isPressed && !this.actions.yawRight.isPressed) {
 			this.rudderSimulator.target = partsRotationAmount
-		}
-		else if (!this.actions.yawLeft.isPressed && this.actions.yawRight.isPressed) {
+		} else if (!this.actions.yawLeft.isPressed && this.actions.yawRight.isPressed) {
 			this.rudderSimulator.target = -partsRotationAmount
-		}
-		else {
+		} else {
 			this.rudderSimulator.target = 0
 		}
 
@@ -253,11 +243,9 @@ export class Airplane extends Vehicle implements IWorldEntity {
 		let speedModifier = 0.02
 		if (plane.actions.throttle.isPressed && !plane.actions.brake.isPressed) {
 			speedModifier = 0.06
-		}
-		else if (!plane.actions.throttle.isPressed && plane.actions.brake.isPressed) {
+		} else if (!plane.actions.throttle.isPressed && plane.actions.brake.isPressed) {
 			speedModifier = -0.05
-		}
-		else if (this.rayCastVehicle.numWheelsOnGround > 0) {
+		} else if (this.rayCastVehicle.numWheelsOnGround > 0) {
 			speedModifier = 0
 		}
 

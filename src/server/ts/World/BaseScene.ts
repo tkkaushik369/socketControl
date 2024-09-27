@@ -15,7 +15,7 @@ export abstract class BaseScene {
 
 	car: THREE.Mesh
 	carAnimations: any[]
-	
+
 	heli: THREE.Mesh
 	heliAnimations: any[]
 
@@ -28,7 +28,7 @@ export abstract class BaseScene {
 
 		this.car = new THREE.Mesh()
 		this.carAnimations = []
-		
+
 		this.heli = new THREE.Mesh()
 		this.heliAnimations = []
 
@@ -44,7 +44,7 @@ export abstract class BaseScene {
 		return data
 	}
 
-	getVehical(type: string, subtype: string | null = null): MeshType {
+	getVehicle(type: string, subtype: string | null = null): MeshType {
 		switch (type) {
 			case 'car': {
 				switch (subtype) {
@@ -60,7 +60,7 @@ export abstract class BaseScene {
 			}
 			case 'airplane': {
 				switch (subtype) {
-					case 'airplane_test': return{ scene: this.airplane, animations: this.airplaneAnimations }
+					case 'airplane_test': return { scene: this.airplane, animations: this.airplaneAnimations }
 					default: return { scene: this.airplane, animations: this.airplaneAnimations }
 				}
 			}

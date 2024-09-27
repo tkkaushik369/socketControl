@@ -75,8 +75,6 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 		}
 
 		this.characterCaller = null
-		this.updateControlsCallBack = null
-
 		this.world.registerUpdatable(this)
 	}
 
@@ -134,8 +132,7 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 				this.player.inputManager.setInputReceiver(this.characterCaller)
 				this.characterCaller = null
 			}
-		}
-		else {
+		} else {
 			for (const action in this.actions) {
 				if (this.actions.hasOwnProperty(action)) {
 					const binding = this.actions[action]
@@ -178,7 +175,7 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	public inputReceiverUpdate(timeStep: number) {
 		// Set fly speed
 		let speedFast = this.movementSpeed * (this.actions.fast.isPressed ? timeStep * 600 : timeStep * 60)
-		let speedSlow = this.movementSpeed * (this.actions.slow.isPressed ? timeStep * 59 : timeStep * 6);
+		let speedSlow = this.movementSpeed * (this.actions.slow.isPressed ? timeStep * 59 : timeStep * 6)
 
 		const up = Utility.getUp(this.camera)
 		const right = Utility.getRight(this.camera)

@@ -69,8 +69,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			if (this.driver === 'player') {
 				character.teleportToVehicle(vehicle, vehicle.seats[0])
 				character.takeControl()
-			}
-			else if (this.driver === 'ai') {
+			} else if (this.driver === 'ai') {
 				character.teleportToVehicle(vehicle, vehicle.seats[0])
 				if (this.firstAINode !== null) {
 					let nodeFound = false
@@ -136,8 +135,8 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 				if ((type == vehi.type) && (this.subtype == vehi.subtype)) {
 					// console.log(type, this.subtype)
 					if (vehi.objCaller instanceof BaseScene) {
-						// let model = vehi.objCaller.getVehical(type, this.subtype)
-						let model = new (vehi.objCaller as any).constructor().getVehical(type, this.subtype)
+						// let model = vehi.objCaller.getVehicle(type, this.subtype)
+						let model = new (vehi.objCaller as any).constructor().getVehicle(type, this.subtype)
 						return callerVehicle(model, (this.playerData === null) ? undefined : this.playerData)
 					} else {
 						world.getGLTF(vehi.objCaller, (gltf: any) => {

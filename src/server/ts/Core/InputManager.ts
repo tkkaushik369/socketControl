@@ -87,8 +87,7 @@ export class InputManager implements IUpdatable {
 			this.domElement.addEventListener('mousemove', this.onMouseMove, false)
 			this.domElement.addEventListener('mouseup', this.onMouseUp, false)
 			this.isLocked = true
-		}
-		else {
+		} else {
 			this.domElement.removeEventListener('mousemove', this.onMouseMove, false)
 			this.domElement.removeEventListener('mouseup', this.onMouseUp, false)
 			this.isLocked = false
@@ -103,8 +102,7 @@ export class InputManager implements IUpdatable {
 		if (this.domElement === null) return
 		if (this.pointerLock) {
 			this.domElement.requestPointerLock()
-		}
-		else {
+		} else {
 			this.domElement.addEventListener('mousemove', this.onMouseMove, false)
 			this.domElement.addEventListener('mouseup', this.onMouseUp, false)
 		}

@@ -193,9 +193,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 						this.controllingCharacter.occupyingSeat.connectedSeats[0]
 					)
 				)
-			}
-			else
-				this.controllingCharacter.stopControllingVehicle()
+			} else this.controllingCharacter.stopControllingVehicle()
 		}
 	}
 
@@ -223,11 +221,9 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 				this.controllingCharacter.player.cameraOperator.characterCaller = this.controllingCharacter
 				this.controllingCharacter.player.inputManager.setInputReceiver(this.controllingCharacter.player.cameraOperator)
 			}
-		}
-		else if (code === 'KeyR' && pressed === true && isShift === true) {
+		} else if (code === 'KeyR' && pressed === true && isShift === true) {
 			if (this.world !== null) this.world.restartScenario()
-		}
-		else {
+		} else {
 			for (const action in this.actions) {
 				if (this.actions.hasOwnProperty(action)) {
 					const binding = this.actions[action]
@@ -250,8 +246,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 				// this.controllingCharacter.player.cameraOperator.followMode = value
 				if (value) {
 					this.controllingCharacter.player.cameraOperator.setRadius(0.04, true)
-				}
-				else {
+				} else {
 					this.controllingCharacter.player.cameraOperator.setRadius(3, true)
 				}
 			}
@@ -310,9 +305,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 			let temp = new THREE.Vector3().copy(this.camera.position)
 			temp.applyQuaternion(this.quaternion)
 			this.controllingCharacter.player.cameraOperator.target.copy(temp.add(this.position))
-		}
-		else {
-			// Position camera
+		} else {	// Position camera
 			this.controllingCharacter.player.cameraOperator.target.set(
 				this.position.x,
 				this.position.y + 0.5,
@@ -352,11 +345,9 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	public addToWorld(world: WorldBase): void {
 		if (_.includes(world.vehicles, this)) {
 			console.warn('Adding vehicle to a world in which it already exists.')
-		}
-		else if (this.rayCastVehicle === undefined) {
+		} else if (this.rayCastVehicle === undefined) {
 			console.error('Trying to create vehicle without raycastVehicleComponent')
-		}
-		else {
+		} else {
 			this.world = world
 			world.vehicles.push(this)
 			world.addSceneObject(this)
@@ -371,8 +362,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	public removeFromWorld(world: WorldBase): void {
 		if (!_.includes(world.vehicles, this)) {
 			console.warn('Removing vehicle from a world in which it isn\'t present.')
-		}
-		else {
+		} else {
 			this.world = null
 			_.pull(world.vehicles, this)
 			world.removeSceneObject(this)
@@ -412,8 +402,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 							let phys = new CANNON.Box(new CANNON.Vec3(child.scale.x, child.scale.y, child.scale.z))
 							phys.collisionFilterMask = ~CollisionGroups.TrimeshColliders
 							this.collision.addShape(phys, new CANNON.Vec3(child.position.x, child.position.y, child.position.z))
-						}
-						else if (child.userData.shape === 'sphere') {
+						} else if (child.userData.shape === 'sphere') {
 							child.visible = false
 
 							let phys = new CANNON.Sphere(child.scale.x)
@@ -436,8 +425,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		}
 		if (this.seats.length === 0) {
 			console.warn('Vehicle ' + typeof (this) + ' has no seats.')
-		}
-		else {
+		} else {
 			this.connectSeats()
 		}
 	}

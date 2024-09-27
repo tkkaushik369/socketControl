@@ -9,6 +9,7 @@ import { Character } from '../Character'
 
 export class Walk extends CharacterStateBase {
 	state = 'Walk'
+	
 	constructor(character: Character) {
 		super(character)
 		// bind functions
@@ -51,8 +52,7 @@ export class Walk extends CharacterStateBase {
 		if (this.noDirection()) {
 			if (this.character.velocity.length() > 1) {
 				this.character.setState(new EndWalk(this.character))
-			}
-			else {
+			} else {
 				this.character.setState(new Idle(this.character))
 			}
 		}

@@ -9,7 +9,7 @@ import { Utility } from '../Core/Utility'
 
 export class Scenario {
 	public name: string
-	public spawnAlways: boolean = false // vehical spwn
+	public spawnAlways: boolean = false // Vehicle spwn
 	public default: boolean = false // only one default in one scene
 	public world: WorldBase
 	public descriptionTitle: string
@@ -17,11 +17,11 @@ export class Scenario {
 
 	private rootNode: THREE.Object3D
 	public spawnPoints: ISpawnPoint[] = []
-	private invisible: boolean = false // vehical spwn
+	private invisible: boolean = false // Vehicle spwn
 	public initialCameraAngle: number
 
 	public playerPosition: THREE.Vector3 | null
-	public isPlayerPositionNearVehical: boolean
+	public isPlayerPositionNearVehicle: boolean
 
 	constructor(root: THREE.Object3D, world: WorldBase) {
 		this.rootNode = root
@@ -31,7 +31,7 @@ export class Scenario {
 		this.descriptionContent = "_descriptionContent_"
 		this.initialCameraAngle = 0
 		this.playerPosition = null
-		this.isPlayerPositionNearVehical = false
+		this.isPlayerPositionNearVehicle = false
 
 		// Scenario
 		if (root.userData.hasOwnProperty('name')) {
@@ -65,18 +65,15 @@ export class Scenario {
 					if (child.userData.type === 'car' || child.userData.type === 'airplane' || child.userData.type === 'heli') {
 						let sp = new VehicleSpawnPoint(child)
 						this.spawnPoints.push(sp)
-					}
-					else if (child.userData.type === 'player') {
+					} else if (child.userData.type === 'player') {
 						// let sp = new CharacterSpawnPoint(child, child.userData)
 						// this.spawnPoints.push(sp)
 						let pos = new THREE.Vector3().add(root.position).add(child.position)
 						this.playerPosition = new THREE.Vector3().copy(pos)
-					}
-					else if (child.userData.type === 'character_ai') {
+					} else if (child.userData.type === 'character_ai') {
 						let sp = new CharacterSpawnPoint(child, child.userData)
 						this.spawnPoints.push(sp)
-					}
-					else if (child.userData.type === 'character_follow') {
+					} else if (child.userData.type === 'character_follow') {
 						let sp = new CharacterSpawnPoint(child, child.userData)
 						this.spawnPoints.push(sp)
 					}
@@ -131,7 +128,7 @@ export class Scenario {
 
 			Object.keys(world.users).forEach((sID) => {
 				if (world.users[sID] !== undefined) {
-					world.users[sID].setSpawn(pos[--tot], this.isPlayerPositionNearVehical, this.isPlayerPositionNearVehical ? (this.initialCameraAngle + 180) : 0)
+					world.users[sID].setSpawn(pos[--tot], this.isPlayerPositionNearVehicle, this.isPlayerPositionNearVehicle ? (this.initialCameraAngle + 180) : 0)
 					world.users[sID].cameraOperator.theta = this.initialCameraAngle
 					world.users[sID].cameraOperator.phi = 15
 					world.users[sID].addUser()

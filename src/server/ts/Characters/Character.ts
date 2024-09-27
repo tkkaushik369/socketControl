@@ -7,7 +7,7 @@ import { KeyBinding } from '../Core/KeyBinding'
 import { VectorSpringSimulator } from '../Physics/SpringSimulation/VectorSpringSimulator'
 import { RelativeSpringSimulator } from '../Physics/SpringSimulation/RelativeSpringSimulator'
 import * as CharState from './CharacterStates/_CharacterStateLibrary'
-import * as VehicalState from './CharacterStates/Vehicles/_VehicleStateLibrary'
+import * as VehicleState from './CharacterStates/Vehicles/_VehicleStateLibrary'
 import { WorldBase } from '../World/WorldBase'
 import { IControllable } from '../Interfaces/IControllable'
 import { IWorldEntity } from '../Interfaces/IWorldEntity'
@@ -267,8 +267,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			this.characterCapsule.body.previousPosition = new CANNON.Vec3(x, y, z)
 			this.characterCapsule.body.position = new CANNON.Vec3(x, y, z)
 			this.characterCapsule.body.interpolatedPosition = new CANNON.Vec3(x, y, z)
-		}
-		else {
+		} else {
 			this.position.x = x
 			this.position.y = y
 			this.position.z = z
@@ -313,8 +312,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		if (this.player !== null) {
 			if (value) {
 				this.player.cameraOperator.setRadius(0.1, true)
-			}
-			else {
+			} else {
 				this.player.cameraOperator.setRadius(1.6, true)
 			}
 		}
@@ -330,8 +328,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.physicsEnabled = value
 		if (this.physicsEnabled === true) {
 			this.world.addWorldObject(this.characterCapsule.body)
-		}
-		else {
+		} else {
 			this.world.removeWorldObject(this.characterCapsule.body)
 		}
 	}
@@ -350,8 +347,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public handleKeyboardEvent(code: string, isShift: boolean, pressed: boolean): void {
 		if (this.controlledObject !== null) {
 			this.controlledObject.handleKeyboardEvent(code, isShift, pressed)
-		}
-		else {
+		} else {
 			// Free camera
 			if (code === 'KeyC' && pressed === true && isShift === true) {
 				this.resetControls()
@@ -392,8 +388,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public handleMouseButton(code: string, pressed: boolean): void {
 		if (this.controlledObject !== null) {
 			this.controlledObject.handleMouseButton(code, pressed)
-		}
-		else {
+		} else {
 			for (const action in this.actions) {
 				if (this.actions.hasOwnProperty(action)) {
 					const binding = this.actions[action]
@@ -409,8 +404,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public handleMouseMove(deltaX: number, deltaY: number): void {
 		if (this.controlledObject !== null) {
 			this.controlledObject.handleMouseMove(deltaX, deltaY)
-		}
-		else {
+		} else {
 			if (this.player !== null) this.player.cameraOperator.move(deltaX, deltaY)
 		}
 	}
@@ -418,8 +412,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public handleMouseWheel(value: number): void {
 		if (this.controlledObject !== null) {
 			this.controlledObject.handleMouseWheel(value)
-		}
-		else {
+		} else {
 			if (this.world !== null) this.world.scrollTheTimeScale(value)
 		}
 	}
@@ -452,8 +445,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public takeControl(): void {
 		if (this.player !== null) {
 			this.player.inputManager.setInputReceiver(this)
-		}
-		else {
+		} else {
 			console.warn('Attempting to take control of a character that doesn\'t belong to a world.')
 		}
 	}
@@ -513,8 +505,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public inputReceiverUpdate(timeStep: number): void {
 		if (this.controlledObject !== null) {
 			this.controlledObject.inputReceiverUpdate(timeStep)
-		}
-		else {
+		} else {
 			// Look in camera's direction
 			if (this.player !== null) {
 				this.viewVector = new THREE.Vector3().subVectors(this.position, this.player.cameraOperator.camera.position)
@@ -601,8 +592,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 
 			if (moveVector.x === 0 && moveVector.y === 0 && moveVector.z === 0) {
 				this.setOrientation(this.orientation)
-			}
-			else {
+			} else {
 				this.setOrientation(moveVector)
 			}
 		}
@@ -644,9 +634,8 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 					if (seat.type === SeatType.Driver) {
 						seat.seatPointObject.getWorldPosition(worldPos)
 						seatFinder.consider(seat, worldPos)
-					}
-					// Consider passenger seats connected to driver seats
-					else if (seat.type === SeatType.Passenger) {
+					} else if (seat.type === SeatType.Passenger) {
+						// Consider passenger seats connected to driver seats
 						for (const connSeat of seat.connectedSeats) {
 							if (connSeat.type === SeatType.Driver) {
 								seat.seatPointObject.getWorldPosition(worldPos)
@@ -655,8 +644,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 							}
 						}
 					}
-				}
-				else {
+				} else {
 					// Consider passenger seats
 					if (seat.type === SeatType.Passenger) {
 						seat.seatPointObject.getWorldPosition(worldPos)
@@ -690,10 +678,9 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public enterVehicle(seat: VehicleSeat, entryPoint: THREE.Object3D): void {
 		this.resetControls()
 		if ((seat.door !== null) && (seat.door.rotation < 0.5)) {
-			this.setState(new VehicalState.OpenVehicleDoor(this, seat, entryPoint))
-		}
-		else {
-			this.setState(new VehicalState.EnteringVehicle(this, seat, entryPoint))
+			this.setState(new VehicleState.OpenVehicleDoor(this, seat, entryPoint))
+		} else {
+			this.setState(new VehicleState.EnteringVehicle(this, seat, entryPoint))
 		}
 	}
 
@@ -708,13 +695,13 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		}
 
 		this.occupySeat(seat)
-		this.setState(new VehicalState.Driving(this, seat));
+		this.setState(new VehicleState.Driving(this, seat))
 		let tiems = 300
 		let myInterval = setInterval(() => {
-			(this.charState as VehicalState.Driving).playAnimation('driving', 0.1)
+			(this.charState as VehicleState.Driving).playAnimation('driving', 0.1)
 			if (tiems-- <= 0)
 				clearInterval(myInterval)
-		}, 15);
+		}, 15)
 	}
 
 	public startControllingVehicle(vehicle: Vehicle, seat: VehicleSeat): void {
@@ -757,23 +744,21 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	}
 
 	public stopControllingVehicle(): void {
-		if ((this.controlledObject !== null) && (this.controlledObject?.controllingCharacter === this)) {
-			this.controlledObject.allowSleep(true)
-			this.controlledObject.controllingCharacter = null
-			this.controlledObject.resetControls()
-			this.controlledObject = null
-			this.inputReceiverInit()
-		}
+		if ((this.controlledObject === null) || (this.controlledObject.controllingCharacter !== this)) return
+		this.controlledObject.allowSleep(true)
+		this.controlledObject.controllingCharacter = null
+		this.controlledObject.resetControls()
+		this.controlledObject = null
+		this.inputReceiverInit()
 	}
 
 	public exitVehicle(): void {
 		if (this.occupyingSeat !== null) {
-			if (this.occupyingSeat.vehicle.entityType === EntityType.Airplane) {
-				this.setState(new VehicalState.ExitingAirplane(this, this.occupyingSeat))
-			}
-			else {
-				this.setState(new VehicalState.ExitingVehicle(this, this.occupyingSeat))
-			}
+			if (this.occupyingSeat.vehicle.entityType === EntityType.Airplane)
+				this.setState(new VehicleState.ExitingAirplane(this, this.occupyingSeat))
+			else
+				this.setState(new VehicleState.ExitingVehicle(this, this.occupyingSeat))
+
 			this.stopControllingVehicle()
 		}
 	}
@@ -800,8 +785,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 				character.raycastBox.position.y = character.rayResult.hitPointWorld.y
 				character.raycastBox.position.z = character.rayResult.hitPointWorld.z
 			}
-		}
-		else {
+		} else {
 			if (character.raycastBox.visible) {
 				character.raycastBox.position.set(body.position.x, body.position.y - character.rayCastLength - character.raySafeOffset, body.position.z)
 			}
@@ -846,8 +830,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			if (Math.abs(simulatedVelocity.x) < Math.abs(globalVelocityTarget.x * character.moveSpeed) || Utility.haveDifferentSigns(simulatedVelocity.x, arcadeVelocity.x)) { newVelocity.x += add.x }
 			if (Math.abs(simulatedVelocity.y) < Math.abs(globalVelocityTarget.y * character.moveSpeed) || Utility.haveDifferentSigns(simulatedVelocity.y, arcadeVelocity.y)) { newVelocity.y += add.y }
 			if (Math.abs(simulatedVelocity.z) < Math.abs(globalVelocityTarget.z * character.moveSpeed) || Utility.haveDifferentSigns(simulatedVelocity.z, arcadeVelocity.z)) { newVelocity.z += add.z }
-		}
-		else {
+		} else {
 			newVelocity = new THREE.Vector3(
 				THREE.MathUtils.lerp(simulatedVelocity.x, arcadeVelocity.x, character.arcadeVelocityInfluence.x),
 				THREE.MathUtils.lerp(simulatedVelocity.y, arcadeVelocity.y, character.arcadeVelocityInfluence.y),
@@ -883,8 +866,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			body.velocity.z = newVelocity.z
 			// Ground character
 			if (character.world !== null) body.position.y = character.rayResult.hitPointWorld.y + character.rayCastLength + (newVelocity.y * character.world.physicsFrameTime)
-		}
-		else {
+		} else {
 			// If we're in air
 			body.velocity.x = newVelocity.x
 			body.velocity.y = newVelocity.y
@@ -904,8 +886,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 				body.velocity.y = 0
 				let speed = Math.max(character.velocitySimulator.position.length() * 4, character.initJumpSpeed)
 				body.velocity = Utility.cannonVector(character.orientation.clone().multiplyScalar(speed))
-			}
-			else if (character.rayResult.body !== null) {
+			} else if (character.rayResult.body !== null) {
 				// Moving objects compensation
 				let add = new CANNON.Vec3()
 				character.rayResult.body.getVelocityAtWorldPoint(character.rayResult.hitPointWorld, add)
@@ -924,8 +905,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public addToWorld(world: WorldBase): void {
 		if (_.includes(world.characters, this)) {
 			console.warn('Adding character to a world in which it already exists.')
-		}
-		else {
+		} else {
 			// Set world
 			this.world = world
 
@@ -948,8 +928,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public removeFromWorld(world: WorldBase): void {
 		if (!_.includes(world.characters, this)) {
 			console.warn('Removing character from a world in which it isn\'t present.')
-		}
-		else {
+		} else {
 			if (this.player !== null) {
 				if (this.player.inputManager.inputReceiver === this) {
 					this.player.inputManager.inputReceiver = null
@@ -981,54 +960,54 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.getWorldQuaternion(newQuat)
 
 		let csc = this.charState.state
-		let vehicalState: { [id: string]: any } = {}
+		let vehicleState: { [id: string]: any } = {}
 		if (false) this
 		else if ("CloseVehicleDoorInside" === csc) {
-			let ovd = (this.charState as VehicalState.CloseVehicleDoorInside)
-			vehicalState['vehical'] = ovd.seat.vehicle.uID
-			vehicalState['seat'] = ovd.seat.seatPointObject.userData
+			let ovd = (this.charState as VehicleState.CloseVehicleDoorInside)
+			vehicleState['vehicle'] = ovd.seat.vehicle.uID
+			vehicleState['seat'] = ovd.seat.seatPointObject.userData
 		} else if ("CloseVehicleDoorOutside" === csc) {
-			let ovd = (this.charState as VehicalState.CloseVehicleDoorOutside)
-			vehicalState['vehical'] = ovd.seat.vehicle.uID
-			vehicalState['seat'] = ovd.seat.seatPointObject.userData
+			let ovd = (this.charState as VehicleState.CloseVehicleDoorOutside)
+			vehicleState['vehicle'] = ovd.seat.vehicle.uID
+			vehicleState['seat'] = ovd.seat.seatPointObject.userData
 		} else if ("Driving" === csc) {
-			let ovd = (this.charState as VehicalState.Driving)
-			vehicalState['vehical'] = ovd.seat.vehicle.uID
-			vehicalState['seat'] = ovd.seat.seatPointObject.userData
+			let ovd = (this.charState as VehicleState.Driving)
+			vehicleState['vehicle'] = ovd.seat.vehicle.uID
+			vehicleState['seat'] = ovd.seat.seatPointObject.userData
 		} else if ("EnteringVehicle" === csc) {
-			let ovd = (this.charState as VehicalState.EnteringVehicle)
-			vehicalState['vehical'] = ovd.seat.vehicle.uID
-			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-			vehicalState['entryPoint'] = ovd.entryPoint.userData
+			let ovd = (this.charState as VehicleState.EnteringVehicle)
+			vehicleState['vehicle'] = ovd.seat.vehicle.uID
+			vehicleState['seat'] = ovd.seat.seatPointObject.userData
+			vehicleState['entryPoint'] = ovd.entryPoint.userData
 		} else if ("ExitingAirplane" === csc) {
-			let ovd = (this.charState as VehicalState.ExitingAirplane)
-			vehicalState['vehical'] = ovd.seat.vehicle.uID
-			vehicalState['seat'] = ovd.seat.seatPointObject.userData
+			let ovd = (this.charState as VehicleState.ExitingAirplane)
+			vehicleState['vehicle'] = ovd.seat.vehicle.uID
+			vehicleState['seat'] = ovd.seat.seatPointObject.userData
 		} else if ("ExitingVehicle" === csc) {
-			let ovd = (this.charState as VehicalState.ExitingVehicle)
-			vehicalState['vehical'] = ovd.seat.vehicle.uID
-			vehicalState['seat'] = ovd.seat.seatPointObject.userData
+			let ovd = (this.charState as VehicleState.ExitingVehicle)
+			vehicleState['vehicle'] = ovd.seat.vehicle.uID
+			vehicleState['seat'] = ovd.seat.seatPointObject.userData
 		} else if ("OpenVehicleDoor" === csc) {
-			let ovd = (this.charState as VehicalState.OpenVehicleDoor)
-			vehicalState['vehical'] = ovd.seat.vehicle.uID
-			vehicalState['seat'] = ovd.seat.seatPointObject.userData
-			vehicalState['entryPoint'] = ovd.entryPoint.userData
+			let ovd = (this.charState as VehicleState.OpenVehicleDoor)
+			vehicleState['vehicle'] = ovd.seat.vehicle.uID
+			vehicleState['seat'] = ovd.seat.seatPointObject.userData
+			vehicleState['entryPoint'] = ovd.entryPoint.userData
 		} else if ("Sitting" === csc) {
-			let ovd = (this.charState as VehicalState.Sitting)
-			vehicalState['vehical'] = ovd.seat.vehicle.uID
-			vehicalState['seat'] = ovd.seat.seatPointObject.userData
+			let ovd = (this.charState as VehicleState.Sitting)
+			vehicleState['vehicle'] = ovd.seat.vehicle.uID
+			vehicleState['seat'] = ovd.seat.seatPointObject.userData
 		} else if ("SwitchingSeats" === csc) {
-			let ovd = (this.charState as VehicalState.SwitchingSeats)
-			vehicalState['vehical'] = ovd.fromSeat.vehicle.uID
-			vehicalState['fromSeat'] = ovd.fromSeat.seatPointObject.userData
-			vehicalState['toSeat'] = ovd.toSeat.seatPointObject.userData
+			let ovd = (this.charState as VehicleState.SwitchingSeats)
+			vehicleState['vehicle'] = ovd.fromSeat.vehicle.uID
+			vehicleState['fromSeat'] = ovd.fromSeat.seatPointObject.userData
+			vehicleState['toSeat'] = ovd.toSeat.seatPointObject.userData
 		}
 
 		let charAi: { action: string, isPressed: boolean } | null = null
 		let ctrlObjAi: { action: string, isPressed: boolean } | null = null
 		if (this.behaviour !== null) {
 			charAi = this.behaviour.currentCharacterControl
-			ctrlObjAi = this.behaviour.currentVehicalControl
+			ctrlObjAi = this.behaviour.currentVehicleControl
 		}
 
 		return {
@@ -1044,7 +1023,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 					controlledObject: ctrlObjAi,
 				},
 				charState: csc,
-				vehicalState: vehicalState,
+				vehicleState: vehicleState,
 				characterPosition: {
 					x: newPos.x,
 					y: newPos.y,
@@ -1094,9 +1073,6 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 				this.controlledObject.triggerAction(messages.data.AiData.controlledObject.action, messages.data.AiData.controlledObject.isPressed)
 		}
 
-		/* if(this.player !== null)
-			console.log(this.charState.state, messages.data.charState) */
-
 		if (this.charState.state !== messages.data.charState) {
 			let isError = null
 			// CharacterStates
@@ -1118,134 +1094,133 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			else if ("StartWalkLeft" === messages.data.charState) this.setState(new CharState.StartWalkLeft(this), false)
 			else if ("StartWalkRight" === messages.data.charState) this.setState(new CharState.StartWalkRight(this), false)
 			else if ("Walk" === messages.data.charState) this.setState(new CharState.Walk(this), false)
-			// VehicalStates
+			// VehicleStates
 			else if ("CloseVehicleDoorInside" === messages.data.charState) {
 				let seat: VehicleSeat | null = null
-				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				let vehi = (this.world !== null) ? Utility.getVehicle(this.world, messages.data.vehicleState.vehicle) : null
 				if (vehi !== null) {
-					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicleState.seat)
 					seat = vehiSeat
 				}
 				if (seat !== null) {
-					this.setState(new VehicalState.CloseVehicleDoorInside(this, seat), false)
+					this.setState(new VehicleState.CloseVehicleDoorInside(this, seat), false)
 				} else {
 					isError = "CloseVehicleDoorInside Failed"
 				}
 			} else if ("CloseVehicleDoorOutside" === messages.data.charState) {
 				let seat: VehicleSeat | null = null
-				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				let vehi = (this.world !== null) ? Utility.getVehicle(this.world, messages.data.vehicleState.vehicle) : null
 				if (vehi !== null) {
-					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicleState.seat)
 					seat = vehiSeat
 				}
 				if (seat !== null) {
-					this.setState(new VehicalState.CloseVehicleDoorOutside(this, seat), false)
+					this.setState(new VehicleState.CloseVehicleDoorOutside(this, seat), false)
 				} else {
 					isError = "CloseVehicleDoorOutside Failed"
 				}
 			} else if ("Driving" === messages.data.charState) {
 				let seat: VehicleSeat | null = null
-				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				let vehi = (this.world !== null) ? Utility.getVehicle(this.world, messages.data.vehicleState.vehicle) : null
 				if (vehi !== null) {
-					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicleState.seat)
 					seat = vehiSeat
 				}
 				if (seat !== null) {
-					this.setState(new VehicalState.Driving(this, seat), false)
+					this.setState(new VehicleState.Driving(this, seat), false)
 				} else {
 					isError = "Driving Failed"
 				}
 			} else if ("EnteringVehicle" === messages.data.charState) {
 				let seat: VehicleSeat | null = null
 				let entryPoint: THREE.Object3D | null = null
-				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				let vehi = (this.world !== null) ? Utility.getVehicle(this.world, messages.data.vehicleState.vehicle) : null
 				if (vehi !== null) {
-					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicleState.seat)
 					if (vehiSeat !== null) {
-						let ep = Utility.getEntryPoint(vehiSeat, messages.data.vehicalState.entryPoint)
+						let ep = Utility.getEntryPoint(vehiSeat, messages.data.vehicleState.entryPoint)
 						seat = vehiSeat
 						entryPoint = ep
 					}
 				}
 				if ((seat !== null) && (entryPoint !== null)) {
-					this.setState(new VehicalState.EnteringVehicle(this, seat, entryPoint), false)
+					this.setState(new VehicleState.EnteringVehicle(this, seat, entryPoint), false)
 				} else {
 					isError = "EnteringVehicle Failed"
 				}
 			} else if ("ExitingAirplane" === messages.data.charState) {
 				let seat: VehicleSeat | null = null
-				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				let vehi = (this.world !== null) ? Utility.getVehicle(this.world, messages.data.vehicleState.vehicle) : null
 				if (vehi !== null) {
-					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicleState.seat)
 					seat = vehiSeat
 				}
 				if (seat !== null) {
-					this.setState(new VehicalState.ExitingAirplane(this, seat), false)
+					this.setState(new VehicleState.ExitingAirplane(this, seat), false)
 				} else {
 					isError = "ExitingAirplane Failed"
 				}
 			} else if ("ExitingVehicle" === messages.data.charState) {
 				let seat: VehicleSeat | null = null
-				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				let vehi = (this.world !== null) ? Utility.getVehicle(this.world, messages.data.vehicleState.vehicle) : null
 				if (vehi !== null) {
-					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicleState.seat)
 					seat = vehiSeat
 				}
 				if (seat !== null) {
-					this.setState(new VehicalState.ExitingVehicle(this, seat), false)
+					this.setState(new VehicleState.ExitingVehicle(this, seat), false)
 				} else {
 					isError = "ExitingVehicle Failed"
 				}
 			} else if ("OpenVehicleDoor" === messages.data.charState) {
 				let seat: VehicleSeat | null = null
 				let entryPoint: THREE.Object3D | null = null
-				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				let vehi = (this.world !== null) ? Utility.getVehicle(this.world, messages.data.vehicleState.vehicle) : null
 				if (vehi !== null) {
-					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicleState.seat)
 					if (vehiSeat !== null) {
-						let ep = Utility.getEntryPoint(vehiSeat, messages.data.vehicalState.entryPoint)
+						let ep = Utility.getEntryPoint(vehiSeat, messages.data.vehicleState.entryPoint)
 						seat = vehiSeat
 						entryPoint = ep
 					}
 				}
 				if ((seat !== null) && (entryPoint !== null)) {
-					this.setState(new VehicalState.OpenVehicleDoor(this, seat, entryPoint), false)
+					this.setState(new VehicleState.OpenVehicleDoor(this, seat, entryPoint), false)
 				} else {
 					isError = "OpenVehicleDoor Failed"
 				}
 			} else if ("Sitting" === messages.data.charState) {
 				let seat: VehicleSeat | null = null
-				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				let vehi = (this.world !== null) ? Utility.getVehicle(this.world, messages.data.vehicleState.vehicle) : null
 				if (vehi !== null) {
-					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicalState.seat)
+					let vehiSeat = Utility.getSeat(vehi, messages.data.vehicleState.seat)
 					seat = vehiSeat
 				}
 				if (seat !== null) {
-					this.setState(new VehicalState.Sitting(this, seat), false)
+					this.setState(new VehicleState.Sitting(this, seat), false)
 				} else {
 					isError = "Sitting Failed"
 				}
 			} else if ("SwitchingSeats" === messages.data.charState) {
 				let fromSeat: VehicleSeat | null = null
 				let toSeat: VehicleSeat | null = null
-				let vehi = (this.world !== null) ? Utility.getVehical(this.world, messages.data.vehicalState.vehical) : null
+				let vehi = (this.world !== null) ? Utility.getVehicle(this.world, messages.data.vehicleState.vehicle) : null
 				if (vehi !== null) {
-					fromSeat = Utility.getSeat(vehi, messages.data.vehicalState.fromSeat)
-					toSeat = Utility.getSeat(vehi, messages.data.vehicalState.toSeat)
+					fromSeat = Utility.getSeat(vehi, messages.data.vehicleState.fromSeat)
+					toSeat = Utility.getSeat(vehi, messages.data.vehicleState.toSeat)
 				}
 				if ((fromSeat !== null) && (toSeat !== null)) {
-					this.setState(new VehicalState.SwitchingSeats(this, fromSeat, toSeat), false)
+					this.setState(new VehicleState.SwitchingSeats(this, fromSeat, toSeat), false)
 				} else {
 					isError = "SwitchingSeats Failed"
 				}
-			}
-			else {
+			} else {
 				isError = "Unknown State: " + messages.data.charState
 			}
 			if (isError === null)
 				this.charState.onInputChange()
 			else console.log(isError)
 		}
-		await '';
+		await ''
 	}
 }

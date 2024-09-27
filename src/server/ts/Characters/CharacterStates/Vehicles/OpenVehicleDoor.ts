@@ -37,8 +37,7 @@ export class OpenVehicleDoor extends CharacterStateBase {
 		const side = Utility.detectRelativeSide(entryPoint, seat.seatPointObject)
 		if (side === Side.Left) {
 			this.playAnimation('open_door_standing_left', 0.1)
-		}
-		else if (side === Side.Right) {
+		} else if (side === Side.Right) {
 			this.playAnimation('open_door_standing_right', 0.1)
 		}
 
@@ -77,8 +76,7 @@ export class OpenVehicleDoor extends CharacterStateBase {
 					if (!this.character.world.isClient)
 						this.character.world.scene.attach(this.character)
 				this.character.setState(new Idle(this.character))
-			}
-			else {
+			} else {
 				this.character.setState(new EnteringVehicle(this.character, this.seat, this.entryPoint))
 			}
 		}

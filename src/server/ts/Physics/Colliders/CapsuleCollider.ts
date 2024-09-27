@@ -1,5 +1,4 @@
 import * as CANNON from 'cannon-es'
-import * as THREE from 'three'
 import { Utility } from '../../Core/Utility'
 import { ICollider } from '../../Interfaces/ICollider'
 

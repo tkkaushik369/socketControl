@@ -9,7 +9,7 @@ import { TrimeshCollider } from '../Physics/Colliders/TrimeshCollider'
 import { CollisionGroups } from '../Enums/CollisionGroups'
 import { Path } from './Path'
 import { Scenario } from './Scenario'
-import { TabPageApi } from 'tweakpane';
+import { TabPageApi } from 'tweakpane'
 import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { Character } from '../Characters/Character'
 import { Vehicle } from '../Vehicles/Vehicle'
@@ -53,6 +53,8 @@ export abstract class WorldBase {
 
 	public sceneObjects: THREE.Object3D[]
 	public worldObjects: CANNON.Body[]
+
+	public chatData: { from: string, message: string }[]
 
 	// server
 	protected updatePhysicsCallback: Function | null
@@ -161,16 +163,16 @@ export abstract class WorldBase {
 		this.scene.fog = fog
 
 		// World
-		this.world = new CANNON.World();
-		this.world.gravity.set(0, -10.0, 0);
-		this.world.broadphase = new CANNON.SAPBroadphase(this.world);
+		this.world = new CANNON.World()
+		this.world.gravity.set(0, -10.0, 0)
+		this.world.broadphase = new CANNON.SAPBroadphase(this.world)
 
 		const solver = new CANNON.GSSolver()
 		solver.iterations = 50
 		solver.tolerance = 0.0001
 
 		this.world.solver = solver
-		this.world.allowSleep = true;
+		this.world.allowSleep = true
 	}
 
 	public getGLTF(path: string, callback: Function) {
@@ -204,8 +206,7 @@ export abstract class WorldBase {
 		if (scrollAmount > 0) {
 			this.timeScaleTarget /= timeScaleChangeSpeed
 			if (this.timeScaleTarget < timeScaleBottomLimit) this.timeScaleTarget = 0
-		}
-		else {
+		} else {
 			this.timeScaleTarget *= timeScaleChangeSpeed
 			if (this.timeScaleTarget < timeScaleBottomLimit) this.timeScaleTarget = timeScaleBottomLimit
 			this.timeScaleTarget = Math.min(this.timeScaleTarget, 1)
@@ -278,31 +279,31 @@ export abstract class WorldBase {
 
 	public zeroBody(body: CANNON.Body) {
 		// Position
-		body.position.setZero();
-		body.previousPosition.setZero();
-		body.interpolatedPosition.setZero();
-		body.initPosition.setZero();
+		body.position.setZero()
+		body.previousPosition.setZero()
+		body.interpolatedPosition.setZero()
+		body.initPosition.setZero()
 
 		// orientation
-		body.quaternion.set(0, 0, 0, 1);
-		body.initQuaternion.set(0, 0, 0, 1);
-		body.previousQuaternion.set(0, 0, 0, 1);
-		body.interpolatedQuaternion.set(0, 0, 0, 1);
+		body.quaternion.set(0, 0, 0, 1)
+		body.initQuaternion.set(0, 0, 0, 1)
+		body.previousQuaternion.set(0, 0, 0, 1)
+		body.interpolatedQuaternion.set(0, 0, 0, 1)
 
 		// Velocity
-		body.velocity.setZero();
-		body.initVelocity.setZero();
-		body.angularVelocity.setZero();
-		body.initAngularVelocity.setZero();
+		body.velocity.setZero()
+		body.initVelocity.setZero()
+		body.angularVelocity.setZero()
+		body.initAngularVelocity.setZero()
 
 		// Force
-		body.force.setZero();
-		body.torque.setZero();
+		body.force.setZero()
+		body.torque.setZero()
 
 		// Sleep state reset
-		body.sleepState = 0;
-		body.timeLastSleepy = 0;
-		body.wakeUpAfterNarrowphase = false;
+		body.sleepState = 0
+		body.timeLastSleepy = 0
+		body.wakeUpAfterNarrowphase = false
 	}
 
 	public clearScene() {
@@ -391,7 +392,7 @@ export abstract class WorldBase {
 								distortionScale: 8,
 								fog: this.scene.fog !== undefined,
 								side: THREE.DoubleSide
-							});
+							})
 							water.uID = "test"
 							water.rotateX(-Math.PI / 2)
 							water.position.set(110, 25, -160)
@@ -417,8 +418,7 @@ export abstract class WorldBase {
 								})
 
 								this.addWorldObject(phys.body)
-							}
-							else if (child.userData.type === 'trimesh') {
+							} else if (child.userData.type === 'trimesh') {
 								let phys = new TrimeshCollider(child, {})
 								// phys.body.shapes.forEach((shape) => {
 								// 	shape.collisionFilterMask = CollisionGroups.Default | CollisionGroups.Characters | CollisionGroups.TrimeshColliders
@@ -437,9 +437,9 @@ export abstract class WorldBase {
 			}
 		})
 
-		this.addSceneObject(gltf.scene);
-		let boundingBox = new THREE.Box3().setFromObject(gltf.scene, true);
-		boundingBox.getSize(this.boxSize);
+		this.addSceneObject(gltf.scene)
+		let boundingBox = new THREE.Box3().setFromObject(gltf.scene, true)
+		boundingBox.getSize(this.boxSize)
 
 		let defaultScenarioID: string | null = null
 		for (const scenario of this.scenarios) {
@@ -488,8 +488,7 @@ export abstract class WorldBase {
 			if (this.isClient)
 				document.exitPointerLock()
 			this.launchScenario(this.lastScenarioID, false)
-		}
-		else {
+		} else {
 			console.warn('Can\'t restart scenario. Last scenarioID is undefined.')
 		}
 	}

@@ -64,11 +64,9 @@ export abstract class CharacterStateBase implements ICharacterState {
 	public onInputChange(): void {
 		if (this.canFindVehiclesToEnter && this.character.actions.enter.justPressed) {
 			this.character.findVehicleToEnter(true)
-		}
-		else if (this.canFindVehiclesToEnter && this.character.actions.enter_passenger.justPressed) {
+		} else if (this.canFindVehiclesToEnter && this.character.actions.enter_passenger.justPressed) {
 			this.character.findVehicleToEnter(false)
-		}
-		else if (this.canEnterVehicles && this.character.vehicleEntryInstance !== null) {
+		} else if (this.canEnterVehicles && this.character.vehicleEntryInstance !== null) {
 			if (this.character.actions.up.justPressed ||
 				this.character.actions.down.justPressed ||
 				this.character.actions.left.justPressed ||
@@ -95,8 +93,7 @@ export abstract class CharacterStateBase implements ICharacterState {
 		if (this.animationLength === undefined) {
 			console.error(this.constructor.name + 'Error: Set this.animationLength in state constructor!')
 			return false
-		}
-		else {
+		} else {
 			return this.timer > this.animationLength - timeStep
 		}
 	}
@@ -104,21 +101,17 @@ export abstract class CharacterStateBase implements ICharacterState {
 	public setAppropriateDropState(): void {
 		if (this.character.groundImpactData.velocity.y < -6) {
 			this.character.setState(new DropRolling(this.character))
-		}
-		else if (this.anyDirection()) {
+		} else if (this.anyDirection()) {
 			if (this.character.groundImpactData.velocity.y < -2) {
 				this.character.setState(new DropRunning(this.character))
-			}
-			else {
+			} else {
 				if (this.character.actions.run.isPressed) {
 					this.character.setState(new Sprint(this.character))
-				}
-				else {
+				} else {
 					this.character.setState(new Walk(this.character))
 				}
 			}
-		}
-		else {
+		} else {
 			this.character.setState(new DropIdle(this.character))
 		}
 	}
@@ -129,17 +122,13 @@ export abstract class CharacterStateBase implements ICharacterState {
 
 		if (angle > range * 0.8) {
 			this.character.setState(new StartWalkBackLeft(this.character))
-		}
-		else if (angle < -range * 0.8) {
+		} else if (angle < -range * 0.8) {
 			this.character.setState(new StartWalkBackRight(this.character))
-		}
-		else if (angle > range * 0.3) {
+		} else if (angle > range * 0.3) {
 			this.character.setState(new StartWalkLeft(this.character))
-		}
-		else if (angle < -range * 0.3) {
+		} else if (angle < -range * 0.3) {
 			this.character.setState(new StartWalkRight(this.character))
-		}
-		else {
+		} else {
 			this.character.setState(new StartWalkForward(this.character))
 		}
 	}

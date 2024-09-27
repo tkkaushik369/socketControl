@@ -8,6 +8,7 @@ import { Character } from '../Character'
 
 export class DropRolling extends CharacterStateBase implements ICharacterState {
 	state = 'DropRolling'
+	
 	constructor(character: Character) {
 		super(character)
 		// bind function
@@ -29,8 +30,7 @@ export class DropRolling extends CharacterStateBase implements ICharacterState {
 		if (this.animationEnded(timeStep)) {
 			if (this.anyDirection()) {
 				this.character.setState(new Walk(this.character))
-			}
-			else {
+			} else {
 				this.character.setState(new EndWalk(this.character))
 			}
 		}

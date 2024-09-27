@@ -34,8 +34,7 @@ export class ExitingAirplane extends ExitingStateBase {
 			this.detachCharacterFromVehicle()
 			this.character.setState(new Falling(this.character))
 			this.character.leaveSeat()
-		}
-		else {
+		} else {
 			let beginningCutoff = 0.3
 			let factor = THREE.MathUtils.clamp(((this.timer / this.animationLength) - beginningCutoff) * (1 / (1 - beginningCutoff)), 0, 1)
 			let smoothFactor = Utility.easeOutQuad(factor)

@@ -53,8 +53,7 @@ export class VehicleDoor {
 					this.achievingTargetRotation = false
 					this.physicsEnabled = true
 				}
-			}
-			else if (this.rotation > this.targetRotation) {
+			} else if (this.rotation > this.targetRotation) {
 				this.rotation -= timestep * this.rotationSpeed
 
 				if (this.rotation < this.targetRotation) {
@@ -106,8 +105,7 @@ export class VehicleDoor {
 				if (this.doorVelocity < -0.08) {
 					this.close()
 					this.doorVelocity = 0
-				}
-				else {
+				} else {
 					this.doorVelocity = -this.doorVelocity / 2
 				}
 			}

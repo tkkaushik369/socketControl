@@ -20,6 +20,6 @@ export var MapConfig: { [id: string]: MapConfigType } = {}
 
 Object.keys(Config).forEach((mapName) => {
 	// console.log("MapLoader: ", mapName)
-	let mc =  (Config as { [id: string]: unknown })[mapName] as MapConfigType
+	let mc = (Config as { [id: string]: unknown })[mapName] as MapConfigType
 	MapConfig[mc.name] = mc
-});
+})

@@ -5,7 +5,7 @@ import path from 'path'
 electronReload(__dirname, {
 	// electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
 	hardResetMethod: 'exit'
-});
+})
 
 const createWindow = () => {
 	let size = {
@@ -29,7 +29,7 @@ const createWindow = () => {
 	let width = display.bounds.width
 	let height = display.bounds.height
 	mainWindow.setPosition(width - size.width - offset.width, height - size.height - offset.height, true)
-	mainWindow.setAlwaysOnTop(true, 'floating');
+	mainWindow.setAlwaysOnTop(true, 'floating')
 
 	// mainWindow.setIgnoreMouseEvents(true)
 
@@ -39,7 +39,7 @@ const createWindow = () => {
 	mainWindow.once('ready-to-show', () => {
 		mainWindow.webContents.setZoomFactor(0.6)
 		mainWindow.show()
-	});
+	})
 	// mainWindow.webContents.openDevTools()
 }
 

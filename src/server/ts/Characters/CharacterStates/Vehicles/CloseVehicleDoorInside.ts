@@ -30,11 +30,9 @@ export class CloseVehicleDoorInside extends CharacterStateBase {
 			const side = Utility.detectRelativeSide(this.seat.seatPointObject, this.seat.door.doorObject)
 			if (side === Side.Left) {
 				this.playAnimation('close_door_sitting_left', 0.1)
-			}
-			else if (side === Side.Right) {
+			} else if (side === Side.Right) {
 				this.playAnimation('close_door_sitting_right', 0.1)
 			}
-
 			this.seat.door.open()
 		}
 	}
@@ -51,8 +49,7 @@ export class CloseVehicleDoorInside extends CharacterStateBase {
 		if (this.animationEnded(timeStep)) {
 			if (this.seat.type === SeatType.Driver) {
 				this.character.setState(new Driving(this.character, this.seat))
-			}
-			else if (this.seat.type === SeatType.Passenger) {
+			} else if (this.seat.type === SeatType.Passenger) {
 				this.character.setState(new Sitting(this.character, this.seat))
 			}
 		}

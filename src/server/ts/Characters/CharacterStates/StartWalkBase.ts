@@ -12,6 +12,7 @@ import { Character } from '../Character'
 
 export class StartWalkBase extends CharacterStateBase {
 	state = 'StartWalkBase'
+
 	constructor(character: Character) {
 		super(character)
 		// bind function
@@ -34,7 +35,6 @@ export class StartWalkBase extends CharacterStateBase {
 		}
 
 		this.character.setCameraRelativeOrientationTarget()
-
 		this.fallInAir()
 	}
 
@@ -51,15 +51,12 @@ export class StartWalkBase extends CharacterStateBase {
 
 				if (angle > Math.PI * 0.4) {
 					this.character.setState(new IdleRotateLeft(this.character))
-				}
-				else if (angle < -Math.PI * 0.4) {
+				} else if (angle < -Math.PI * 0.4) {
 					this.character.setState(new IdleRotateRight(this.character))
-				}
-				else {
+				} else {
 					this.character.setState(new Idle(this.character))
 				}
-			}
-			else {
+			} else {
 				this.character.setState(new Idle(this.character))
 			}
 		}

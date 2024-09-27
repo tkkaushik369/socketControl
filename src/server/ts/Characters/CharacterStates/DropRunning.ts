@@ -10,6 +10,7 @@ import { Character } from '../Character'
 
 export class DropRunning extends CharacterStateBase implements ICharacterState {
 	state = 'DropRunning'
+	
 	constructor(character: Character) {
 		super(character)
 		// bind function

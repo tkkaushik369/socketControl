@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { WorldBase } from "./WorldBase";
+import { WorldBase } from "./WorldBase"
 import { JSDOM } from 'jsdom'
 import fs from 'fs'
 
@@ -21,7 +21,7 @@ export class WorldServer extends WorldBase {
 
 		if (this.modelCache[resPath] !== undefined) {
 			const jsonObj = JSON.parse(this.modelCache[resPath])
-			const loader = new THREE.ObjectLoader();
+			const loader = new THREE.ObjectLoader()
 			const model = loader.parse(jsonObj) as any
 			callback({ scene: model, animations: model.animations })
 			return resPath
@@ -32,11 +32,11 @@ export class WorldServer extends WorldBase {
 		(global as any).document = dom.window.document;
 		(global as any).HTMLImageElement = typeof window === 'undefined' ? Object : window.HTMLImageElement
 
-		const data: string = fs.readFileSync(resPath, 'utf8');
+		const data: string = fs.readFileSync(resPath, 'utf8')
 		const jsonObj = JSON.parse(data)
 		this.modelCache[resPath] = data
 
-		const loader = new THREE.ObjectLoader();
+		const loader = new THREE.ObjectLoader()
 		const model = loader.parse(jsonObj) as any
 		callback({ scene: model, animations: model.animations })
 		return resPath

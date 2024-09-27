@@ -81,9 +81,9 @@ export class Example extends BaseScene {
 						4, 15, 14,
 						// 16, 9, 17,
 						// 9, 10, 17,
-					];
+					]
 
-					const uvs = [];
+					const uvs = []
 					let t = true
 					for (let i = 0; i < indices.length; i += 3) {
 						if (t)
@@ -102,7 +102,7 @@ export class Example extends BaseScene {
 					}
 
 					geometry.setAttribute('position', new THREE.BufferAttribute(Utility.vertInx(indices, vertices), 3))
-					geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
+					geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2))
 					geometry.computeVertexNormals()
 
 					const mesh = new THREE.Mesh(geometry, material)
@@ -116,7 +116,7 @@ export class Example extends BaseScene {
 				}
 				{ // spline extrude
 
-					const length = 0.4, width = 0.05;
+					const length = 0.4, width = 0.05
 					const spline = new THREE.CatmullRomCurve3([
 						new THREE.Vector3(-2.5, 1.5, 0.0),
 						new THREE.Vector3(-2, 1.5, 0.0),
@@ -134,9 +134,9 @@ export class Example extends BaseScene {
 						new THREE.Vector3(1.8, 1.5, 0.6),
 						new THREE.Vector3(2, 1.5, 0.65),
 						new THREE.Vector3(2.5, 1.5, 0.65),
-					]);
+					])
 
-					spline.closed = false;
+					spline.closed = false
 					spline.tension = 0
 
 					const geometry = new THREE.BufferGeometry()
@@ -188,8 +188,8 @@ export class Example extends BaseScene {
 					geometry.setAttribute('position', new THREE.BufferAttribute(Utility.vertInx(indices, vertices), 3))
 					geometry.computeVertexNormals()
 
-					const material1 = new THREE.MeshStandardMaterial({ color: 0xb0b000 });
-					const mesh1 = new THREE.Mesh(geometry, material1);
+					const material1 = new THREE.MeshStandardMaterial({ color: 0xb0b000 })
+					const mesh1 = new THREE.Mesh(geometry, material1)
 					mesh1.userData = {
 						debug: true,
 						data: "physics",
@@ -197,7 +197,7 @@ export class Example extends BaseScene {
 					}
 					mesh1.position.set(78, -30.5, -8)
 					mesh1.scale.multiplyScalar(20)
-					this.scene.add(mesh1);
+					this.scene.add(mesh1)
 				}
 			}
 
@@ -334,21 +334,21 @@ export class Example extends BaseScene {
 					}
 
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(6, 0, 0)
-						spawnVehical.userData = {
+						let spawnVehicle = new THREE.Object3D()
+						spawnVehicle.position.set(6, 0, 0)
+						spawnVehicle.userData = {
 							data: "spawn",
 							type: "car",
 							subtype: "car_test",
 							name: "car",
 						}
-						scenario2.add(spawnVehical)
+						scenario2.add(spawnVehicle)
 					}
 
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(-10, 1, -10)
-						spawnVehical.userData = {
+						let spawnVehicle = new THREE.Object3D()
+						spawnVehicle.position.set(-10, 1, -10)
+						spawnVehicle.userData = {
 							data: "spawn",
 							type: "car",
 							subtype: "car_test",
@@ -356,77 +356,77 @@ export class Example extends BaseScene {
 							driver: "ai",
 							first_node: "node1"
 						}
-						scenario2.add(spawnVehical)
+						scenario2.add(spawnVehicle)
 					}
 
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(9, 0, 0)
-						spawnVehical.userData = {
+						let spawnVehicle = new THREE.Object3D()
+						spawnVehicle.position.set(9, 0, 0)
+						spawnVehicle.userData = {
 							data: "spawn",
 							type: "heli",
 							subtype: "heli_test",
 							name: "heli",
 						}
-						scenario2.add(spawnVehical)
+						scenario2.add(spawnVehicle)
 					}
 
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(125, 1, 5)
-						spawnVehical.rotateY(-Math.PI / 2)
-						spawnVehical.userData = {
+						let spawnVehicle = new THREE.Object3D()
+						spawnVehicle.position.set(125, 1, 5)
+						spawnVehicle.rotateY(-Math.PI / 2)
+						spawnVehicle.userData = {
 							data: "spawn",
 							type: "heli",
 							subtype: "heli_test",
 							name: "heli_ramp",
 						}
-						scenario2.add(spawnVehical)
+						scenario2.add(spawnVehicle)
 					}
 
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(12, 0, 0)
-						spawnVehical.userData = {
+						let spawnVehicle = new THREE.Object3D()
+						spawnVehicle.position.set(12, 0, 0)
+						spawnVehicle.userData = {
 							data: "spawn",
 							type: "airplane",
 							subtype: "airplane_test",
 							name: "airplane",
 						}
-						scenario2.add(spawnVehical)
+						scenario2.add(spawnVehicle)
 					}
 
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(6, 0, -5)
-						spawnVehical.userData = {
+						let spawnVehicle = new THREE.Object3D()
+						spawnVehicle.position.set(6, 0, -5)
+						spawnVehicle.userData = {
 							data: "spawn",
 							type: "car",
 							name: "car_glb",
 						}
-						scenario2.add(spawnVehical)
+						scenario2.add(spawnVehicle)
 					}
 
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(9, 0, -5)
-						spawnVehical.userData = {
+						let spawnVehicle = new THREE.Object3D()
+						spawnVehicle.position.set(9, 0, -5)
+						spawnVehicle.userData = {
 							data: "spawn",
 							type: "heli",
 							name: "heliglb",
 						}
-						scenario2.add(spawnVehical)
+						scenario2.add(spawnVehicle)
 					}
 
 					{
-						let spawnVehical = new THREE.Object3D()
-						spawnVehical.position.set(12, 0, -5)
-						spawnVehical.userData = {
+						let spawnVehicle = new THREE.Object3D()
+						spawnVehicle.position.set(12, 0, -5)
+						spawnVehicle.userData = {
 							data: "spawn",
 							type: "airplane",
 							name: "airplaneglb",
 						}
-						scenario2.add(spawnVehical)
+						scenario2.add(spawnVehicle)
 					}
 					this.scene.add(scenario2)
 				}
@@ -511,8 +511,8 @@ export class Example extends BaseScene {
 				light.angle = 30 * (Math.PI / 180)
 				light.castShadow = true
 				light.target.position.copy(light.position).add(new THREE.Vector3(0, 0, 1))
-				body.add(light);
-				body.add(light.target);
+				body.add(light)
+				body.add(light.target)
 				body.add(left)
 			}
 			{
