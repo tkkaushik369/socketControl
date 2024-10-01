@@ -240,7 +240,7 @@ export class WorldClient extends WorldBase {
 		syncFolder.addBinding(this.settings, 'SyncInputs')
 
 		// World Scene Folder
-		let sceneFolder = this.gui.addFolder({ title: 'Scenes', expanded: false })
+		let sceneFolder = this.gui.addFolder({ title: 'Scenes', expanded: true })
 		this.mapGUIFolder = sceneFolder.addTab({
 			pages: [
 				{ title: 'Map' },

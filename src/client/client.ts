@@ -353,8 +353,8 @@ export default class AppClient {
 								},
 							}
 							let worldFolder = this.worldClient.worldsGUIFolder.addFolder({ title: messages[id].data.worldId })
-							worldFolder.addButton({ title: messages[id].data.worldId }).on('click', (ev: any) => { this.worldClient.roomCallers[messages[id].data.worldId].join() })
-							worldFolder.addButton({ title: messages[id].data.worldId }).on('click', (ev: any) => { this.worldClient.roomCallers[messages[id].data.worldId].leave() })
+							worldFolder.addButton({ title: 'Join' }).on('click', (ev: any) => { this.worldClient.roomCallers[messages[id].data.worldId].join() })
+							worldFolder.addButton({ title: 'Leave' }).on('click', (ev: any) => { this.worldClient.roomCallers[messages[id].data.worldId].leave() })
 						}
 						if (messages[id].data.worldId !== this.worldClient.worldId) break
 					}
@@ -505,8 +505,8 @@ export default class AppClient {
 					}
 				}
 				let worldFolder = this.worldClient.worldsGUIFolder.addFolder({ title: wid })
-				worldFolder.addButton({ title: wid }).on('click', (ev: any) => { this.worldClient.roomCallers[wid].join() })
-				worldFolder.addButton({ title: wid }).on('click', (ev: any) => { this.worldClient.roomCallers[wid].leave() })
+				worldFolder.addButton({ title: 'Join' }).on('click', (ev: any) => { this.worldClient.roomCallers[wid].join() })
+				worldFolder.addButton({ title: 'Leave' }).on('click', (ev: any) => { this.worldClient.roomCallers[wid].leave() })
 			}
 		}
 	}
