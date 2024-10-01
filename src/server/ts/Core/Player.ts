@@ -13,14 +13,11 @@ import { UiControlsGroup } from '../Enums/UiControlsGroup'
 export type PlayerSetMesssage = {
 	sID: string,
 	count: number,
-	lastScenarioID: string,
-	lastMapID: string,
-	worldId: string,
 }
 
 export class Player implements INetwork {
 	sID: string
-	world: WorldBase
+	world: WorldBase | null
 	ws: WebSocket | null
 
 	uID: string | null
@@ -51,7 +48,7 @@ export class Player implements INetwork {
 	// client
 	attachments: THREE.Object3D[]
 
-	constructor(sID: string, world: WorldBase, camera: THREE.PerspectiveCamera, domElement: HTMLElement | null) {
+	constructor(sID: string, camera: THREE.PerspectiveCamera, domElement: HTMLElement | null) {
 		// bind functions
 		this.setUID = this.setUID.bind(this)
 		this.setSpawn = this.setSpawn.bind(this)
@@ -62,15 +59,15 @@ export class Player implements INetwork {
 
 		// init
 		this.sID = sID
-		this.world = world
+		this.world = null
 		this.ws = null
 
 		this.uID = null
 		this.msgType = MessageTypes.Player
 		this.timeStamp = Date.now()
 		this.ping = 0
-		this.inputManager = new InputManager(this, this.world, domElement)
-		this.cameraOperator = new CameraOperator(this, this.world, camera, domElement ? this.world.settings.Mouse_Sensitivity : 0.2)
+		this.inputManager = new InputManager(this, domElement)
+		this.cameraOperator = new CameraOperator(this, camera, 0.2)
 
 		this.attachments = []
 
@@ -85,7 +82,7 @@ export class Player implements INetwork {
 
 		this.data = {
 			isWS: false,
-			worldId: this.world.worldId,
+			worldId: null,
 			sun: { elevation: 0, azimuth: 0 },
 			timeScaleTarget: 1,
 			cameraPosition: { x: 0, y: 0, z: 0 },
@@ -95,9 +92,11 @@ export class Player implements INetwork {
 
 	public setUID(uID: string) {
 		this.uID = uID
+		if (this.world === null) return
+		const world = this.world
 		// this.setSpawn(new THREE.Vector3(0, 17, -5), false) // for testing
 		this.world.scenarios.forEach((sc => {
-			if (this.world.lastScenarioID === sc.name) {
+			if (world.lastScenarioID === sc.name) {
 				if (sc.playerPosition !== null) {
 					this.setSpawn(sc.playerPosition, false)
 				}
@@ -124,7 +123,17 @@ export class Player implements INetwork {
 		this.spawnPoint = new CharacterSpawnPoint(spawnPlayer, spawnPlayer.userData)
 	}
 
-	public addUser() {
+	public addUser(exworld: WorldBase | null) {
+		if (exworld !== null) {
+			this.world = exworld
+			this.world.users[this.sID] = this
+			this.inputManager.pointerLock = this.world.settings.Pointer_Lock
+			this.cameraOperator.setSensitivity(this.world.settings.Mouse_Sensitivity)
+			this.world.registerUpdatable(this.inputManager)
+			this.world.registerUpdatable(this.cameraOperator)
+		}
+		if (this.world === null) return
+		const world = this.world
 		if (this.spawnPoint === null) return
 		this.character = this.spawnPoint.spawn(this.world)
 		if (this.character !== null) {
@@ -132,18 +141,24 @@ export class Player implements INetwork {
 			this.character.takeControl()
 		}
 		this.attachments.forEach((obj) => {
-			this.world.addSceneObject(obj)
+			world.addSceneObject(obj)
 		})
 	}
-	public removeUser() {
+	public removeUser(exworld: WorldBase | null) {
+		if (this.world === null) return
+		const world = this.world
 		if (this.character !== null) {
 			this.world.remove(this.character)
 			this.character.player = null
 			this.character = null
 		}
 		this.attachments.forEach((obj) => {
-			this.world.removeSceneObject(obj)
+			world.removeSceneObject(obj)
 		})
+		if (exworld !== null) {
+			this.world.unregisterUpdatable(this.inputManager)
+			this.world.unregisterUpdatable(this.cameraOperator)
+		}
 	}
 
 	Out() {
@@ -157,7 +172,7 @@ export class Player implements INetwork {
 			data: {
 				uiControls: this.uiControls,
 				isWS: (this.ws !== null),
-				worldId: this.world.worldId,
+				worldId: (this.world !== null) ? this.world.worldId : null,
 				sun: {
 					elevation: this.data.sun.elevation,
 					azimuth: this.data.sun.azimuth

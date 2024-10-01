@@ -151,7 +151,6 @@ export abstract class WorldBase {
 			Outline: false,
 			SyncSun: false,
 			SyncInputs: true,
-			SyncCamera: true,
 		}
 		this.scenariosCalls = {}
 
@@ -529,7 +528,7 @@ export abstract class WorldBase {
 	public update() {
 		if (this.worldId === null) return
 
-		if ((this.player !== null) && !this.player.world.isClient) {
+		if (!this.isClient) {
 			let count = 0
 
 			Object.keys(this.users).forEach((sID) => {
@@ -537,8 +536,10 @@ export abstract class WorldBase {
 			})
 
 			if (count === 0) {
-				if (this.runner !== null)
+				if (this.runner !== null) {
 					clearInterval(this.runner)
+					console.log(`Stopping: ${this.worldId}`)
+				}
 				this.runner = null
 			}
 		}
@@ -568,7 +569,7 @@ export abstract class WorldBase {
 			this.vehicles.forEach((vehi) => {
 				vehi.update(timeStep)
 			})
-			if ((this.player !== null) && !this.settings.SyncCamera) {
+			if ((this.player !== null) && !this.settings.SyncInputs) {
 				this.player.inputManager.update(timeStep, unscaledTimeStep)
 				this.player.cameraOperator.update(timeStep, unscaledTimeStep)
 			}

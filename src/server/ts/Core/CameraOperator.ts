@@ -13,7 +13,6 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	public updateOrder: number = 4
 
 	private player: Player
-	public world: WorldBase
 	public camera: THREE.PerspectiveCamera
 	public target: THREE.Vector3
 	private sensitivity: THREE.Vector2
@@ -38,7 +37,7 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 
 	public characterCaller: Character | null
 
-	constructor(player: Player, world: WorldBase, camera: THREE.PerspectiveCamera, sensitivityX: number = 1, sensitivityY: number = sensitivityX * 0.8) {
+	constructor(player: Player, camera: THREE.PerspectiveCamera, sensitivityX: number = 1, sensitivityY: number = sensitivityX * 0.8) {
 		// bind functions
 		this.setSensitivity = this.setSensitivity.bind(this)
 		this.setRadius = this.setRadius.bind(this)
@@ -47,7 +46,6 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 
 		// init
 		this.player = player
-		this.world = world
 		this.camera = camera
 		this.target = new THREE.Vector3()
 		this.sensitivity = new THREE.Vector2(sensitivityX, sensitivityY)
@@ -75,7 +73,6 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 		}
 
 		this.characterCaller = null
-		this.world.registerUpdatable(this)
 	}
 
 	public setSensitivity(sensitivityX: number, sensitivityY: number = sensitivityX): void {
@@ -97,7 +94,8 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	}
 
 	public update(timestep: number, unscaledTimeStep: number) {
-		if (this.world.isClient && this.world.settings.SyncCamera) return
+		if (this.player.world === null) return
+		if (this.player.world.isClient && this.player.world.settings.SyncInputs) return
 		if (this.followMode === true) {
 			this.camera.position.y = THREE.MathUtils.clamp(this.camera.position.y, this.target.y, Number.POSITIVE_INFINITY)
 			this.camera.lookAt(this.target)
@@ -162,7 +160,8 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	}
 
 	public handleMouseWheel(value: number) {
-		this.world.scrollTheTimeScale(value)
+		if (this.player.world === null) return
+		this.player.world.scrollTheTimeScale(value)
 	}
 
 	public inputReceiverInit() {

@@ -7,3 +7,8 @@ export enum DataSender {
 	SocketLoop = 'socketLoop',
 	PingPong = 'pingPong',
 }
+
+export enum Packager {
+	JSON = 'json',
+	MsgPacker = 'msgPacker',
+}

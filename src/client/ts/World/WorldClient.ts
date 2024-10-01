@@ -238,7 +238,6 @@ export class WorldClient extends WorldBase {
 		let syncFolder = folderSettings.addFolder({ title: 'SYNC', expanded: false })
 		syncFolder.addBinding(this.settings, 'SyncSun')
 		syncFolder.addBinding(this.settings, 'SyncInputs')
-		syncFolder.addBinding(this.settings, 'SyncCamera')
 
 		// World Scene Folder
 		let sceneFolder = this.gui.addFolder({ title: 'Scenes', expanded: false })

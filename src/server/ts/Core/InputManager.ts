@@ -8,7 +8,6 @@ export class InputManager implements IUpdatable {
 	updateOrder: number = 3
 
 	public player: Player
-	public world: WorldBase
 	public domElement: HTMLElement | null
 	public pointerLock: boolean
 	public isLocked: boolean
@@ -18,7 +17,7 @@ export class InputManager implements IUpdatable {
 	// callback Controls
 	public controlsCallBack: Function | null
 
-	constructor(player: Player, world: WorldBase, domElement: HTMLElement | null) {
+	constructor(player: Player, domElement: HTMLElement | null) {
 		// bind functions
 		this.update = this.update.bind(this)
 		this.setInputReceiver = this.setInputReceiver.bind(this)
@@ -41,9 +40,8 @@ export class InputManager implements IUpdatable {
 
 		// init
 		this.player = player
-		this.world = world
 		this.domElement = domElement
-		this.pointerLock = this.world.settings.Pointer_Lock
+		this.pointerLock = true
 		this.isLocked = false
 		this.inputReceiver = null
 		this.controlsCallBack = null
@@ -61,8 +59,6 @@ export class InputManager implements IUpdatable {
 			document.addEventListener('keydown', this.onKeyDown, false)
 			document.addEventListener('keyup', this.onKeyUp, false)
 		}
-
-		world.registerUpdatable(this)
 	}
 
 	public update(timestep: number, unscaledTimeStep: number): void {

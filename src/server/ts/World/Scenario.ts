@@ -131,7 +131,7 @@ export class Scenario {
 					world.users[sID].setSpawn(pos[--tot], this.isPlayerPositionNearVehicle, this.isPlayerPositionNearVehicle ? (this.initialCameraAngle + 180) : 0)
 					world.users[sID].cameraOperator.theta = this.initialCameraAngle
 					world.users[sID].cameraOperator.phi = 15
-					world.users[sID].addUser()
+					world.users[sID].addUser(null)
 				}
 			})
 		}
