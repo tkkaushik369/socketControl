@@ -1,12 +1,14 @@
-import { Communication, DataSender, Packager } from "./ts/Enums/Communication"
+import { Communication, DataSender, Packager, WorldCreation } from "./ts/Enums/Communication"
 
 
 export var Common: {
 	conn: Communication,
 	sender: DataSender,
 	packager: Packager,
+	eachNewWorld: WorldCreation
 } = {
 	conn: Communication.WebSocket,
-	sender: DataSender.SocketLoop,
-	packager: Packager.MsgPacker,
+	sender: DataSender.SocketLoop,	// only websocket
+	packager: Packager.MsgPacker,	// only websocket
+	eachNewWorld: WorldCreation.AtleaseOne
 }

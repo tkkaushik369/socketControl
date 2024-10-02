@@ -71,6 +71,15 @@ body {
 	user-select: none;
 }
 
+.label.far {
+	color: #cc6666;
+}
+
+.label.me {
+	background-color: rgba(1, 1, 1, 0.1);
+	color: #1a1a1a;
+}
+
 #controls {
 	position: absolute;
 	bottom: 4px;

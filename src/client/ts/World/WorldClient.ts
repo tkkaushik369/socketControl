@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
@@ -25,6 +26,7 @@ export class WorldClient extends WorldBase {
 	private parentDom: HTMLDivElement
 	private controlsDom: HTMLDivElement
 	public renderer: THREE.WebGLRenderer
+	public labelRenderer: CSS2DRenderer
 	public camera: THREE.PerspectiveCamera
 	private clientClock: THREE.Clock
 	public uiControls: UiControlsGroup
@@ -100,6 +102,14 @@ export class WorldClient extends WorldBase {
 			this.renderer.setClearColor(this.scene.fog.color, 0.1)
 		this.parentDom.appendChild(this.renderer.domElement)
 		this.renderer.setAnimationLoop(this.animate)
+
+		// Label Renderer
+		this.labelRenderer = new CSS2DRenderer()
+		this.labelRenderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
+		this.labelRenderer.domElement.style.position = 'absolute'
+		this.labelRenderer.domElement.style.top = '0px'
+		this.labelRenderer.domElement.style.pointerEvents = 'none'
+		this.parentDom.appendChild(this.labelRenderer.domElement)
 
 		// Camera
 		this.camera = Utility.defaultCamera()
@@ -338,6 +348,7 @@ export class WorldClient extends WorldBase {
 		this.camera.updateProjectionMatrix()
 
 		this.renderer.setSize(width, height)
+		this.labelRenderer.setSize(width, height)
 		const pixelRatio = this.renderer.getPixelRatio()
 
 		this.fxaaPass.uniforms['resolution'].value.set(1 / (width * pixelRatio), 1 / (height * pixelRatio))
@@ -490,6 +501,7 @@ export class WorldClient extends WorldBase {
 
 		this.renderer.toneMappingExposure = this.effectController.exposure
 		this.renderer.render(this.scene, this.camera)
+		this.labelRenderer.render(this.scene, this.camera)
 	}
 
 	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
@@ -531,5 +543,6 @@ export class WorldClient extends WorldBase {
 			this.composer.render()
 		else
 			this.renderer.render(this.scene, this.camera)
+		this.labelRenderer.render(this.scene, this.camera)
 	}
 }

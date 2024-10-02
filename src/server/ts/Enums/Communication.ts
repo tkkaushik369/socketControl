@@ -12,3 +12,8 @@ export enum Packager {
 	JSON = 'json',
 	MsgPacker = 'msgPacker',
 }
+
+export enum WorldCreation {
+	AtleaseOne = 'atleaseOne',
+	OneForEach = 'oneForEach',
+}

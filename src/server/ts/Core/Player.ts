@@ -46,7 +46,7 @@ export class Player implements INetwork {
 	character: Character | null
 
 	// client
-	attachments: THREE.Object3D[]
+	attachments: { obj: THREE.Object3D, addToWorld: boolean }[]
 
 	constructor(sID: string, camera: THREE.PerspectiveCamera, domElement: HTMLElement | null) {
 		// bind functions
@@ -71,10 +71,12 @@ export class Player implements INetwork {
 
 		this.attachments = []
 
-		const camHelper = new THREE.CameraHelper(this.cameraOperator.camera)
-		camHelper.visible = false
+		{
+			const camHelper = new THREE.CameraHelper(this.cameraOperator.camera)
+			camHelper.visible = false
 
-		this.attachments.push(camHelper)
+			this.attachments.push({ obj: camHelper, addToWorld: true })
+		}
 
 		this.spawnPoint = null
 		this.character = null
@@ -141,20 +143,33 @@ export class Player implements INetwork {
 			this.character.takeControl()
 		}
 		this.attachments.forEach((obj) => {
-			world.addSceneObject(obj)
+			if (obj.addToWorld)
+				world.addSceneObject(obj.obj)
+			else if (this.character !== null)
+				this.character.modelContainer.add(obj.obj)
 		})
 	}
 	public removeUser(exworld: WorldBase | null) {
 		if (this.world === null) return
 		const world = this.world
+		this.attachments.forEach((obj) => {
+			if (obj.addToWorld)
+				world.removeSceneObject(obj.obj)
+			else if (this.character !== null) {
+				/* if (obj.obj instanceof THREE.LOD) {
+					console.log(obj.obj.levels)
+					obj.obj.levels.forEach((child) => {
+						console.log((obj.obj as any).removeLevel(child.distance))
+					})
+				} */
+				this.character.modelContainer.remove(obj.obj)
+			}
+		})
 		if (this.character !== null) {
 			this.world.remove(this.character)
 			this.character.player = null
 			this.character = null
 		}
-		this.attachments.forEach((obj) => {
-			world.removeSceneObject(obj)
-		})
 		if (exworld !== null) {
 			this.world.unregisterUpdatable(this.inputManager)
 			this.world.unregisterUpdatable(this.cameraOperator)
