@@ -1,5 +1,9 @@
 import { BaseScene } from '../BaseScene'
-import * as Config from './Configs'
+import { ExampleConfig } from './Configs/Example'
+import { SketchBookV3Config } from './Configs/SketchBookV3'
+import { SketchBookV4Config } from './Configs/SketchBookV4'
+import { TestConfig } from './Configs/Test'
+import { Test2Config } from './Configs/Test2'
 
 export type MapConfigFOType = {
 	objCaller: string | BaseScene,
@@ -18,8 +22,8 @@ export type MapConfigType = {
 
 export var MapConfig: { [id: string]: MapConfigType } = {}
 
-Object.keys(Config).forEach((mapName) => {
-	// console.log("MapLoader: ", mapName)
-	let mc = (Config as { [id: string]: unknown })[mapName] as MapConfigType
-	MapConfig[mc.name] = mc
-})
+MapConfig[Test2Config.name] = Test2Config
+MapConfig[ExampleConfig.name] = ExampleConfig
+MapConfig[SketchBookV4Config.name] = SketchBookV4Config
+MapConfig[SketchBookV3Config.name] = SketchBookV3Config
+MapConfig[TestConfig.name] = TestConfig

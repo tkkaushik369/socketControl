@@ -166,7 +166,7 @@ export class Player implements INetwork {
 			}
 		})
 		if (this.character !== null) {
-			this.world.remove(this.character)
+			this.world.removeSceneObject(this.character)
 			this.character.player = null
 			this.character = null
 		}

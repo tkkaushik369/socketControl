@@ -195,12 +195,15 @@ class AppServer {
 	}
 
 	private CreateNewWorld(worldId: string) {
+		console.log('World Created: ' + worldId)
 		this.allWorlds[worldId] = new WorldServer(this.ForSocketLoop)
 		this.allWorlds[worldId].launchMap(Object.keys(this.allWorlds[worldId].maps)[0], false, true)
 		this.allWorlds[worldId].worldId = worldId
 	}
 
 	private CreatePlayerWorld(socketid: string): PlayerSetMesssage {
+		this.allUsers[socketid] = new Player(socketid, Utility.defaultCamera(), null)
+
 		let worldId = "World_" + socketid
 		const worldIds = Object.keys(this.allWorlds)
 		if (Common.eachNewWorld === WorldCreation.OneForEach) {
@@ -209,8 +212,6 @@ class AppServer {
 			if (worldIds.length != 0) worldId = worldIds[0]
 			else this.CreateNewWorld(worldId)
 		}
-
-		this.allUsers[socketid] = new Player(socketid, Utility.defaultCamera(), null)
 
 		const playerSetMessage: PlayerSetMesssage = {
 			sID: socketid,
@@ -616,15 +617,15 @@ class AppServer {
 		Object.keys(this.allWorlds).forEach(worldId => {
 			if (this.allWorlds[worldId] !== undefined) {
 				let toRemoveUser: string[] = []
-				Object.keys(this.allWorlds[worldId].users).forEach((userid) => {
-					if (this.allWorlds[worldId].users[userid] === undefined) toRemoveUser.push(userid)
+				Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
+					if (this.allWorlds[worldId].users[sID] === undefined) toRemoveUser.push(sID)
 				})
 				while (toRemoveUser.length) {
 					delete this.allWorlds[worldId].users[toRemoveUser.pop()]
 				}
 				let count = 0
-				Object.keys(this.allWorlds[worldId].users).forEach((userid) => {
-					if (this.allWorlds[worldId].users[userid] !== undefined) count++
+				Object.keys(this.allWorlds[worldId].users).forEach((sID) => {
+					if (this.allWorlds[worldId].users[sID] !== undefined) count++
 				})
 				if (count === 0) {
 					toRemoveServer.push(this.allWorlds[worldId])
@@ -633,7 +634,15 @@ class AppServer {
 		})
 
 		while (toRemoveServer.length) {
-			delete this.allWorlds[toRemoveServer.pop().worldId]
+			let hasNoHold = true
+			const worldId = toRemoveServer.pop().worldId
+			Object.keys(this.allUsers).forEach((sID) => {
+				if (worldId.includes(sID)) { hasNoHold = false }
+			})
+			if (hasNoHold) {
+				console.log("World Removed: " + worldId)
+				delete this.allWorlds[worldId]
+			}
 		}
 	}
 

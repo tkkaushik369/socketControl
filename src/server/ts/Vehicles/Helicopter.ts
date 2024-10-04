@@ -57,7 +57,7 @@ export class Helicopter extends Vehicle implements IControllable, IWorldEntity {
 
 	public update(timeStep: number): void {
 		super.update(timeStep)
-		if (this.world !== null && this.world.isClient) return
+		if (this.world !== null && (this.world.isClient && (this.world.worldId !== null))) return
 
 		// Rotors visuals
 		if (this.controllingCharacter !== null) {

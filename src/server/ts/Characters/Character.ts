@@ -257,7 +257,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	}
 
 	public setState(state: ICharacterState, checks: boolean = true): void {
-		if (checks) if ((this.world !== null) && this.world.isClient) return
+		if (checks) if ((this.world !== null) && (this.world.isClient && (this.world.worldId !== null))) return
 		this.charState = state
 		this.charState.onInputChange()
 	}

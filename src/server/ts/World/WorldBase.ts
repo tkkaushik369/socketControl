@@ -225,14 +225,14 @@ export abstract class WorldBase {
 	}
 
 	public addWorldObject(object: CANNON.Body) {
-		if (!this.settings.Debug_Physics_Engine && this.isClient) return
+		if (!this.settings.Debug_Physics_Engine && (this.isClient && this.worldId !== null)) return
 		if (_.includes(this.worldObjects, object)) return
 		this.worldObjects.push(object)
 		this.world.addBody(object)
 	}
 
 	public removeWorldObject(object: CANNON.Body) {
-		if (!this.settings.Debug_Physics_Engine && this.isClient) return
+		// if (!this.settings.Debug_Physics_Engine && (this.isClient && this.worldId !== null)) return
 		if (!_.includes(this.worldObjects, object)) return
 		this.world.removeBody(object)
 		_.pull(this.worldObjects, object)
@@ -526,8 +526,7 @@ export abstract class WorldBase {
 	}
 
 	public update() {
-		if (this.worldId === null) return
-
+		if (!this.isClient && this.worldId === null) return
 		if (!this.isClient) {
 			let count = 0
 
@@ -550,11 +549,11 @@ export abstract class WorldBase {
 		let timeStep = unscaledTimeStep * this.settings.Time_Scale
 		timeStep = Math.min(timeStep, 1 / 30)
 
-		if (this.settings.Debug_Physics_Engine || !this.isClient)
+		if (this.settings.Debug_Physics_Engine || !this.isClient || (this.isClient && (this.worldId === null)))
 			this.updatePhysics(timeStep, unscaledTimeStep)
 
 		// Update registred objects
-		if (!this.isClient) {
+		if (!this.isClient || (this.isClient && (this.worldId == null))) {
 			this.updatables.forEach((entity) => { entity.update(timeStep, unscaledTimeStep) })
 
 			// Sun Update

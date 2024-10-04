@@ -129,7 +129,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 	public update(timeStep: number): void {
 		if (this.world === null) return
-		if (this.world.isClient) {
+		if (this.world.isClient && (this.world.worldId !== null)) {
 			const world = this.world as WorldBase
 			this.lights.forEach((li) => { li.power = (world.sunConf.elevation > 3) ? 1 : 200 })
 			return

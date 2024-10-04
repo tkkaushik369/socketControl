@@ -70,7 +70,7 @@ export class EnteringVehicle extends CharacterStateBase {
 
 		if (this.animationEnded(timeStep)) {
 			this.character.occupySeat(this.seat)
-			if ((this.character.world !== null) && !this.character.world.isClient)
+			if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null))))
 				this.character.setPosition(this.endPosition.x, this.endPosition.y, this.endPosition.z)
 
 			if (this.seat.type === SeatType.Driver) {
@@ -92,7 +92,7 @@ export class EnteringVehicle extends CharacterStateBase {
 			let currentPosOffset = new THREE.Vector3().lerpVectors(this.initialPositionOffset, new THREE.Vector3(), this.factorSimulator.position)
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition.clone().sub(currentPosOffset), this.endPosition, sineFactor)
 
-			if ((this.character.world !== null) && !this.character.world.isClient) {
+			if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null)))) {
 				this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 				this.character.quaternion.slerp(this.endRotation, this.factorSimulator.position)
 			}

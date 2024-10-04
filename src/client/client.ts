@@ -81,6 +81,7 @@ export default class AppClient {
 		this.io = null
 		this.ws = null
 		this.worldClient = new WorldClient(controls, workBox, this.ForSocketLoop, this.ForLaunchMap, this.ForLaunchScenario)
+		this.worldClient.launchMap(Object.keys(this.worldClient.maps)[0], false, true)
 		this.sID = ""
 		this.lastUpdate = Date.now()
 
@@ -372,33 +373,6 @@ export default class AppClient {
 				}
 				case MessageTypes.Player: {
 					if (messages[id].data.worldId !== null) {
-						if (this.worldClient.roomCallers[messages[id].data.worldId] === undefined) {
-							this.worldClient.roomCallers[messages[id].data.worldId] = {
-								'join': () => {
-									if (this.io !== null)
-										this.io.emit('change', messages[id].data.worldId, this.OnChangeCallBack)
-									else if (this.ws !== null) {
-										if (Common.packager === Packager.JSON)
-											this.ws.send(JSON.stringify({ type: 'change', params: { sID: this.sID, worldId: messages[id].data.worldId } }))
-										else if (Common.packager === Packager.MsgPacker)
-											this.ws.send(pack({ type: 'change', params: { sID: this.sID, worldId: messages[id].data.worldId } }))
-									}
-								},
-								'leave': () => {
-									if (this.io !== null)
-										this.io.emit('leave', messages[id].data.worldId, this.OnLeaveCallBack)
-									else if (this.ws !== null) {
-										if (Common.packager === Packager.JSON)
-											this.ws.send(JSON.stringify({ type: 'leave', params: { sID: this.sID, worldId: messages[id].data.worldId } }))
-										else if (Common.packager === Packager.MsgPacker)
-											this.ws.send(pack({ type: 'leave', params: { sID: this.sID, worldId: messages[id].data.worldId } }))
-									}
-								},
-							}
-							let worldFolder = this.worldClient.worldsGUIFolder.addFolder({ title: messages[id].data.worldId })
-							worldFolder.addButton({ title: 'Join' }).on('click', (ev: any) => { this.worldClient.roomCallers[messages[id].data.worldId].join() })
-							worldFolder.addButton({ title: 'Leave' }).on('click', (ev: any) => { this.worldClient.roomCallers[messages[id].data.worldId].leave() })
-						}
 						if (messages[id].data.worldId !== this.worldClient.worldId) break
 					}
 					players++
@@ -559,7 +533,6 @@ export default class AppClient {
 		let from: string = this.worldClient.users[messageData.sID].uID as string
 		this.worldClient.chatData.push({ from: from, message: messageData.message })
 
-		console.log(messageData.sID, messageData.message)
 		const messageDiv = document.createElement('p')
 		messageDiv.innerHTML = ''
 		messageDiv.innerHTML += `<strong><ins>${from}: </ins></strong>`
@@ -571,6 +544,8 @@ export default class AppClient {
 		if (this.worldClient.player === null) return
 		if (this.worldClient.worldId !== null)
 			this.OnDisConnect(null, { description: 'keepData' })
+		else
+			this.OnDisConnect(null)
 		this.worldClient.worldId = messageData.worldId
 		const worldClient = this.worldClient
 		this.worldClient.mapLoadFinishCallBack = () => {
@@ -585,9 +560,17 @@ export default class AppClient {
 		});
 	}
 
-	private OnLeaveCallBack(messageData: { worldId: string }) {
+	private OnLeaveCallBack(messageData: { worldId: string | null }) {
 		this.OnDisConnect(null)
 		this.worldClient.worldId = messageData.worldId
+		if (this.worldClient.player !== null) {
+			let player = this.worldClient.users[this.sID]
+			delete this.worldClient.users[this.sID]
+
+			this.worldClient.launchMap(Object.keys(this.worldClient.maps)[0], false, true)
+			this.worldClient.users[this.sID] = player
+			this.worldClient.player.addUser(this.worldClient)
+		}
 	}
 
 	private ForControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {
@@ -611,7 +594,10 @@ export default class AppClient {
 
 	private ForLaunchMap(mapName: string) {
 		if (this.worldClient.player === null) return
-
+		if (this.worldClient.worldId === null) {
+			this.OnMap(mapName)
+			return
+		}
 		{
 			if (this.io !== null)
 				this.io.emit("map", mapName)
@@ -626,7 +612,10 @@ export default class AppClient {
 
 	private ForLaunchScenario(scenarioName: string) {
 		if (this.worldClient.player === null) return
-
+		if (this.worldClient.worldId === null) {
+			this.OnScenario(scenarioName)
+			return
+		}
 		{
 			if (this.io !== null)
 				this.io.emit("scenario", scenarioName)

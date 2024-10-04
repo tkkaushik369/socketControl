@@ -68,7 +68,7 @@ export class ExitingVehicle extends ExitingStateBase {
 			let factor = this.timer / this.animationLength
 			let smoothFactor = Utility.easeInOutSine(factor)
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, smoothFactor)
-			if ((this.character.world !== null) && !this.character.world.isClient) {
+			if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null)))) {
 				this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
 
 				// Rotation

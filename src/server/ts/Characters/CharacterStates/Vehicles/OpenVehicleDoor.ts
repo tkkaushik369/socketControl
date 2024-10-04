@@ -72,9 +72,8 @@ export class OpenVehicleDoor extends CharacterStateBase {
 			if (this.anyDirection()) {
 				this.character.vehicleEntryInstance = null
 				this.character.setPhysicsEnabled(true)
-				if (this.character.world !== null)
-					if (!this.character.world.isClient)
-						this.character.world.scene.attach(this.character)
+				if ((this.character.world !== null) && ((!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null)))))
+					this.character.world.scene.attach(this.character)
 				this.character.setState(new Idle(this.character))
 			} else {
 				this.character.setState(new EnteringVehicle(this.character, this.seat, this.entryPoint))
@@ -84,9 +83,8 @@ export class OpenVehicleDoor extends CharacterStateBase {
 			this.factorSimluator.simulate(timeStep)
 
 			let lerpPosition = new THREE.Vector3().lerpVectors(this.startPosition, this.endPosition, this.factorSimluator.position)
-			if ((this.character.world !== null) && !this.character.world.isClient) {
+			if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null)))) {
 				this.character.setPosition(lerpPosition.x, lerpPosition.y, lerpPosition.z)
-
 				this.character.quaternion.slerp(this.endRotation, this.factorSimluator.position)
 			}
 		}

@@ -1,4 +1,3 @@
-import { WorldBase } from "../World/WorldBase"
 import { IUpdatable } from "../Interfaces/IUpdatable"
 import { IInputReceiver } from "../Interfaces/IInputReceiver"
 import { ControlsTypes } from "../Enums/ControlsTypes"
@@ -157,7 +156,7 @@ export class InputManager implements IUpdatable {
 
 	// controls
 	public setMouseButton(code: string, pressed: boolean, isCallback: boolean) {
-		if (isCallback) {
+		if (isCallback && ((this.player.world !== null) && (this.player.world.worldId !== null))) {
 			if (this.controlsCallBack !== null) {
 				this.controlsCallBack({
 					type: ControlsTypes.MouseButton,
@@ -173,7 +172,7 @@ export class InputManager implements IUpdatable {
 	}
 
 	public setMouseMove(deltaX: number, deltaY: number, isCallback: boolean) {
-		if (isCallback) {
+		if (isCallback && ((this.player.world !== null) && (this.player.world.worldId !== null))) {
 			if (this.controlsCallBack !== null) {
 				this.controlsCallBack({
 					type: ControlsTypes.MouseMove,
@@ -189,7 +188,7 @@ export class InputManager implements IUpdatable {
 	}
 
 	public setMouseWheel(value: number, isCallback: boolean) {
-		if (isCallback) {
+		if (isCallback && ((this.player.world !== null) && (this.player.world.worldId !== null))) {
 			if (this.controlsCallBack !== null) {
 				this.controlsCallBack({
 					type: ControlsTypes.MouseWheel,
@@ -204,7 +203,7 @@ export class InputManager implements IUpdatable {
 	}
 
 	public setKeyboard(code: string, isShift: boolean, pressed: boolean, isCallback: boolean) {
-		if (isCallback) {
+		if (isCallback && ((this.player.world !== null) && (this.player.world.worldId !== null))) {
 			if (this.controlsCallBack !== null) {
 				this.controlsCallBack({
 					type: ControlsTypes.Keyboard,
