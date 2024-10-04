@@ -45,7 +45,7 @@ export class OpenVehicleDoor extends CharacterStateBase {
 		this.character.rotateModel()
 		this.character.setPhysicsEnabled(false)
 
-		if ((this.character.world !== null) && !this.character.world.isClient)
+		if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && (this.character.world.worldId === null))))
 			this.seat.vehicle.attach(this.character)
 
 		this.startPosition.copy(this.character.position)

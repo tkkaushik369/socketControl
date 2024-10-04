@@ -688,7 +688,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.resetVelocity()
 		this.rotateModel()
 		this.setPhysicsEnabled(false)
-		if ((this.world !== null) && !this.world.isClient) {
+		if ((this.world !== null) && (!this.world.isClient || (this.world.isClient && this.world.worldId === null))) {
 			vehicle.attach(this)
 			this.setPosition(seat.seatPointObject.position.x, seat.seatPointObject.position.y + 0.6, seat.seatPointObject.position.z)
 			this.quaternion.copy(seat.seatPointObject.quaternion)

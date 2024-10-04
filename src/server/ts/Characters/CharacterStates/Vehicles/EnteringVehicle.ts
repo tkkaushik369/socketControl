@@ -49,7 +49,7 @@ export class EnteringVehicle extends CharacterStateBase {
 		this.character.resetVelocity()
 		this.character.tiltContainer.rotation.z = 0
 		this.character.setPhysicsEnabled(false)
-		if ((this.character.world !== null) && !this.character.world.isClient)
+		if ((this.character.world !== null) && (!this.character.world.isClient || (this.character.world.isClient && this.character.world.worldId === null)))
 			this.seat.vehicle.attach(this.character)
 
 		this.startPosition.copy(this.entryPoint.position)
