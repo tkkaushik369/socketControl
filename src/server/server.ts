@@ -51,6 +51,7 @@ class AppServer {
 		this.OnUpdate = this.OnUpdate.bind(this)
 		this.OnControls = this.OnControls.bind(this)
 		this.OnChange = this.OnChange.bind(this)
+		this.OnChangeFinish = this.OnChangeFinish.bind(this)
 		this.OnLeave = this.OnLeave.bind(this)
 		this.OnMap = this.OnMap.bind(this)
 		this.OnScenario = this.OnScenario.bind(this)
@@ -97,6 +98,7 @@ class AppServer {
 				socket.on("disconnect", () => this.OnDisConnect(socket.id))
 				socket.on("controls", (controls: { type: ControlsTypes, data: { [id: string]: any } }) => this.OnControls(socket.id, controls))
 				socket.on("change", (worldId: string, callBack: Function) => this.OnChange(socket, worldId, callBack))
+				socket.on("changeFinish", (worldId: string) => this.OnChangeFinish(socket, worldId))
 				socket.on("leave", (worldId: string, callBack: Function) => this.OnLeave(socket, worldId, callBack))
 				socket.on("map", (mapName: string) => this.OnMap(socket.id, mapName))
 				socket.on("scenario", (scenarioName: string) => this.OnScenario(socket.id, scenarioName))
@@ -167,6 +169,10 @@ class AppServer {
 										this.allUsers[sID].ws.send(pack({ type: "changeCallBack", params }))
 								}
 							})
+							break
+						}
+						case "changeFinish": {
+							this.OnChangeFinish({ id: data.params.sID }, data.params.worldId)
 							break
 						}
 						case "leave": {
@@ -252,8 +258,8 @@ class AppServer {
 				break
 			}
 		}
-		if (this.allWorlds[worldId] !== undefined)
-			this.allUsers[socket.id].addUser(this.allWorlds[worldId])
+		/* if (this.allWorlds[worldId] !== undefined)
+			this.allUsers[socket.id].addUser(this.allWorlds[worldId]) */
 
 		if (socket instanceof Socket) {
 			this.io.in(worldId).emit("addClient", { sID: socket.id, uID: this.allUsers[socket.id].uID })
@@ -401,6 +407,14 @@ class AppServer {
 			lastScenarioID: this.allUsers[socket.id].world.lastScenarioID,
 			players: players
 		})
+	}
+
+	private OnChangeFinish(socket: Socket | { id: string }, worldId: string) {
+		if (this.allWorlds[worldId] === undefined) return
+		if (this.allUsers[socket.id] === undefined) return
+		if (this.allUsers[socket.id].world === null) return
+		if (this.allUsers[socket.id].character !== null) return
+		this.allUsers[socket.id].addUser(this.allWorlds[worldId])
 	}
 
 	private OnLeave(socket: Socket | { id: string }, worldId: string, callBack: Function) {

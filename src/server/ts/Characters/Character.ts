@@ -531,7 +531,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			}
 
 			this.mixer.stopAllAction()
-			action.fadeIn(((this.world !== null) && !this.world.isClient) ? fadeIn : Math.min(Math.abs(fadeIn - 0.03), fadeIn, 0.03))
+			action.fadeIn(((this.world !== null) && (!this.world.isClient || (this.world.isClient && (this.world.worldId === null)))) ? fadeIn : Math.min(Math.abs(fadeIn - 0.03), fadeIn, 0.03))
 			action.play()
 
 			let fast = 0

@@ -550,6 +550,17 @@ export default class AppClient {
 		const worldClient = this.worldClient
 		this.worldClient.mapLoadFinishCallBack = () => {
 			worldClient.launchScenario(messageData.lastScenarioID, false)
+
+			setTimeout(() => {
+				if (this.io !== null)
+					this.io.emit("changeFinish", this.worldClient.worldId)
+				else if (this.ws !== null) {
+					if (Common.packager === Packager.JSON)
+						this.ws.send(JSON.stringify({ type: "changeFinish", params: { sID: this.sID, worldId: this.worldClient.worldId } }))
+					else if (Common.packager === Packager.MsgPacker)
+						this.ws.send(pack({ type: "changeFinish", params: { sID: this.sID, worldId: this.worldClient.worldId } }))
+				}
+			}, 1000)
 			worldClient.mapLoadFinishCallBack = null
 		}
 		this.worldClient.launchMap(messageData.lastMapID, false, false)
