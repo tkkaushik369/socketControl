@@ -2,12 +2,13 @@
 	"name": "socketcontrol",
 	"version": "1.0.0",
 	"description": "",
+	"type": "module",
 	"scripts": {
 		"setup": "npm install && npm fund && npm run build",
-		"build": "webpack --config ./src/webpack.prod.js && tsc -p ./src/server",
-		"dev": "concurrently -k \"tsc -p ./src/server -w\" \"nodemon ./dist/server/server.js\" \"webpack serve --config ./src/webpack.dev.js\"",
-		"start": "node ./dist/server/server.js",
-		"startele": "tsc -p ./src/electronApp && electron ./dist/electronApp/main.js",
+		"build": "webpack --config ./webpack.prod.js",
+		"dev": "concurrently -k \"nodemon ./dist/server/server.mjs\" \"webpack serve --config ./webpack.dev.js\"",
+		"start": "node ./dist/server/bundle.server.mjs",
+		"startele": "electron ./dist/electronApp/bundle.electron.mjs",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
@@ -47,5 +48,9 @@
 		"webpack-dev-server": "^5.1.0",
 		"webpack-merge": "^6.0.1",
 		"ws": "^8.18.0"
+	},
+	"optionalDependencies": {
+		"bufferutil": "^4.0.8",
+		"utf-8-validate": "^6.0.4"
 	}
 }

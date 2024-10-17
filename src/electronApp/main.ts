@@ -1,11 +1,11 @@
 import { app, BrowserWindow, screen } from 'electron'
-import electronReload from 'electron-reload'
 import path from 'path'
+/* import electronReload from 'electron-reload'
 
 electronReload(__dirname, {
-	// electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
+	electron: path.join(__dirname, '../../node_modules', '.bin', 'electron'),
 	hardResetMethod: 'exit'
-})
+}) */
 
 const createWindow = () => {
 	let size = {
@@ -19,8 +19,8 @@ const createWindow = () => {
 	const mainWindow = new BrowserWindow({
 		width: size.width,
 		height: size.height,
-		transparent: true,
-		frame: false,
+		// transparent: true,
+		// frame: false,
 		webPreferences: {
 			nodeIntegration: true,
 		}
@@ -28,16 +28,16 @@ const createWindow = () => {
 	let display = screen.getPrimaryDisplay()
 	let width = display.bounds.width
 	let height = display.bounds.height
-	mainWindow.setPosition(width - size.width - offset.width, height - size.height - offset.height, true)
-	mainWindow.setAlwaysOnTop(true, 'floating')
+	// mainWindow.setPosition(width - size.width - offset.width, height - size.height - offset.height, true)
+	// mainWindow.setAlwaysOnTop(true, 'floating')
 
 	// mainWindow.setIgnoreMouseEvents(true)
 
 	mainWindow.loadURL('http://localhost:8080').catch(() => {
-		mainWindow.loadFile(path.join(__dirname, '../../dist/client/index.html'))
+		mainWindow.loadFile(path.join(__dirname, './dist/client/index.html'))
 	})
 	mainWindow.once('ready-to-show', () => {
-		mainWindow.webContents.setZoomFactor(0.6)
+		// mainWindow.webContents.setZoomFactor(0.6)
 		mainWindow.show()
 	})
 	// mainWindow.webContents.openDevTools()
