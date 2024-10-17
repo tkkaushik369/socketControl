@@ -613,7 +613,7 @@ class AppServer {
 				})
 			}
 
-			// World Decoration Data
+			// World Water Data
 			{
 				this.allWorlds[worldId].waters.forEach((water) => {
 					water.ping = Date.now() - water.timeStamp

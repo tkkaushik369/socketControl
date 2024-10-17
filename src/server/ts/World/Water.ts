@@ -43,9 +43,9 @@ class Floaters extends THREE.Mesh {
 
 class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 	updateOrder = 10
-	entityType = EntityType.Decoration
+	entityType = EntityType.Water
 	uID: string | null
-	msgType = MessageTypes.Decoration
+	msgType = MessageTypes.Water
 	timeStamp: number
 	ping: number
 

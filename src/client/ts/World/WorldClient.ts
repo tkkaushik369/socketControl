@@ -114,6 +114,10 @@ export class WorldClient extends WorldBase {
 		// Camera
 		this.camera = Utility.defaultCamera()
 
+		// listener
+		this.listener = new THREE.AudioListener()
+		this.camera.add(this.listener)
+
 		// Clock
 		this.clientClock = new THREE.Clock()
 

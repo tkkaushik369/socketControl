@@ -45,6 +45,10 @@ module.exports = {
 					from: path.resolve(__dirname, "./client/models"),
 					to: path.resolve(__dirname, "../dist/client/models"),
 				},
+				{
+					from: path.resolve(__dirname, "./client/audios"),
+					to: path.resolve(__dirname, "../dist/client/audios"),
+				},
 			],
 		}),
 	],

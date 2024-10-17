@@ -16,6 +16,7 @@ import { Vehicle } from '../Vehicles/Vehicle'
 import { MapConfig, MapConfigType } from './MapConfigs'
 import { Water } from './Water'
 import { BaseScene } from './BaseScene'
+import { Speaker } from './Spaker'
 
 export abstract class WorldBase {
 
@@ -68,6 +69,7 @@ export abstract class WorldBase {
 	public launchMapCallback: Function | null
 	public launchScenarioCallback: Function | null
 	public boxSize: THREE.Vector3 = new THREE.Vector3()
+	public listener: THREE.AudioListener | null
 
 	constructor(isClient: boolean = false) {
 		// bind functions
@@ -92,7 +94,7 @@ export abstract class WorldBase {
 
 		// init
 		this.player = null
-		this.physicsFrameRate = 45
+		this.physicsFrameRate = 35
 		this.physicsFrameTime = 1 / this.physicsFrameRate
 		this.worldClock = new THREE.Clock()
 		this.requestDelta = this.worldClock.getDelta()
@@ -129,6 +131,7 @@ export abstract class WorldBase {
 		this.scenarioGUIFolderCallback = null
 		this.launchMapCallback = null
 		this.launchScenarioCallback = null
+		this.listener = null
 
 		// Settings
 		this.settings = {
@@ -450,6 +453,8 @@ export abstract class WorldBase {
 		if (isLaunmch)
 			if (defaultScenarioID !== null)
 				this.launchScenario(defaultScenarioID, false)
+
+		this.add(new Speaker())
 	}
 
 	public launchScenario(scenarioID: string | null, isCallback: boolean): void {

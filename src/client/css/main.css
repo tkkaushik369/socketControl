@@ -117,9 +117,10 @@ body {
 	opacity: 0.4;
 
 	background-color: #1a1a1a;
+	color: #66cc66;
 	padding: 4px;
 	min-width: 160px;
-
+	font-size: 12px;
 }
 
 #chat-messages {
@@ -140,4 +141,54 @@ body {
 	position: absolute;
 	right: 0;
 	bottom: 0;
+}
+
+#gui-menu {
+	position: absolute;
+	left: 84px;
+	top: 4px;
+	background-color: rgba(100, 100, 100, 1);
+	height: 30px;
+	width: 30px;
+	border: 1px solid #1a1a1a;
+	box-shadow: 0px 0px 4px black;
+	border-radius: 4px;
+	outline: none;
+	transition: width 0.1s ease-in-out, height 0.1s ease-in-out, left 0.1s ease-in-out, top 0.1s ease-in-out;
+}
+
+#gui-menu.active {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	background-color: rgba(100, 100, 100, 0.4);
+	backdrop-filter: blur(4px);
+	box-sizing: border-box;
+	border-radius: 0px;
+	border: none;
+	z-index: 99999;
+	height: 100%;
+	width: 100%;
+	transition: width 0.1s ease-in-out, height 0.1s ease-in-out, left 0.1s ease-in-out, top 0.1s ease-in-out;
+}
+
+#gui-menu-container {
+	display: none;
+	position: relative;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	min-width: 200px;
+	min-height: 50px;
+	max-width: 500px;
+	max-height: calc(100% - 80px);
+	background-color: #3d3d3d;
+	padding: 4px;
+	border-radius: 4px;
+	box-sizing: border-box;
+	overflow-y: scroll;
+}
+
+#gui-menu.active #gui-menu-container {
+	display: block;
 }

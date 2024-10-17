@@ -24,6 +24,8 @@ const workBox = document.getElementById('work') as HTMLDivElement
 const chatInput = document.getElementById('chat-input') as HTMLFormElement
 const chatDom = document.getElementById('chat-message') as HTMLInputElement
 const chatLogDom = document.getElementById('chat-messages-log') as HTMLInputElement
+const guiMenuDom = document.getElementById('gui-menu') as HTMLInputElement
+const guiMenuUsersDom = document.getElementById('gui-menu-users') as HTMLInputElement
 
 const isElectronApp = Utility.isElectron()
 const isAndroid = Utility.deviceState()
@@ -42,6 +44,21 @@ if (isAndroid) {
 	controlsMain.style.display = 'block'
 	console.log("isAndroid", isAndroid)
 }
+
+guiMenuDom.tabIndex = -1
+guiMenuDom.addEventListener('click', () => {
+	if (!guiMenuDom.classList.contains('active')) {
+		guiMenuDom.classList.add('active')
+	}
+})
+
+guiMenuDom.addEventListener('keydown', (e: KeyboardEvent) => {
+	if (e.key === 'Escape') {
+		if (guiMenuDom.classList.contains('active')) {
+			guiMenuDom.classList.remove('active')
+		}
+	}
+})
 
 export default class AppClient {
 
@@ -89,8 +106,10 @@ export default class AppClient {
 
 		chatInput.addEventListener('submit', (e) => {
 			e.preventDefault()
-			this.ForMessage(chatDom.value)
-			chatDom.value = ''
+			if (chatDom.value !== '') {
+				this.ForMessage(chatDom.value)
+				chatDom.value = ''
+			}
 		})
 	}
 
@@ -348,6 +367,7 @@ export default class AppClient {
 
 	private OnUpdate(messages: { [id: string]: any }) {
 		pingStats.innerHTML = "Ping: " + "<br>"
+		guiMenuUsersDom.innerHTML = ""
 		let players = 0
 		let validRooms: string[] = []
 
@@ -369,6 +389,15 @@ export default class AppClient {
 			switch (messages[id].msgType) {
 				case MessageTypes.World: {
 					validRooms.push(messages[id].uID)
+					guiMenuUsersDom.innerHTML += "<div>" + messages[id].uID
+					guiMenuUsersDom.innerHTML += "<ul>"
+					if (messages[id].users !== undefined) {
+						messages[id].users.forEach((usr: string) => {
+							guiMenuUsersDom.innerHTML += "<li>"  + usr + "</li>"
+						})
+					}
+					guiMenuUsersDom.innerHTML += "</ul>"
+					guiMenuUsersDom.innerHTML += "</div>"
 					break
 				}
 				case MessageTypes.Player: {
@@ -420,7 +449,7 @@ export default class AppClient {
 					})
 					break
 				}
-				case MessageTypes.Decoration: {
+				case MessageTypes.Water: {
 					this.worldClient.waters.forEach((water) => {
 						if (water.uID === messages[id].uID) {
 							water.Set(messages[id])

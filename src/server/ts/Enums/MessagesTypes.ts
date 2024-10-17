@@ -3,5 +3,6 @@ export enum MessageTypes {
 	World,
 	Character,
 	Vehicle,
-	Decoration,
+	Water,
+	Speaker,
 }

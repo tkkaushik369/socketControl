@@ -48,6 +48,8 @@ export class InputManager implements IUpdatable {
 
 		if (this.domElement !== null) {
 			// Init event listeners
+			this.domElement.tabIndex = -1
+
 			// Mouse
 			this.domElement.addEventListener('mousedown', this.onMouseDown, false)
 			document.addEventListener('wheel', this.onMouseWheelMove, false)
@@ -55,8 +57,8 @@ export class InputManager implements IUpdatable {
 			document.addEventListener('pointerlockerror', this.onPointerlockError, false)
 
 			// Keys
-			document.addEventListener('keydown', this.onKeyDown, false)
-			document.addEventListener('keyup', this.onKeyUp, false)
+			this.domElement.addEventListener('keydown', this.onKeyDown, false)
+			this.domElement.addEventListener('keyup', this.onKeyUp, false)
 		}
 	}
 
