@@ -20,6 +20,7 @@ import { Ocean } from './Ocean'
 import _ from 'lodash'
 import { UiControlsGroup } from '../../../server/ts/Enums/UiControlsGroup'
 import { UiControls, UiControlsType } from '../../../server/ts/Constants'
+import { SpeakerClient } from './SpeakerClient'
 
 export class WorldClient extends WorldBase {
 
@@ -342,6 +343,8 @@ export class WorldClient extends WorldBase {
 				}
 			}
 		})
+
+		this.add(new SpeakerClient(this, this.renderer, this.camera))
 	}
 
 	private onWindowResize() {

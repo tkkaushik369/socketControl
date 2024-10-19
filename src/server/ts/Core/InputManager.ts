@@ -2,6 +2,7 @@ import { IUpdatable } from "../Interfaces/IUpdatable"
 import { IInputReceiver } from "../Interfaces/IInputReceiver"
 import { ControlsTypes } from "../Enums/ControlsTypes"
 import { Player } from "./Player"
+import { Speaker } from '../World/Spaker'
 
 export class InputManager implements IUpdatable {
 	updateOrder: number = 3
@@ -80,13 +81,19 @@ export class InputManager implements IUpdatable {
 
 	public onPointerlockChange(event: Event): void {
 		if (this.domElement === null) return
+		const parentDom = this.domElement.parentElement
+		if (parentDom === null) return
+
+
 		if (document.pointerLockElement === this.domElement) {
 			this.domElement.addEventListener('mousemove', this.onMouseMove, false)
 			this.domElement.addEventListener('mouseup', this.onMouseUp, false)
+			if (!parentDom.classList.contains('crosshair')) parentDom.classList.add('crosshair')
 			this.isLocked = true
 		} else {
 			this.domElement.removeEventListener('mousemove', this.onMouseMove, false)
 			this.domElement.removeEventListener('mouseup', this.onMouseUp, false)
+			if (parentDom.classList.contains('crosshair')) parentDom.classList.remove('crosshair')
 			this.isLocked = false
 		}
 	}
@@ -98,7 +105,17 @@ export class InputManager implements IUpdatable {
 	public onMouseDown(event: MouseEvent): void {
 		if (this.domElement === null) return
 		if (this.pointerLock) {
-			this.domElement.requestPointerLock()
+			let isNotInteracting = true
+			if (this.player.world !== null) {
+				this.player.world.sceneObjects.forEach((object: any) => {
+					if (object instanceof Speaker) {
+						if (object.interractiveGroup !== null)
+							isNotInteracting = !object.interractiveGroup.isInteracting
+					}
+				})
+			}
+			if (isNotInteracting)
+				this.domElement.requestPointerLock()
 		} else {
 			this.domElement.addEventListener('mousemove', this.onMouseMove, false)
 			this.domElement.addEventListener('mouseup', this.onMouseUp, false)

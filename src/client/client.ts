@@ -68,17 +68,23 @@ export default class AppClient {
 	private sID: string
 	private lastUpdate: number
 
+	private clock: THREE.Clock
+	private bufferData: { delta: number, data: any }[] = []
+	private isReplay: boolean = false
+
 	constructor() {
 		// bind functions
 
 		this.SetupConnection = this.SetupConnection.bind(this)
 		this.MapLoader = this.MapLoader.bind(this)
+		this.PlayReplay = this.PlayReplay.bind(this)
 
 		this.OnConnect = this.OnConnect.bind(this)
 		this.OnDisConnect = this.OnDisConnect.bind(this)
 		this.OnSetID = this.OnSetID.bind(this)
 		this.OnAddClient = this.OnAddClient.bind(this)
 		this.OnRemoveClient = this.OnRemoveClient.bind(this)
+		this.Set = this.Set.bind(this)
 		this.OnUpdate = this.OnUpdate.bind(this)
 		this.OnControls = this.OnControls.bind(this)
 		this.OnMap = this.OnMap.bind(this)
@@ -95,6 +101,7 @@ export default class AppClient {
 		this.ForSocketLoopCallBack = this.ForSocketLoopCallBack.bind(this)
 
 		// init
+		this.clock = new THREE.Clock()
 		this.io = null
 		this.ws = null
 		this.worldClient = new WorldClient(controls, workBox, this.ForSocketLoop, this.ForLaunchMap, this.ForLaunchScenario)
@@ -107,7 +114,9 @@ export default class AppClient {
 		chatInput.addEventListener('submit', (e) => {
 			e.preventDefault()
 			if (chatDom.value !== '') {
-				this.ForMessage(chatDom.value)
+				if (chatDom.value === '/replay') {
+					this.PlayReplay(0)
+				} else this.ForMessage(chatDom.value)
 				chatDom.value = ''
 			}
 		})
@@ -256,6 +265,27 @@ export default class AppClient {
 		})
 	}
 
+	private PlayReplay(inx: number): void {
+		if (!this.isReplay) {
+			if (!workBox.classList.contains('replay')) workBox.classList.add('replay')
+		}
+		this.isReplay = true
+
+		if (inx >= this.bufferData.length) {
+			this.isReplay = false
+			if (workBox.classList.contains('replay')) workBox.classList.remove('replay')
+			return
+		}
+
+		let buff = this.bufferData[inx]
+
+		this.Set(buff.data)
+
+		setTimeout(() => {
+			this.PlayReplay(inx + 1)
+		}, (buff.delta * 1000) - 10)
+	}
+
 	private OnConnect() {
 		console.log("Connected")
 		this.worldClient.stats.dom.classList.remove("noPing")
@@ -365,7 +395,7 @@ export default class AppClient {
 		}
 	}
 
-	private OnUpdate(messages: { [id: string]: any }) {
+	private Set(messages: { [id: string]: any }) {
 		pingStats.innerHTML = "Ping: " + "<br>"
 		guiMenuUsersDom.innerHTML = ""
 		let players = 0
@@ -393,7 +423,7 @@ export default class AppClient {
 					guiMenuUsersDom.innerHTML += "<ul>"
 					if (messages[id].users !== undefined) {
 						messages[id].users.forEach((usr: string) => {
-							guiMenuUsersDom.innerHTML += "<li>"  + usr + "</li>"
+							guiMenuUsersDom.innerHTML += "<li>" + usr + "</li>"
 						})
 					}
 					guiMenuUsersDom.innerHTML += "</ul>"
@@ -535,7 +565,31 @@ export default class AppClient {
 		}
 	}
 
+	private OnUpdate(messages: { [id: string]: any }) {
+		let delta = this.clock.getDelta()
+		if (this.isReplay) return
+		this.Set(messages)
+
+		this.bufferData.push({ delta: delta, data: messages })
+		let time = 0, inx = -1;
+		if (this.bufferData.length > 2) {
+			for (let i = this.bufferData.length - 1; i > 0; --i) {
+				time += this.bufferData[i].delta
+				if (time > 15) { // seconds
+					inx = i
+					break
+				}
+			}
+			if (inx > 1) {
+				while (--inx) {
+					this.bufferData.shift()
+				}
+			}
+		}
+	}
+
 	private OnControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {
+		if (this.isReplay) return
 		if ((controls.sID === this.sID) && !this.worldClient.settings.SyncInputs) return
 		if (this.worldClient.users[controls.sID] !== undefined) {
 			this.worldClient.users[controls.sID].inputManager.setControls(controls)
@@ -614,6 +668,7 @@ export default class AppClient {
 	}
 
 	private ForControls(controls: { sID: string, type: ControlsTypes, data: { [id: string]: any } }) {
+		if (this.isReplay) return
 		if (this.worldClient.player === null) return
 		controls.sID = this.worldClient.player.sID
 

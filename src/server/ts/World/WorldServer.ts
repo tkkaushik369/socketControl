@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { WorldBase } from "./WorldBase"
 import { JSDOM } from 'jsdom'
 import fs from 'fs'
+import { Speaker } from './Spaker'
 
 export class WorldServer extends WorldBase {
 
@@ -11,6 +12,7 @@ export class WorldServer extends WorldBase {
 		super()
 		// bind function
 		this.getGLTF = this.getGLTF.bind(this)
+		this.loadScene = this.loadScene.bind(this)
 
 		// init
 		this.updatePhysicsCallback = updatePhysicsCallback
@@ -40,5 +42,10 @@ export class WorldServer extends WorldBase {
 		const model = loader.parse(jsonObj) as any
 		callback({ scene: model, animations: model.animations })
 		return resPath
+	}
+
+	public loadScene(gltf: any, isLaunmch: boolean = true): void {
+		super.loadScene(gltf, isLaunmch)
+		this.add(new Speaker())
 	}
 }

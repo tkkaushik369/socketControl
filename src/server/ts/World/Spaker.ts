@@ -1,4 +1,5 @@
 import * as  THREE from 'three'
+import { InteractiveGroup } from '../Core/InteractiveGroup'
 import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { INetwork } from '../Interfaces/INetwork'
 import { IAudible } from '../Interfaces/IAudible'
@@ -14,9 +15,11 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 	msgType: MessageTypes = MessageTypes.Speaker
 	timeStamp: number
 	ping: number
+	interractiveGroup: InteractiveGroup | null
 
 	audio: {
 		dom: HTMLAudioElement | null,
+		domui: HTMLDivElement | null,
 		source: HTMLSourceElement | null,
 		posaudio: THREE.PositionalAudio | null,
 	}
@@ -27,9 +30,11 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 		this.uID = null
 		this.timeStamp = Date.now()
 		this.ping = 0
+		this.interractiveGroup = null
 
 		this.audio = {
 			dom: null,
+			domui: null,
 			source: null,
 			posaudio: null
 		}
@@ -40,7 +45,7 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 	}
 
 	addToWorld(world: WorldBase): void {
-		if(!world.isClient) return
+		if (!world.isClient) return
 		const allAudios = document.getElementById('all-audios')
 		if (allAudios === null) return
 
@@ -53,6 +58,47 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 		sourceDom.src = 'audios/358232_j_s_song.mp3'
 		sourceDom.type = 'audio/wav'
 
+		let domui = document.createElement('div')
+		domui.style.backgroundColor = 'red'
+		domui.style.position = 'absolute'
+		domui.style.width = '400px'
+		domui.style.height = '200px'
+		domui.style.visibility = 'hidden'
+
+		{
+			const label = document.createElement('label')
+			label.style.position = 'absolute'
+			label.style.left = '50%'
+			label.style.transform = 'translateX(-50%)'
+			label.style.bottom = '20px'
+			label.style.textAlign = 'center'
+			label.innerText = 'Play Audio'
+			domui.appendChild(label)
+
+			const input = document.createElement('input')
+			input.type = 'checkbox'
+			input.style.position = 'absolute'
+			input.style.left = '50%'
+			input.style.transform = 'translateX(-50%)'
+			input.style.bottom = '20px'
+			input.style.width = "60px"
+			input.style.height = "60px"
+			input.onclick = () => {
+				if (input.parentElement !== null) {
+					if (input.checked) {
+						audioDom.play()
+						input.parentElement.style.backgroundColor = 'green'
+					} else {
+						audioDom.pause()
+						input.parentElement.style.backgroundColor = 'red'
+					}
+				}
+			}
+			domui.appendChild(input)
+		}
+
+		document.body.appendChild(domui)
+
 		audioDom.appendChild(sourceDom)
 		allAudios.appendChild(audioDom)
 
@@ -60,12 +106,13 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 			const sound1 = new THREE.PositionalAudio(world.listener)
 			sound1.setMediaElementSource(audioDom)
 			sound1.setRefDistance(0.5)
-			audioDom.play()
+			// audioDom.play()
 
 			this.add(sound1)
 
 			this.audio = {
 				dom: audioDom,
+				domui: domui,
 				source: sourceDom,
 				posaudio: sound1,
 			}
@@ -75,7 +122,7 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 	}
 
 	removeFromWorld(world: WorldBase): void {
-		if(!world.isClient) return
+		if (!world.isClient) return
 		const allAudios = document.getElementById('all-audios')
 		if (allAudios === null) return
 

@@ -97,12 +97,12 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 		if (this.player.world === null) return
 		if ((this.player.world.isClient && (this.player.world.worldId !== null)) && this.player.world.settings.SyncInputs) return
 		if (this.followMode === true) {
-			this.camera.position.y = THREE.MathUtils.clamp(this.camera.position.y, this.target.y, Number.POSITIVE_INFINITY)
-			this.camera.lookAt(this.target)
-			let newPos = this.target.clone().add(new THREE.Vector3().subVectors(this.camera.position, this.target).normalize().multiplyScalar(this.targetRadius))
-			this.camera.position.x = newPos.x
-			this.camera.position.y = newPos.y
-			this.camera.position.z = newPos.z
+			const direction = new THREE.Vector3().subVectors(this.camera.position, this.target).normalize();
+			const targetPos = this.target.clone().add(direction.multiplyScalar(this.targetRadius));
+
+			// Smoothly update camera position
+			this.camera.position.lerp(targetPos, 0.1);
+			this.camera.lookAt(this.target);
 		} else {
 			this.radius = THREE.MathUtils.lerp(this.radius, this.targetRadius, 0.1)
 

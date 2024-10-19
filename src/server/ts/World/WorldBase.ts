@@ -16,7 +16,6 @@ import { Vehicle } from '../Vehicles/Vehicle'
 import { MapConfig, MapConfigType } from './MapConfigs'
 import { Water } from './Water'
 import { BaseScene } from './BaseScene'
-import { Speaker } from './Spaker'
 
 export abstract class WorldBase {
 
@@ -454,7 +453,6 @@ export abstract class WorldBase {
 			if (defaultScenarioID !== null)
 				this.launchScenario(defaultScenarioID, false)
 
-		this.add(new Speaker())
 	}
 
 	public launchScenario(scenarioID: string | null, isCallback: boolean): void {

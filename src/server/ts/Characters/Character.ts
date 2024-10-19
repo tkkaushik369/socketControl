@@ -361,15 +361,15 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			}
 			else if (code === 'KeyV' && pressed === true) {
 				this.setFirstPersonView(!this.firstPerson)
-			} else if (code === 'Digit0') {
+			} else if (code === 'Digit0' && pressed === true) {
 				console.log('unarmed')
-			} else if (code === 'Digit1') {
+			} else if (code === 'Digit1' && pressed === true) {
 				console.log('knief')
-			} else if (code === 'Digit2') {
+			} else if (code === 'Digit2' && pressed === true) {
 				console.log('pistol')
-			} else if (code === 'Digit3') {
+			} else if (code === 'Digit3' && pressed === true) {
 				console.log('gun')
-			} else if (code === 'Digit4') {
+			} else if (code === 'Digit4' && pressed === true) {
 				console.log('planter')
 			} else {
 				for (const action in this.actions) {

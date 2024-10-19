@@ -192,3 +192,43 @@ body {
 #gui-menu.active #gui-menu-container {
 	display: block;
 }
+
+.replay#work::after {
+	content: '';
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	height: 100%;
+	width: 100%;
+	z-index: 1000000000;
+	background-color: rgba(30, 30, 30, 0.2);
+	outline: 2px solid #eb4c0d;
+	outline-offset: -4px;
+}
+
+.crosshair#work::after {
+	content: '';
+	position: absolute;
+	transform: translate(-50%, -50%);
+	top: 50%;
+	left: 50%;
+	height: 4px;
+	width: 30px;
+	background-color: #e5a00d;
+	border: 1px solid #1a1a1a;
+	box-sizing: border-box;
+	z-index: 1000000000;
+}
+.crosshair#work::before {
+	content: '';
+	position: absolute;
+	transform: translate(-50%, -50%);
+	top: 50%;
+	left: 50%;
+	height: 30px;
+	width: 4px;
+	background-color: #e5a00d;
+	border: 1px solid #1a1a1a;
+	box-sizing: border-box;
+	z-index: 1000000000;
+}
