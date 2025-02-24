@@ -43,7 +43,14 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public materials: THREE.Material[] = []
 	public mixer: THREE.AnimationMixer | null
 	public animations: any[] = []
-	public allAnim: { [id: string]: number } = {}
+	public allAnim: {
+		[id: string]: {
+			action: THREE.AnimationAction
+			weight: number
+			duration: number
+		}
+	} = {}
+	public currentBaseAction: string = 'idle'
 	public spawnPoint: THREE.Object3D | null
 
 	// Movement
@@ -95,6 +102,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		// bind functions
 		this.setModel = this.setModel.bind(this)
 		this.setAnimations = this.setAnimations.bind(this)
+		this.setWeight = this.setWeight.bind(this)
 		this.setArcadeVelocityInfluence = this.setArcadeVelocityInfluence.bind(this)
 		this.setViewVector = this.setViewVector.bind(this)
 		this.setState = this.setState.bind(this)
@@ -119,6 +127,9 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		this.displayControls = this.displayControls.bind(this)
 		this.inputReceiverUpdate = this.inputReceiverUpdate.bind(this)
 		this.setAnimation = this.setAnimation.bind(this)
+		this.prepareCrossFade = this.prepareCrossFade.bind(this)
+		this.synchronizeCrossFade = this.synchronizeCrossFade.bind(this)
+		this.executeCrossFade = this.executeCrossFade.bind(this)
 		this.springMovement = this.springMovement.bind(this)
 		this.springRotation = this.springRotation.bind(this)
 		this.getLocalMovementDirection = this.getLocalMovementDirection.bind(this)
@@ -243,17 +254,35 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 
 	public setModel(gltf: any) {
 		this.readCharacterData(gltf)
-		this.setAnimations(gltf.animations)
-		this.modelContainer.add(gltf.scene)
 		this.mixer = new THREE.AnimationMixer(gltf.scene)
+		this.modelContainer.add(gltf.scene)
+		this.setAnimations(gltf.animations)
 		this.setState(new CharState.Idle(this))
 	}
 
 	public setAnimations(animations: any[]): void {
 		this.animations = animations
-		this.animations.forEach((anim) => {
-			this.allAnim[anim.name] = anim.duration
-		})
+		for (let i = 0; i !== animations.length; ++i) {
+			if (this.mixer === null) continue
+			let clip = animations[i]
+			const name = clip.name
+			const action = this.mixer.clipAction(clip)
+
+			this.allAnim[name] = {
+				action: action,
+				weight: name.toLowerCase() === 'idle' ? 1 : 0,
+				duration: clip.duration,
+			}
+
+			this.setWeight(action, this.allAnim[name].weight)
+			action.play()
+		}
+	}
+
+	private setWeight(action: THREE.AnimationAction, weight: number) {
+		action.enabled = true
+		action.setEffectiveTimeScale(1)
+		action.setEffectiveWeight(weight)
 	}
 
 	public setArcadeVelocityInfluence(x: number, y: number = x, z: number = x): void {
@@ -472,6 +501,14 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		if (this.physicsEnabled) this.springMovement(timeStep)
 		if (this.physicsEnabled) this.springRotation(timeStep)
 		if (this.physicsEnabled) this.rotateModel()
+
+		const names = Object.keys(this.allAnim)
+
+		for (let i = 0; i !== names.length; ++i) {
+			const settings = this.allAnim[names[i]]
+			const action = settings.action
+			settings.weight = action.getEffectiveWeight()
+		}
 		if (this.mixer !== null) this.mixer.update(timeStep)
 
 		// Sync physics/graphics
@@ -529,31 +566,71 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	}
 
 	public setAnimation(clipName: string, fadeIn: number): number {
-		let clip = THREE.AnimationClip.findByName(this.animations, clipName)
+		const currentSettings = this.allAnim[this.currentBaseAction]
+		const currentAction = currentSettings ? currentSettings.action : null
+		const action = this.allAnim[clipName] ? this.allAnim[clipName].action : null
 
-		if (this.mixer !== null) {
-			let action = this.mixer.clipAction(clip)
-			if (action === null) {
-				console.error(`Animation ${clipName} not found!`)
-				return 0
-			}
-
-			this.mixer.stopAllAction()
-			action.fadeIn(
-				this.world !== null && (!this.world.isClient || (this.world.isClient && this.world.worldId === null))
-					? fadeIn
-					: Math.min(Math.abs(fadeIn - 0.03), fadeIn, 0.03)
-			)
-			action.play()
-
-			let fast = 0
-			/* if ((this.world !== null) && !this.world.isClient)
-				fast = this.world.physicsFrameTime */
-			return action.getClip().duration - fast
+		if (currentAction !== null && action !== null && currentAction !== action) {
+			this.prepareCrossFade(currentAction, action, fadeIn)
 		}
+
 		let duration: number = 0.1
-		if (this.allAnim[clipName] !== undefined) duration = this.allAnim[clipName]
+		if (this.allAnim[clipName] !== undefined) duration = this.allAnim[clipName].duration
 		return duration
+	}
+
+	private prepareCrossFade(startAction: THREE.AnimationAction, endAction: THREE.AnimationAction, duration: number) {
+		// If the current action is 'idle', execute the crossfade immediately;
+		// else wait until the current action has finished its current loop
+
+		if (this.currentBaseAction === 'idle' || !startAction || !endAction) {
+			this.executeCrossFade(startAction, endAction, duration)
+		} else {
+			this.synchronizeCrossFade(startAction, endAction, duration)
+		}
+
+		// Update control colors
+
+		if (endAction) {
+			const clip = endAction.getClip()
+			this.currentBaseAction = clip.name
+		} else {
+			this.currentBaseAction = 'None'
+		}
+	}
+
+	private synchronizeCrossFade(
+		startAction: THREE.AnimationAction,
+		endAction: THREE.AnimationAction,
+		duration: number
+	) {
+		// const onLoopFinished = (event: any) => {
+		// 	if (event.action === startAction) {
+		// 		if (this.mixer !== null) this.mixer.removeEventListener('loop', onLoopFinished)
+		this.executeCrossFade(startAction, endAction, duration)
+		// 	}
+		// }
+		// if (this.mixer !== null) this.mixer.addEventListener('loop', onLoopFinished)
+	}
+
+	private executeCrossFade(startAction: THREE.AnimationAction, endAction: THREE.AnimationAction, duration: number) {
+		// Not only the start action, but also the end action must get a weight of 1 before fading
+		// (concerning the start action this is already guaranteed in this place)
+
+		if (endAction) {
+			this.setWeight(endAction, 1)
+			endAction.time = 0
+			if (startAction) {
+				// Crossfade with warping
+				startAction.crossFadeTo(endAction, duration, true)
+			} else {
+				// Fade in
+				endAction.fadeIn(duration)
+			}
+		} else {
+			// Fade out
+			startAction.fadeOut(duration)
+		}
 	}
 
 	public springMovement(timeStep: number): void {

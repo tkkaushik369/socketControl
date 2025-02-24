@@ -19,7 +19,7 @@ export abstract class CharacterStateBase implements ICharacterState {
 	state = 'CharacterStateBase'
 	public character: Character
 	public timer: number
-	public animationLength: any
+	public animationLength: number
 
 	public canFindVehiclesToEnter: boolean
 	public canEnterVehicles: boolean
@@ -54,6 +54,7 @@ export abstract class CharacterStateBase implements ICharacterState {
 		this.canLeaveVehicles = true
 
 		this.timer = 0
+		this.animationLength = 0
 	}
 
 	public async update(timeStep: number): Promise<void> {
