@@ -143,3 +143,4 @@ out/
 
 # TypeScript
 dist/
+types/

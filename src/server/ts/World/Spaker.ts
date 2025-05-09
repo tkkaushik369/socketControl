@@ -58,7 +58,7 @@ export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, I
 		audioDom.style.display = 'none'
 
 		const sourceDom = document.createElement('source')
-		sourceDom.src = './audios/358232_j_s_song.mp3'
+		sourceDom.src = '../client/audios/358232_j_s_song.mp3'
 		sourceDom.type = 'audio/wav'
 
 		let domui = document.createElement('div')

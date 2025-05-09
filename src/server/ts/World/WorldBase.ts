@@ -49,6 +49,7 @@ export abstract class WorldBase {
 	public characters: Character[]
 	public vehicles: Vehicle[]
 	public waters: Water[]
+	protected clientEntity: IWorldEntity[] = []
 
 	public sceneObjects: THREE.Object3D[]
 	public worldObjects: CANNON.Body[]
@@ -116,6 +117,7 @@ export abstract class WorldBase {
 		this.characters = []
 		this.vehicles = []
 		this.waters = []
+		this.clientEntity = []
 
 		this.sceneObjects = []
 		this.worldObjects = []
@@ -176,7 +178,10 @@ export abstract class WorldBase {
 	}
 
 	public getGLTF(path: string, callback: Function) {
-		return this.isClient ? './models/' + path : './dist/client_window/models/' + path + '.json'
+		// return this.isClient ? './models/' + path : './dist/' + 'client/models/' + path + '.json'
+		return this.isClient
+			? '../client/models/' + path
+			: (!Utility.isElectron() ? './dist' : './.webpack/renderer') + '/client/models/' + path + '.json'
 	}
 
 	public add(worldEntity: IWorldEntity): void {
@@ -378,7 +383,7 @@ export abstract class WorldBase {
 		gltf.scene.traverse((child: any) => {
 			if (child.hasOwnProperty('userData')) {
 				if (child.type === 'Mesh') {
-					Utility.setupMeshProperties(child)
+					Utility.setupMeshProperties(child, this.isClient)
 
 					if (child.material.name === 'ocean') {
 						if (false) {
@@ -531,9 +536,13 @@ export abstract class WorldBase {
 				this.remove(this.waters[i])
 				i--
 			}
+
+			for (let i = 0; i < this.clientEntity.length; i++) {
+				this.remove(this.clientEntity[i])
+			}
 			this.characters = []
 			this.vehicles = []
-			this.waters = []
+			this.clientEntity = []
 			this.scenarios = []
 		}
 	}
@@ -587,6 +596,9 @@ export abstract class WorldBase {
 				this.player.inputManager.update(timeStep, unscaledTimeStep)
 				this.player.cameraOperator.update(timeStep, unscaledTimeStep)
 			}
+			this.clientEntity.forEach((entity) => {
+				entity.update(timeStep, unscaledTimeStep)
+			})
 		}
 		if (this.mapMixer !== null) this.mapMixer.update(timeStep)
 

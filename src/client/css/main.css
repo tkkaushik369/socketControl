@@ -65,7 +65,7 @@ body {
 	user-select: none;
 	overflow-y: scroll;
 	scrollbar-width: none;
-	color: #1a1a1a
+	color: #1a1a1a;
 }
 
 #pingStats::-webkit-scrollbar {
@@ -90,7 +90,7 @@ body {
 
 .label {
 	font-family: monospace;
-	color: rgba(250, 180, 0, 1.0);
+	color: rgba(250, 180, 0, 1);
 	font-size: 12px;
 	font-weight: bold;
 	user-select: none;
@@ -103,6 +103,10 @@ body {
 .label.me {
 	background-color: rgba(1, 1, 1, 0.1);
 	color: #1a1a1a;
+}
+
+.label.debug {
+	color: #0077ff;
 }
 
 #controls {

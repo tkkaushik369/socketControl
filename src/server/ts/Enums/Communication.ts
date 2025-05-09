@@ -1,5 +1,6 @@
 export enum Communication {
 	SocketIO = 'socketio',
+	GeckosIO = 'geckos',
 	WebSocket = 'websocket',
 }
 

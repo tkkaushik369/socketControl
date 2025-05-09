@@ -1,12 +1,17 @@
 {
 	"compilerOptions": {
 		"target": "ES6",
+		"outDir": "../../dist/client",
 		"moduleResolution": "node",
 		"strict": true,
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
 		"allowJs": true,
+		"sourceMap": true,
+		"declaration": true,
+		// "declarationMap": true,
+		"declarationDir": "../../types/client",
 	},
 	"include": [
 		"**/*.ts"

@@ -18,7 +18,7 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	private sensitivity: THREE.Vector2
 
 	private movementSpeed: number
-	private radius: number
+	public radius: number
 	public theta: number
 	public phi: number
 
@@ -121,6 +121,8 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 			this.camera.updateMatrix()
 			this.camera.lookAt(this.target)
 		}
+
+		this.player.data.cameraRadius = this.radius
 
 		this.player.data.cameraPosition.x = this.camera.position.x
 		this.player.data.cameraPosition.y = this.camera.position.y

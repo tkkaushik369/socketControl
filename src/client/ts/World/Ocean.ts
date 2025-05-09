@@ -1,16 +1,25 @@
 import * as THREE from 'three'
 
 import { WorldClient } from './WorldClient'
+import { IWorldEntity } from '../../../server/ts/Interfaces/IWorldEntity'
+import { EntityType } from '../../../server/ts/Enums/EntityType'
 import { WaterShader } from './WaterShader'
-import { IUpdatable } from '../../../server/ts/Interfaces/IUpdatable'
 
-export class Ocean implements IUpdatable {
+export class Ocean implements IWorldEntity {
 	public updateOrder: number = 10
+	public entityType: EntityType = EntityType.Ocean
+
 	public material: THREE.ShaderMaterial
 
 	private world: WorldClient
 
 	constructor(object: any, world: WorldClient) {
+		// bind functions
+		this.addToWorld = this.addToWorld.bind(this)
+		this.removeFromWorld = this.removeFromWorld.bind(this)
+		this.update = this.update.bind(this)
+
+		// init
 		this.world = world
 
 		let uniforms = THREE.UniformsUtils.clone(WaterShader.uniforms)
@@ -27,7 +36,10 @@ export class Ocean implements IUpdatable {
 		object.material.transparent = true
 	}
 
-	public update(timeStep: number): void {
+	public addToWorld(world: WorldClient): void {}
+	public removeFromWorld(world: WorldClient): void {}
+
+	public update(timeStep: number, unscaledTimeStep: number): void {
 		this.material.uniforms.cameraPos.value.copy(this.world.camera.position)
 		this.material.uniforms.lightDir.value.copy(new THREE.Vector3().copy(this.world.sun).normalize())
 		this.material.uniforms.iGlobalTime.value += timeStep

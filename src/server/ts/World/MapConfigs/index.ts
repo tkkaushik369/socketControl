@@ -24,6 +24,6 @@ export var MapConfig: { [id: string]: MapConfigType } = {}
 
 MapConfig[Test2Config.name] = Test2Config
 MapConfig[ExampleConfig.name] = ExampleConfig
-MapConfig[SketchBookV4Config.name] = SketchBookV4Config
 MapConfig[SketchBookV3Config.name] = SketchBookV3Config
+MapConfig[SketchBookV4Config.name] = SketchBookV4Config
 MapConfig[TestConfig.name] = TestConfig

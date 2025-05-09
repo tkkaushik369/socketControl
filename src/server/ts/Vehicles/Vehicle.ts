@@ -25,6 +25,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	public updateOrder: number = 2
 	public abstract entityType: EntityType
 
+	private readonly handlingSetup: any = {}
 	public controllingCharacter: Character | null
 	public actions: { [action: string]: KeyBinding } = {}
 	public rayCastVehicle: CANNON.RaycastVehicle
@@ -88,6 +89,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		handlingSetup.chassisConnectionPointLocal = new CANNON.Vec3()
 		handlingSetup.axleLocal = new CANNON.Vec3(-1, 0, 0)
 		handlingSetup.directionLocal = new CANNON.Vec3(0, -1, 0)
+		this.handlingSetup = handlingSetup
 
 		// Physics mat
 		let mat = new CANNON.Material('Mat')
@@ -98,11 +100,11 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		this.collision.material = mat
 
 		// Read GLTF
-		this.readVehicleData(gltf)
+		// this.readVehicleData(gltf)
 
 		this.modelContainer = new THREE.Group()
 		this.add(this.modelContainer)
-		this.modelContainer.add(gltf.scene)
+		// this.modelContainer.add(gltf.scene)
 
 		// Raycast vehicle component
 		this.rayCastVehicle = new CANNON.RaycastVehicle({
@@ -112,11 +114,11 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 			indexForwardAxis: 2,
 		})
 
-		this.wheels.forEach((wheel) => {
+		/* this.wheels.forEach((wheel) => {
 			handlingSetup.chassisConnectionPointLocal.set(wheel.position.x, wheel.position.y + 0.2, wheel.position.z)
 			const index = this.rayCastVehicle.addWheel(handlingSetup)
 			wheel.rayCastWheelInfoIndex = index
-		})
+		}) */
 
 		// this.collision.collisionFilterGroup = CollisionGroups.Default
 		// this.collision.collisionFilterMask = CollisionGroups.Default | CollisionGroups.Characters | CollisionGroups.TrimeshColliders
@@ -389,10 +391,10 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		}
 	}
 
-	public readVehicleData(gltf: any): void {
+	public readVehicleData(gltf: any, isClient: boolean): void {
 		gltf.scene.traverse((child: any) => {
 			if (child.isMesh) {
-				Utility.setupMeshProperties(child)
+				Utility.setupMeshProperties(child, isClient)
 
 				if (child.material !== undefined) {
 					this.materials.push(child.material)
@@ -441,6 +443,8 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 			}
 		})
 
+		this.modelContainer.add(gltf.scene)
+
 		if (this.collision.shapes.length === 0) {
 			console.warn('Vehicle ' + typeof this + ' has no collision data.')
 		}
@@ -449,6 +453,12 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		} else {
 			this.connectSeats()
 		}
+
+		this.wheels.forEach((wheel) => {
+			this.handlingSetup.chassisConnectionPointLocal.set(wheel.position.x, wheel.position.y + 0.2, wheel.position.z)
+			const index = this.rayCastVehicle.addWheel(this.handlingSetup)
+			wheel.rayCastWheelInfoIndex = index
+		})
 	}
 
 	private connectSeats(): void {

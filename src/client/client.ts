@@ -1,5 +1,6 @@
 import './css/main.css'
 import './css/titleBar.css'
+import { FRAME_VISBLE } from '../LoaderMode'
 import { Common } from '../server/Common'
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
@@ -8,13 +9,15 @@ import { io, Socket } from 'socket.io-client'
 import parser from 'socket.io-msgpack-parser'
 // import { pack, unpack } from "msgpackr"
 import { WorldClient } from './ts/World/WorldClient'
-import { PlayerSetMesssage } from '../server/ts/Core/Player'
+import { PlayerSetMesssage, PlayerAttachmentType } from '../server/ts/Core/Player'
 import { PlayerClient } from './ts/Core/PlayerClient'
 import { ControlsTypes } from '../server/ts/Enums/ControlsTypes'
 import { AttachModels } from './ts/Utils/AttachModels'
 import { MessageTypes } from '../server/ts/Enums/MessagesTypes'
 import { Communication, DataSender, Packager } from '../server/ts/Enums/Communication'
+import * as geckosClient from '@geckos.io/client'
 
+export function initClient() {}
 THREE.Cache.enabled = true
 
 const titleBar = document.getElementById('titleBar') as HTMLDivElement
@@ -29,18 +32,26 @@ const chatLogDom = document.getElementById('chat-messages-log') as HTMLInputElem
 const guiMenuDom = document.getElementById('gui-menu') as HTMLInputElement
 const guiMenuUsersDom = document.getElementById('gui-menu-users') as HTMLInputElement
 
-// const isElectronApp = Utility.isElectron()
+const isElectronApp = Utility.isElectron()
 const isAndroid = Utility.deviceState()
 
-/* if (navigator.userAgent.includes('QtWebEngine') || isElectronApp) {
+if (navigator.userAgent.includes('QtWebEngine') || isElectronApp) {
 	document.body.classList.add('bodyTransparent')
 	console.log('transparent')
-} */
+}
 
 if (typeof process === 'object') {
 	// workBox.classList.add('Hide')
 	// console.log('isElectron', isElectronApp)
-	if (!(process.env.FRAME_VISBLE !== 'true')) titleBar.style.display = 'none'
+
+	try {
+		if (FRAME_VISBLE) {
+			document.body.className = 'bodyTransparent'
+			workBox.classList.add('Hide')
+		}
+	} catch {
+		//
+	}
 } else titleBar.style.display = 'none'
 
 if (isAndroid) {
@@ -142,6 +153,54 @@ export default class AppClient {
 			if (window.location.protocol.includes('https'))
 				this.ws = new WebSocket('wss://' + socketURL, 'echo-protocol')
 			else this.ws = new WebSocket('ws://' + socketURL, 'echo-protocol')
+
+			{
+				const appendMessage = function appendMessage(msg: string) {
+					/* if (list) {
+						const li = document.createElement('li')
+						li.innerHTML = msg
+						list.appendChild(li)
+					} */
+					console.log(msg)
+				}
+
+				const channel = geckosClient.geckos({ url: 'http://localhost', port: 3000 })
+				channel.onConnect(function (error) {
+					if (error) {
+						//message.innerHTML = 'Sorry something went wrong :/'
+						appendMessage(error.message)
+						return
+					} else {
+						// message.innerHTML = "You're connected :)"
+						console.log("You're connected!")
+						/* setTimeout(function () {
+							message.remove()
+						}, 2500) */
+					}
+
+					channel.emit('chat message', "Hello everyone, I'm " + channel.id)
+
+					channel.onDisconnect(function () {
+						console.log('You got disconnected')
+					})
+
+					/* if (button) {
+						button.addEventListener('click', (): void => {
+							if (text) {
+								const content = text.value as string
+								if (content && content.trim().length > 0) {
+									channel.emit('chat message', content.trim())
+									text.value = ''
+								}
+							}
+						})
+					} */
+
+					channel.on('chat message', (data): void => {
+						appendMessage(data.toString())
+					})
+				})
+			}
 		}
 
 		// Configuration
@@ -262,7 +321,7 @@ export default class AppClient {
 						obj.visible = true
 						if (false) {
 							const textureLoader = new THREE.TextureLoader()
-							const texture = textureLoader.load('./images/uv-test-bw.jpg')
+							const texture = textureLoader.load('../client/images/uv-test-bw.jpg')
 							let mat = new THREE.MeshStandardMaterial({ map: texture })
 							;(obj as THREE.Mesh).material = mat
 							this.worldClient.scene.add(new VertexNormalsHelper(obj, 0.1, 0x00ff00))
@@ -346,7 +405,7 @@ export default class AppClient {
 			this.worldClient.player.cameraOperator.camera.add(AttachModels.makeCamera())
 			this.worldClient.player.attachments.push({
 				obj: this.worldClient.player.cameraOperator.camera,
-				addToWorld: true,
+				addTo: PlayerAttachmentType.AddToWorld,
 			})
 			this.worldClient.player.cameraOperator.camera.visible = false
 			this.worldClient.addSceneObject(this.worldClient.player.cameraOperator.camera)
@@ -381,7 +440,7 @@ export default class AppClient {
 		// Initialization
 		player.setUID(messageData.uID)
 		player.cameraOperator.camera.add(AttachModels.makeCamera())
-		player.attachments.push({ obj: player.cameraOperator.camera, addToWorld: true })
+		player.attachments.push({ obj: player.cameraOperator.camera, addTo: PlayerAttachmentType.AddToWorld })
 		this.worldClient.addSceneObject(player.cameraOperator.camera)
 
 		let playerPosition: THREE.Vector3 | null = null
@@ -617,7 +676,7 @@ export default class AppClient {
 		if (this.bufferData.length > 2) {
 			for (let i = this.bufferData.length - 1; i > 0; --i) {
 				time += this.bufferData[i].delta
-				if (time > 15) {
+				if (time > 45) {
 					// seconds
 					inx = i
 					break
@@ -810,4 +869,4 @@ export default class AppClient {
 	}
 }
 
-new AppClient()
+if (!isElectronApp) new AppClient()

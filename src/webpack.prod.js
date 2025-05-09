@@ -1,9 +1,4 @@
-const { merge } = require("webpack-merge")
-const common = require("./webpack.common.js")
+const prod_server = require('./webpack.prod.server.js')
+const prod_client = require('./webpack.prod.client.js')
 
-module.exports = merge(common, {
-	mode: "production",
-	performance: {
-		hints: false,
-	},
-})
+module.exports = [prod_client, prod_server]

@@ -51,8 +51,8 @@ class Water extends THREE.Mesh implements IWorldEntity, INetwork {
 	world: WorldBase | null
 
 	size: THREE.Vector2
-	geometry: THREE.PlaneGeometry
-	material: THREE.ShaderMaterial
+	declare geometry: THREE.PlaneGeometry
+	declare material: THREE.ShaderMaterial
 	isWater: boolean
 	floatingMeshes: Floaters[] = []
 	floatingBodies: CANNON.Body[] = []

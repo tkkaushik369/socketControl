@@ -57,7 +57,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 		let callerCharacter = (model: any, vehicle: Vehicle, player?: Player): Character => {
 			let character = new Character()
 			// world.getGLTF('boxman.glb', (gltf: any) => {
-			character.setModel(model)
+			character.setModel(model, world.isClient)
 			character.uID = vehicle.uID + '_driver'
 			// })
 			world.add(character)
@@ -100,6 +100,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 			this.object.getWorldQuaternion(worldQuat)
 
 			let vehicle: Vehicle = this.getNewVehicleByType(model)
+			vehicle.readVehicleData(model, world.isClient)
 			vehicle.uID = this.userData.name
 			if (this.playerData !== null) vehicle.uID += '' + this.playerData.player.uID
 			vehicle.spawnPoint = this.object

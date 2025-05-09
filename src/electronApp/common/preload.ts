@@ -1,6 +1,7 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 import { ipcRenderer } from 'electron'
+import { FRAME_VISBLE } from '../../LoaderMode'
 
 export async function SetLightMode() {
 	await ipcRenderer.invoke('dark-mode:light').then((data) => {
@@ -25,7 +26,7 @@ export function initPreload() {
 		ipcRenderer.invoke('titlebar').then((data) => {
 			console.log(`titlebar:${data}`)
 		})
-		if (!(process.env.FRAME_VISBLE !== 'true')) lbl.style.display = 'none'
+		if (FRAME_VISBLE) lbl.style.display = 'none'
 	}
 
 	if (ton !== null) {

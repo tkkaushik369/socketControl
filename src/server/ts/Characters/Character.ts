@@ -252,8 +252,8 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		}
 	}
 
-	public setModel(gltf: any) {
-		this.readCharacterData(gltf)
+	public setModel(gltf: any, isClient: boolean) {
+		this.readCharacterData(gltf, isClient)
 		this.mixer = new THREE.AnimationMixer(gltf.scene)
 		this.modelContainer.add(gltf.scene)
 		this.setAnimations(gltf.animations)
@@ -370,10 +370,10 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 		}
 	}
 
-	public readCharacterData(gltf: any): void {
+	public readCharacterData(gltf: any, isClient: boolean): void {
 		gltf.scene.traverse((child: any) => {
 			if (child.isMesh) {
-				Utility.setupMeshProperties(child)
+				Utility.setupMeshProperties(child, isClient)
 				if (child.material !== undefined) {
 					this.materials.push(child.material)
 				}

@@ -9,10 +9,10 @@
 // visit http://127.0.0.1:3000
 
 import { Common } from './Common'
-import * as THREE from 'three'
+// import * as THREE from 'three'
 import express from 'express'
-import path from 'path'
-import http from 'http'
+import path from 'node:path'
+import http from 'node:http'
 import { WebSocketServer, WebSocket } from 'ws'
 import { Server, Socket } from 'socket.io'
 import { instrument } from '@socket.io/admin-ui'
@@ -24,7 +24,8 @@ import { WorldServer } from './ts/World/WorldServer'
 import { ControlsTypes } from './ts/Enums/ControlsTypes'
 import { MessageTypes } from './ts/Enums/MessagesTypes'
 import { Communication, DataSender, Packager, WorldCreation } from './ts/Enums/Communication'
-import fs from 'node:fs'
+// import fs from 'node:fs'
+import * as geckosServer from '@geckos.io/server'
 
 // Set the MIME type explicitly
 express.static.mime.define({ 'application/wasm': ['wasm'] })
@@ -46,19 +47,34 @@ export type DisconnectedEvent = CustomEvent<{
 	id: string
 	ws: WebSocket
 }>
+export type WorldCreatedEvent = CustomEvent<{
+	id: string
+}>
+export type WorldDestroyedEvent = CustomEvent<{
+	id: string
+}>
+export type WorldClientAddEvent = CustomEvent<{
+	wid: string
+	sid: string
+}>
+export type WorldClientRemoveEvent = CustomEvent<{
+	wid: string
+	sid: string
+}>
 
-export class AppServer extends EventTarget {
+export default class AppServer extends EventTarget {
 	private port: number
 	private server: http.Server | null
 	private io: Server | null
+	private io_g: geckosServer.GeckosServer | null
 	private wss: WebSocketServer | null
 	private app: express.Express
 
-	private allUsers: { [id: string]: Player }
-	private allWorlds: { [id: string]: WorldServer }
+	public allUsers: { [id: string]: Player }
+	public allWorlds: { [id: string]: WorldServer }
 	private uid: number = 1
 
-	constructor(port: number) {
+	constructor(port: number, hostPath: string = '.') {
 		super()
 		// Bind Functions
 		this.initCommunication = this.initCommunication.bind(this)
@@ -95,17 +111,21 @@ export class AppServer extends EventTarget {
 		this.allUsers = {}
 		this.allWorlds = {}
 		this.io = null
+		this.io_g = null
 		this.wss = null
 
-		const clientPath = path.resolve(__dirname, '../client_window')
+		// const clientPath = path.resolve(__dirname, '../client_window')
+		const clientPath = hostPath === '.' ? path.resolve(__dirname, '../client') : path.resolve(hostPath, '../client')
+		console.log(clientPath)
 		this.app = express()
-		this.app.use('/client_window', express.static(clientPath))
+		this.app.use('/', express.static(clientPath))
+		this.app.use('/client', express.static(clientPath))
 		this.app.use('/audios', express.static(path.join(clientPath, 'audios')))
 		this.app.use('/images', express.static(path.join(clientPath, 'images')))
 		this.app.use('/models', express.static(path.join(clientPath, 'models')))
-		this.app.get('/', (req, res) => {
+		/* this.app.get('/', (req, res) => {
 			res.sendFile(path.resolve(clientPath, 'index.html'))
-		})
+		}) */
 		setInterval(this.ForOutofWorld, 100)
 	}
 
@@ -239,6 +259,13 @@ export class AppServer extends EventTarget {
 		this.allWorlds[worldId] = new WorldServer(this.ForSocketLoop)
 		this.allWorlds[worldId].launchMap(Object.keys(this.allWorlds[worldId].maps)[0], false, true)
 		this.allWorlds[worldId].worldId = worldId
+		this.dispatchEvent(
+			new CustomEvent('worldcreated', {
+				detail: {
+					id: worldId,
+				},
+			})
+		)
 	}
 
 	private CreatePlayerWorld(socketid: string): PlayerSetMesssage {
@@ -275,6 +302,15 @@ export class AppServer extends EventTarget {
 		this.allUsers[socket.id].world = this.allWorlds[worldId]
 		this.allUsers[socket.id].spawnPoint = null
 		this.allWorlds[worldId].users[socket.id] = this.allUsers[socket.id]
+
+		this.dispatchEvent(
+			new CustomEvent('worldclientadd', {
+				detail: {
+					wid: worldId,
+					sid: socket.id,
+				},
+			})
+		)
 
 		if (this.allWorlds[worldId].runner === null) {
 			console.log(`Running: ${worldId}`)
@@ -338,6 +374,14 @@ export class AppServer extends EventTarget {
 
 		this.allUsers[socket.id].world = null
 		if (this.allWorlds[worldId].users[socket.id] !== undefined) {
+			this.dispatchEvent(
+				new CustomEvent('worldclientremove', {
+					detail: {
+						wid: worldId,
+						sid: socket.id,
+					},
+				})
+			)
 			delete this.allWorlds[worldId].users[socket.id]
 		}
 
@@ -720,6 +764,14 @@ export class AppServer extends EventTarget {
 				while (toRemoveUser.length) {
 					const user = toRemoveUser.pop()
 					if (user != undefined) {
+						this.dispatchEvent(
+							new CustomEvent('worldclientremove', {
+								detail: {
+									wid: worldId,
+									sid: user,
+								},
+							})
+						)
 						delete this.allWorlds[worldId].users[user]
 					}
 				}
@@ -746,6 +798,13 @@ export class AppServer extends EventTarget {
 					})
 					if (hasNoHold) {
 						console.log('World Removed: ' + worldId)
+						this.dispatchEvent(
+							new CustomEvent('worlddestroyed', {
+								detail: {
+									id: worldId,
+								},
+							})
+						)
 						delete this.allWorlds[worldId]
 					}
 				}
@@ -753,7 +812,7 @@ export class AppServer extends EventTarget {
 		}
 	}
 
-	private Status() {
+	public Status() {
 		if (Common.eachNewWorld === WorldCreation.OneForEach) this.RemoveUnusedWorlds()
 		console.log()
 		console.log('-----------')
@@ -797,6 +856,35 @@ export class AppServer extends EventTarget {
 			this.wss = null
 		}
 
+		{
+			this.io_g = geckosServer.geckos({
+				iceServers: geckosServer.iceServers,
+				portRange: {
+					min: process.env.PORT_RANGE_MIN ? parseInt(process.env.PORT_RANGE_MIN) : 10000,
+					max: process.env.PORT_RANGE_MAX ? parseInt(process.env.PORT_RANGE_MAX) : 10007,
+				},
+				cors: {
+					origin: '*',
+					allowAuthorization: true,
+				},
+			})
+
+			this.io_g.addServer(this.server)
+
+			this.io_g.onConnection((channel) => {
+				console.log(channel.id)
+				channel.onDisconnect(() => {
+					console.log(`${channel.id} got disconnected`)
+				})
+
+				channel.emit('chat message', `Welcome to the chat ${channel.id}!`)
+
+				channel.on('chat message', (data) => {
+					channel.room.emit('chat message', data)
+				})
+			})
+		}
+
 		this.server.listen(this.port, privateHost ? '127.0.0.1' : '0.0.0.0', () => {
 			console.log(`Server listening on port ${this.port}.`)
 			this.initCommunication()
@@ -822,6 +910,10 @@ export class AppServer extends EventTarget {
 			this.server = null
 		}
 		console.log(`Server closed on port ${port}.`)
+	}
+
+	public GetWorld(wid: string): WorldServer | undefined {
+		return this.allWorlds[wid]
 	}
 }
 

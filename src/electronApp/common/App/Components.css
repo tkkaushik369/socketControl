@@ -24,7 +24,6 @@
 	flex-direction: row;
 }
 
-
 .splitView.vertical {
 	flex-direction: column;
 	width: 100%;

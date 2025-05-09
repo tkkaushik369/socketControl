@@ -15,6 +15,12 @@ export type PlayerSetMesssage = {
 	count: number
 }
 
+export enum PlayerAttachmentType {
+	AddToWorld = 'addToWorld',
+	AddToCharacter = 'addToCharacter',
+	AddToCamera = 'addToCamera',
+}
+
 export class Player implements INetwork {
 	sID: string
 	world: WorldBase | null
@@ -33,6 +39,7 @@ export class Player implements INetwork {
 			azimuth: number // -180 to 180
 		}
 		timeScaleTarget: number
+		cameraRadius: number
 		cameraPosition: { x: number; y: number; z: number }
 		cameraQuaternion: { x: number; y: number; z: number; w: number }
 	}
@@ -46,7 +53,7 @@ export class Player implements INetwork {
 	character: Character | null
 
 	// client
-	attachments: { obj: THREE.Object3D; addToWorld: boolean }[]
+	attachments: { obj: THREE.Object3D; addTo: PlayerAttachmentType }[]
 
 	constructor(sID: string, camera: THREE.PerspectiveCamera, domElement: HTMLElement | null) {
 		// bind functions
@@ -75,7 +82,7 @@ export class Player implements INetwork {
 			const camHelper = new THREE.CameraHelper(this.cameraOperator.camera)
 			camHelper.visible = false
 
-			this.attachments.push({ obj: camHelper, addToWorld: true })
+			this.attachments.push({ obj: camHelper, addTo: PlayerAttachmentType.AddToWorld })
 		}
 
 		this.spawnPoint = null
@@ -87,6 +94,7 @@ export class Player implements INetwork {
 			worldId: null,
 			sun: { elevation: 0, azimuth: 0 },
 			timeScaleTarget: 1,
+			cameraRadius: 3,
 			cameraPosition: { x: 0, y: 0, z: 0 },
 			cameraQuaternion: { x: 0, y: 0, z: 0, w: 0 },
 		}
@@ -143,27 +151,48 @@ export class Player implements INetwork {
 			this.character.takeControl()
 		}
 		this.attachments.forEach((obj) => {
-			if (obj.addToWorld) world.addSceneObject(obj.obj)
-			else if (this.character !== null) this.character.modelContainer.add(obj.obj)
+			switch (obj.addTo) {
+				case PlayerAttachmentType.AddToWorld: {
+					world.addSceneObject(obj.obj)
+					break
+				}
+				case PlayerAttachmentType.AddToCharacter: {
+					if (this.character !== null) this.character.modelContainer.add(obj.obj)
+					break
+				}
+				case PlayerAttachmentType.AddToCamera: {
+					break
+				}
+			}
 		})
 	}
 	public removeUser(exworld: WorldBase | null) {
 		if (this.world === null) return
 		const world = this.world
 		this.attachments.forEach((obj) => {
-			if (obj.addToWorld) world.removeSceneObject(obj.obj)
-			else if (this.character !== null) {
-				/* if (obj.obj instanceof THREE.LOD) {
-					console.log(obj.obj.levels)
-					obj.obj.levels.forEach((child) => {
-						console.log((obj.obj as any).removeLevel(child.distance))
-					})
-				} */
-				this.character.modelContainer.remove(obj.obj)
+			switch (obj.addTo) {
+				case PlayerAttachmentType.AddToWorld: {
+					world.removeSceneObject(obj.obj)
+					break
+				}
+				case PlayerAttachmentType.AddToCharacter: {
+					/* if (obj.obj instanceof THREE.LOD) {
+						console.log(obj.obj.levels)
+						obj.obj.levels.forEach((child) => {
+							console.log((obj.obj as any).removeLevel(child.distance))
+						})
+					} */
+					if (this.character !== null) this.character.modelContainer.remove(obj.obj)
+					break
+				}
+				case PlayerAttachmentType.AddToCamera: {
+					break
+				}
 			}
 		})
 		if (this.character !== null) {
-			this.world.removeSceneObject(this.character)
+			// this.world.removeSceneObject(this.character)
+			this.world.remove(this.character)
 			this.character.player = null
 			this.character = null
 		}
@@ -197,6 +226,7 @@ export class Player implements INetwork {
 	}
 
 	Set(messages: any) {
+		this.cameraOperator.radius = messages.data.cameraRadius
 		this.cameraOperator.camera.position.set(
 			messages.data.cameraPosition.x,
 			messages.data.cameraPosition.y,

@@ -17,6 +17,7 @@ import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { CSM } from 'three/examples/jsm/csm/CSM'
 import { Sky } from 'three/examples/jsm/objects/Sky'
 import { Ocean } from './Ocean'
+import { Grass } from './Grass'
 import _ from 'lodash'
 import { UiControlsGroup } from '../../../server/ts/Enums/UiControlsGroup'
 import { UiControls, UiControlsType } from '../../../server/ts/Constants'
@@ -42,7 +43,8 @@ export class WorldClient extends WorldBase {
 	public effectController: { [id: string]: any }
 	private csm: CSM
 
-	private oceans: Ocean[] = []
+	// private oceans: Ocean[] = []
+	// private grasses: Grass[] = []
 
 	public stats: Stats
 	public networkStats: Stats.Panel
@@ -200,7 +202,7 @@ export class WorldClient extends WorldBase {
 			this.outlinePass.edgeThickness = 0.5
 			this.outlinePass.pulsePeriod = 0.0
 			const textureLoader = new THREE.TextureLoader()
-			textureLoader.load('./images/tri_pattern.jpg', (texture) => {
+			textureLoader.load('../client/images/tri_pattern.jpg', (texture) => {
 				this.outlinePass.patternTexture = texture
 				texture.wrapS = THREE.RepeatWrapping
 				texture.wrapT = THREE.RepeatWrapping
@@ -371,7 +373,19 @@ export class WorldClient extends WorldBase {
 
 					if (child.material.name === 'ocean') {
 						// only sketchbook
-						this.oceans.push(new Ocean(child, this))
+						if (child.userData.name === 'Plane.002') {
+							child.position.y += 10
+						}
+						let ocean = new Ocean(child, this)
+						this.add(ocean)
+						// this.oceans.push(ocean)
+						this.clientEntity.push(ocean)
+					} else if (child.material.name === 'grass') {
+						// only sketchbook
+						let grass = new Grass(child, this)
+						this.add(grass)
+						// this.grasses.push(grass)
+						this.clientEntity.push(grass)
 					}
 				}
 			}
@@ -544,16 +558,20 @@ export class WorldClient extends WorldBase {
 
 	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
 		super.launchMap(mapID, isCallback, isLaunched)
-		this.oceans = []
+		// this.oceans = []
+		// this.grasses = []
 	}
 
 	private animate() {
 		this.update()
 		// this.gui.refresh()
 		this.csm.update()
-		this.oceans.forEach((ocean) => {
+		/* this.oceans.forEach((ocean) => {
 			ocean.update((this.timeScaleTarget * 1.0) / 60.0)
-		})
+		}) */
+		/* this.grasses.forEach((grass) => {
+			grass.update((this.timeScaleTarget * 1.0) / 60.0)
+		}) */
 
 		{
 			this.outlinePass.selectedObjects = []

@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
-import { Player } from '../../../server/ts/Core/Player'
+import { Player, PlayerAttachmentType } from '../../../server/ts/Core/Player'
 
 export class PlayerClient extends Player {
 	isMe: boolean
@@ -29,7 +29,7 @@ export class PlayerClient extends Player {
 			label.position.set(0, 1.2, 0)
 			// lod.addLevel(label, 5)
 
-			this.attachments.push({ obj: label, addToWorld: false })
+			this.attachments.push({ obj: label, addTo: PlayerAttachmentType.AddToCharacter })
 		}
 
 		/* {
@@ -42,6 +42,6 @@ export class PlayerClient extends Player {
 			lod.addLevel(label, 50)
 		}
 
-		this.attachments.push({ obj: lod, addToWorld: false }) */
+		this.attachments.push({ obj: lod, addTo: PlayerAttachmentType.AddToCharacter }) */
 	}
 }

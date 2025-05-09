@@ -39,13 +39,13 @@ export class Utility {
 		}
 	}
 
-	static setupMeshProperties(child: any): void {
+	static setupMeshProperties(child: any, isClient: boolean): void {
 		child.castShadow = true
 		child.receiveShadow = true
 
-		if (child.material.map !== null) {
-			let mat = new THREE.MeshPhongMaterial()
-			mat.shininess = 0
+		if (child.material !== undefined && child.material.map !== null) {
+			let mat = isClient ? new THREE.MeshPhongMaterial() : new THREE.MeshBasicMaterial()
+			if (isClient) (mat as THREE.MeshPhongMaterial).shininess = 0
 			mat.name = child.material.name
 			mat.map = child.material.map
 			if (mat.map !== null) mat.map.anisotropy = 4

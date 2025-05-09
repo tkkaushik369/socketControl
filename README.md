@@ -62,10 +62,31 @@ npm run dev
 
 ### Features
 
-#### 18th January
+#### 09th May 2025
+
+-   Grass Animation Added (Sketchbook v 0.3)
+
+#### 22th April 2025
+
+-   Player Attachment Bug Fix
+-	Camera distance Network Update Bug Fix
+-   Server Side Visualization
+
+#### 12th April 2025
+
+-   Re Structured Adjustments
+-   Gekoes.io testing
+
+#### 18th April 2025
+
+-   Re Structured Workspace (No Game related changes)
+-   Rapier.js raycast inconsistent results. Rapier.js skipped till finding a solution.
+-   Direct webpack build usage for electron.
+
+#### 18th January 2025
 
 -   World Creation OneForEach Room Creation Fix (Join and Leave)
--	Bug Fix
+-   Bug Fix
 
 #### 07th January 2025
 

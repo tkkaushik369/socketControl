@@ -22,7 +22,7 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 	public spawn(world: WorldBase): Character {
 		let player = new Character()
 		const callerCharacter = (gltf: any) => {
-			player.setModel(gltf)
+			player.setModel(gltf, world.isClient)
 			player.uID = this.userData.name
 			player.spawnPoint = this.object
 
