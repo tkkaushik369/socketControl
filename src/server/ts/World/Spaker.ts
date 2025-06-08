@@ -4,7 +4,7 @@ import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { INetwork } from '../Interfaces/INetwork'
 import { IAudible } from '../Interfaces/IAudible'
 import { EntityType } from '../Enums/EntityType'
-import { WorldBase } from './WorldBase'
+import { WorldBase } from '@WorldBase'
 import { MessageTypes } from '../Enums/MessagesTypes'
 
 export class Speaker extends THREE.Object3D implements IWorldEntity, INetwork, IAudible {

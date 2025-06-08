@@ -12,6 +12,14 @@
 		"declaration": true,
 		// "declarationMap": true,
 		"declarationDir": "../../types/client",
+		"paths": {
+			"@WorldBase": [
+				"../server/ts/World/WorldBase"
+			],
+		},
+		"typeRoots": [
+			"../server/ts/World/WorldBase"
+		],
 	},
 	"include": [
 		"**/*.ts"

@@ -116,10 +116,13 @@ export default class AppServer extends EventTarget {
 
 		// const clientPath = path.resolve(__dirname, '../client_window')
 		const clientPath = hostPath === '.' ? path.resolve(__dirname, '../client') : path.resolve(hostPath, '../client')
+		const basePath = hostPath === '.' ? path.resolve(__dirname, '../@WorldBase') : path.resolve(hostPath, '../@WorldBase')
 		console.log(clientPath)
+		console.log(basePath)
 		this.app = express()
 		this.app.use('/', express.static(clientPath))
 		this.app.use('/client', express.static(clientPath))
+		this.app.use('/@WorldBase', express.static(basePath))
 		this.app.use('/audios', express.static(path.join(clientPath, 'audios')))
 		this.app.use('/images', express.static(path.join(clientPath, 'images')))
 		this.app.use('/models', express.static(path.join(clientPath, 'models')))

@@ -10,6 +10,7 @@ import * as THREE from 'three'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import type * as AppServerType from '@server/server'
 import type * as WorldBaseType from '@server/ts/World/WorldBase'
+import type * as WorldServerType from '@server/ts/World/WorldServer'
 import type * as PlayerType from '@server/ts/Core/Player'
 import { Player, PlayerAttachmentType } from '../../server/ts/Core/Player'
 import { ControlsTypes } from '../../server/ts/Enums/ControlsTypes'
@@ -147,7 +148,7 @@ function launchServer() {
 
 function EnterWorld(wid: string): void {
 	if (appServer === null || rootElement === null) return
-	const world: WorldBaseType.WorldBase | undefined = appServer.GetWorld(wid)
+	const world: WorldBaseType.WorldBase /* WorldServerType.WorldServer */ | undefined = appServer.GetWorld(wid)
 	if (world === undefined) return
 
 	const worldView = document.createElement('div')
@@ -219,7 +220,7 @@ function EnterWorld(wid: string): void {
 
 	player = new Player(sID, camera, renderer.domElement)
 	player.inputManager.controlsCallBack = OnControls
-	;(player.world as unknown as WorldBaseType.WorldBase) = world
+	;(player.world as unknown as WorldBaseType.WorldBase /* WorldServerType.WorldServer */) = world
 	player.spawnPoint = null
 	// appServer.allWorlds[wid].users[sID] = appServer.allUsers[sID]
 	player.setUID('Server Debug')
@@ -325,7 +326,7 @@ function EnterWorld(wid: string): void {
 
 function LeaveWorld(wid: string): void {
 	if (appServer === null || rootElement === null) return
-	const world: WorldBaseType.WorldBase | undefined = appServer.GetWorld(wid)
+	const world: /* WorldBaseType.WorldBase */ WorldServerType.WorldServer | undefined = appServer.GetWorld(wid)
 	if (world === undefined) return
 	world.unregisterUpdatable(player.inputManager)
 	world.unregisterUpdatable(player.cameraOperator)
@@ -347,7 +348,7 @@ function LeaveWorld(wid: string): void {
 
 function WorldClientAdd(wid: string, sid: string) {
 	if (appServer === null) return
-	const world: WorldBaseType.WorldBase | undefined = appServer.GetWorld(wid)
+	const world: /* WorldBaseType.WorldBase */ WorldServerType.WorldServer | undefined = appServer.GetWorld(wid)
 	const player: PlayerType.Player | undefined = appServer.allUsers[sid]
 	if (world === undefined || player === undefined) return
 	if (isInWorld !== wid) return
@@ -399,7 +400,7 @@ function WorldClientAdd(wid: string, sid: string) {
 
 function WorldClientRemove(wid: string, sid: string) {
 	if (appServer === null) return
-	const world: WorldBaseType.WorldBase | undefined = appServer.GetWorld(wid)
+	const world: /* WorldBaseType.WorldBase */ WorldServerType.WorldServer | undefined = appServer.GetWorld(wid)
 	const player: PlayerType.Player | undefined = appServer.allUsers[sid]
 	if (world === undefined || player === undefined) return
 	if (isInWorld !== wid) return

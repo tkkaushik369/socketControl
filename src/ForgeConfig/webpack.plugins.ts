@@ -2,25 +2,31 @@ import type IForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin'
 import { EnvironmentPlugin } from 'webpack'
 import path from 'node:path'
 import CopyPlugin from 'copy-webpack-plugin'
+import HtmlWebpackInjectPlugin from 'html-webpack-inject-plugin'
 import { WEBPACK_USE_BUNDLE } from '../LoaderMode'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ForkTsCheckerWebpackPlugin: typeof IForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
-const renderer_client_dirname = '../renderer/client'
+const renderer_worldbase_dirname = '../renderer/@WorldBase'
 const renderer_server_dirname = '../renderer/server'
+const renderer_client_dirname = '../renderer/client'
 
 const copyPlugin: CopyPlugin.Pattern[] = []
 
 if (WEBPACK_USE_BUNDLE) {
 	copyPlugin.push(
 		{
-			from: path.resolve(__dirname, '../../dist/client'),
-			to: renderer_client_dirname,
+			from: path.resolve(__dirname, '../../dist/@WorldBase'),
+			to: renderer_worldbase_dirname,
 		},
 		{
 			from: path.resolve(__dirname, '../../dist/server'),
 			to: renderer_server_dirname,
-		}
+		},
+		{
+			from: path.resolve(__dirname, '../../dist/client'),
+			to: renderer_client_dirname,
+		},
 	)
 } else {
 	copyPlugin.push(
@@ -55,3 +61,19 @@ if (copyPlugin.length > 0) {
 		})
 	)
 }
+
+plugins.push(
+	new HtmlWebpackInjectPlugin({
+		externals: [
+			{
+				tagName: 'script',
+				attributes: {
+					defer: true,
+					src: '../@WorldBase/index.js',
+					type: 'text/javascript',
+				},
+			},
+		],
+		prepend: true,
+	})
+)

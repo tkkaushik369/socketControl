@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { WorldBase } from '../World/WorldBase'
+import { WorldBase } from '@WorldBase'
 import { InputManager } from './InputManager'
 import { INetwork } from '../Interfaces/INetwork'
 import { MessageTypes } from '../Enums/MessagesTypes'

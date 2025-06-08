@@ -4,6 +4,7 @@ import { SketchBookV3Config } from './Configs/SketchBookV3'
 import { SketchBookV4Config } from './Configs/SketchBookV4'
 import { TestConfig } from './Configs/Test'
 import { Test2Config } from './Configs/Test2'
+import { Test3Config } from './Configs/Test3'
 
 export type MapConfigFOType = {
 	objCaller: string | BaseScene
@@ -23,6 +24,7 @@ export type MapConfigType = {
 export var MapConfig: { [id: string]: MapConfigType } = {}
 
 MapConfig[Test2Config.name] = Test2Config
+MapConfig[Test3Config.name] = Test3Config
 MapConfig[ExampleConfig.name] = ExampleConfig
 MapConfig[SketchBookV3Config.name] = SketchBookV3Config
 MapConfig[SketchBookV4Config.name] = SketchBookV4Config

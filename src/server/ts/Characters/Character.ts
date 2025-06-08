@@ -8,7 +8,7 @@ import { VectorSpringSimulator } from '../Physics/SpringSimulation/VectorSpringS
 import { RelativeSpringSimulator } from '../Physics/SpringSimulation/RelativeSpringSimulator'
 import * as CharState from './CharacterStates/_CharacterStateLibrary'
 import * as VehicleState from './CharacterStates/Vehicles/_VehicleStateLibrary'
-import { WorldBase } from '../World/WorldBase'
+import { WorldBase } from '@WorldBase'
 import { IControllable } from '../Interfaces/IControllable'
 import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { Vehicle } from '../Vehicles/Vehicle'

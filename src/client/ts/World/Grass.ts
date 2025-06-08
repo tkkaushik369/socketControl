@@ -16,7 +16,7 @@ export class Grass implements IWorldEntity {
 	private world: WorldClient
 	private meshes: THREE.Object3D[] = []
 
-	constructor(transform: any, world: WorldClient) {
+	constructor(transform: any, world: WorldClient, instances: number = 300000) {
 		// bind functions
 		this.multiplyQuaternions = this.multiplyQuaternions.bind(this)
 		this.addToWorld = this.addToWorld.bind(this)
@@ -39,7 +39,7 @@ export class Grass implements IWorldEntity {
 		let h_ = 0.2
 
 		// Number of blades
-		let instances = 300000
+		// let instances = 300000
 
 		// ************** Setup **************
 		// Use noise.js library to generate a grid of 2D simplex noise values

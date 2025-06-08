@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { WorldBase } from './WorldBase'
+import { WorldBase } from '@WorldBase'
 import { JSDOM } from 'jsdom'
 import fs from 'fs'
 import { Speaker } from './Spaker'

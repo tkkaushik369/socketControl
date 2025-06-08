@@ -1,7 +1,7 @@
 import { Character } from '../Characters/Character'
 import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
-import { WorldBase } from '../World/WorldBase'
+import { WorldBase } from '@WorldBase'
 import * as _ from 'lodash'
 import { KeyBinding } from '../Core/KeyBinding'
 import { VehicleSeat } from './VehicleSeat'

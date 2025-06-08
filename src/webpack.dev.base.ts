@@ -1,4 +1,6 @@
-module.exports = {
+import type { Configuration } from 'webpack'
+
+export const config_dev: Configuration = {
 	mode: 'development',
 	devtool: 'eval-source-map',
 	devServer: {
@@ -16,4 +18,7 @@ module.exports = {
 		warnings: true,
 		errorDetails: true,
 	},
+	cache: {
+		type: 'memory'
+	}
 }

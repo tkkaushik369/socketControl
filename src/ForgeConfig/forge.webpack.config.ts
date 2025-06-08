@@ -7,6 +7,16 @@ import { WEBPACK_USE_BUNDLE, SHOW_RAPIER, SINGLE_PLAYER } from '../LoaderMode'
 
 const entryPoints: WebpackPluginEntryPoint[] = []
 
+if (!WEBPACK_USE_BUNDLE) {
+	entryPoints.push({
+		name: '@WorldBase',
+		html: './src/electronApp/common/index.html',
+		js: './src/server/ts/World/WorldBase.ts',
+		// js: './src/electronApp/test.ts',
+		nodeIntegration: false,
+	})
+}
+
 if (SINGLE_PLAYER) {
 	entryPoints.push({
 		name: 'offline_window',

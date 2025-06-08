@@ -43,8 +43,8 @@ class AppOffline {
 		this.lastUpdate = Date.now()
 
 		try {
-			if (FRAME_VISBLE) {
-				// document.body.className = 'bodyTransparent'
+			if (!FRAME_VISBLE) {
+				document.body.className = 'bodyTransparent'
 				workBox.classList.add('Hide')
 			}
 		} catch {

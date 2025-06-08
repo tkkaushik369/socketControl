@@ -45,7 +45,7 @@ if (typeof process === 'object') {
 	// console.log('isElectron', isElectronApp)
 
 	try {
-		if (FRAME_VISBLE) {
+		if (!FRAME_VISBLE) {
 			document.body.className = 'bodyTransparent'
 			workBox.classList.add('Hide')
 		}

@@ -1,4 +1,4 @@
-import { WorldBase } from '../World/WorldBase'
+import { WorldBase } from '@WorldBase'
 import * as THREE from 'three'
 
 export interface ISpawnPoint {

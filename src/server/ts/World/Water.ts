@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
 import * as _ from 'lodash'
-import { WorldBase } from './WorldBase'
+import { WorldBase } from '@WorldBase'
 import { EntityType } from '../Enums/EntityType'
 import { MessageTypes } from '../Enums/MessagesTypes'
 import { IWorldEntity } from '../Interfaces/IWorldEntity'

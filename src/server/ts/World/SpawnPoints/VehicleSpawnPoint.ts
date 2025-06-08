@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { ISpawnPoint } from '../../Interfaces/ISpawnPoint'
-import { WorldBase } from '../WorldBase'
+import { WorldBase } from '@WorldBase'
 import { Vehicle } from '../../Vehicles/Vehicle'
 import { Helicopter } from '../../Vehicles/Helicopter'
 import { Airplane } from '../../Vehicles/Airplane'

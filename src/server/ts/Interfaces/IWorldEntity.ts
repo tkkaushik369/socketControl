@@ -1,4 +1,4 @@
-import { WorldBase } from '../World/WorldBase'
+import { WorldBase } from '@WorldBase'
 import { EntityType } from '../Enums/EntityType'
 import { IUpdatable } from './IUpdatable'
 

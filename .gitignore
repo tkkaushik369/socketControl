@@ -124,6 +124,11 @@ typings/
 
 # Webpack
 .webpack/
+.webpack_cache/
+stats.json
+
+# turborepo
+.turbo
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test

@@ -6,7 +6,7 @@ import { KeyBinding } from '../Core/KeyBinding'
 import * as THREE from 'three'
 import { Utility } from '../Core/Utility'
 import { SpringSimulator } from '../Physics/SpringSimulation/SpringSimulator'
-import { WorldBase } from '../World/WorldBase'
+import { WorldBase } from '@WorldBase'
 import { EntityType } from '../Enums/EntityType'
 import { UiControlsGroup } from '../Enums/UiControlsGroup'
 

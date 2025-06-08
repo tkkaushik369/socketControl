@@ -6,7 +6,7 @@ import { Vehicle } from './Vehicle'
 import { IControllable } from '../Interfaces/IControllable'
 import { IWorldEntity } from '../Interfaces/IWorldEntity'
 import { KeyBinding } from '../Core/KeyBinding'
-import { WorldBase } from '../World/WorldBase'
+import { WorldBase } from '@WorldBase'
 import { EntityType } from '../Enums/EntityType'
 import { UiControlsGroup } from '../Enums/UiControlsGroup'
 

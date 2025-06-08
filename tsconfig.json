@@ -22,16 +22,20 @@
 				"node_modules/*"
 			],
 			"@server/*": [
-				"./types/server/*"
+				"./src/server/*"
 			],
 			"@client/*": [
-				"./types/client/client/*"
-			]
+				"./src/client/*"
+			],
+			"@WorldBase": [
+				"./src/server/ts/World/WorldBase"
+			],
 		},
 		"typeRoots": [
-			"./types/server/*",
-			"./types/client/client/*",
-			"./node_modules/@types"
+			"./src/server/*",
+			"./src/client/*",
+			"./node_modules/@types",
+			"./src/server/ts/World/WorldBase"
 		],
 	},
 	"include": [

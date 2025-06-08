@@ -5,6 +5,8 @@ import { Player } from '../Core/Player'
 import { IUpdatable } from '../Interfaces/IUpdatable'
 import { Utility } from '../Core/Utility'
 import { BoxCollider } from '../Physics/Colliders/BoxCollider'
+import { SphereCollider } from '../Physics/Colliders/SphereCollider'
+import { CylinderCollider } from '../Physics/Colliders/CylinderCollider'
 import { TrimeshCollider } from '../Physics/Colliders/TrimeshCollider'
 import { CollisionGroups } from '../Enums/CollisionGroups'
 import { Path } from './Path'
@@ -16,6 +18,7 @@ import { Vehicle } from '../Vehicles/Vehicle'
 import { MapConfig, MapConfigType } from './MapConfigs'
 import { Water } from './Water'
 import { BaseScene } from './BaseScene'
+import { BoxWorldEntity } from '../Physics/WorldEntity/BoxWorldEntity'
 
 export abstract class WorldBase {
 	public worldId: string | null = null
@@ -417,9 +420,60 @@ export abstract class WorldBase {
 				if (child.userData.hasOwnProperty('data')) {
 					if (child.userData.data === 'physics') {
 						if (child.userData.hasOwnProperty('type')) {
+							child.visible = false
 							if (child.userData.type === 'box') {
+								let mass = 0
+								if (child.userData.hasOwnProperty('mass')) {
+									mass = child.userData.mass
+								}
 								let phys = new BoxCollider({
 									size: new THREE.Vector3(child.scale.x, child.scale.y, child.scale.z),
+									mass: mass,
+								})
+								phys.body.position.copy(Utility.cannonVector(child.position))
+								phys.body.quaternion.copy(Utility.cannonQuat(child.quaternion))
+								phys.body.updateAABB()
+
+								phys.body.shapes.forEach((shape) => {
+									shape.collisionFilterMask = ~CollisionGroups.TrimeshColliders
+									// shape.collisionFilterMask = CollisionGroups.Default | CollisionGroups.Characters | CollisionGroups.TrimeshColliders
+									// shape.collisionFilterGroup = CollisionGroups.Default
+								})
+								this.addWorldObject(phys.body)
+							} else if (child.userData.type === 'sphere') {
+								let phys = new SphereCollider({
+									size: new THREE.Vector3(child.radius),
+								})
+								phys.body.position.copy(Utility.cannonVector(child.position))
+								phys.body.quaternion.copy(Utility.cannonQuat(child.quaternion))
+								phys.body.updateAABB()
+
+								phys.body.shapes.forEach((shape) => {
+									shape.collisionFilterMask = ~CollisionGroups.TrimeshColliders
+									// shape.collisionFilterMask = CollisionGroups.Default | CollisionGroups.Characters | CollisionGroups.TrimeshColliders
+									// shape.collisionFilterGroup = CollisionGroups.Default
+								})
+
+								this.addWorldObject(phys.body)
+							} else if (child.userData.type === 'cylinder') {
+								let radius = 1
+								let height = 1
+								let segment = 6
+
+								if(child.userData.hasOwnProperty('radius')) {
+									radius = child.userData.radius
+								}
+								if(child.userData.hasOwnProperty('height')) {
+									height = child.userData.height
+								}
+								if(child.userData.hasOwnProperty('segment')) {
+									segment = child.userData.segment
+								}
+
+								let phys = new CylinderCollider({
+									radius: radius,
+									height: height,
+									segment: segment,
 								})
 								phys.body.position.copy(Utility.cannonVector(child.position))
 								phys.body.quaternion.copy(Utility.cannonQuat(child.quaternion))
@@ -439,8 +493,11 @@ export abstract class WorldBase {
 								// 	shape.collisionFilterGroup = CollisionGroups.Default
 								// })
 								this.addWorldObject(phys.body)
+							} else if (child.userData.type === 'box_entity') {
+								const boxWorldEntity = new BoxWorldEntity(this, child, true)
+								this.add(boxWorldEntity)
+								child.visible = true
 							}
-							child.visible = false
 						}
 					} else if (child.userData.data === 'path') {
 						this.paths.push(new Path(child))

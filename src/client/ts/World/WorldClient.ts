@@ -10,7 +10,7 @@ import { Utility } from '../../../server/ts/Core/Utility'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { Pane } from 'tweakpane'
 import { TabApi, TabPageApi } from '@tweakpane/core'
-import { WorldBase } from '../../../server/ts/World/WorldBase'
+import { WorldBase } from '@WorldBase'
 import { CannonDebugRenderer } from '../Utils/CannonDebugRenderer'
 import { AttachModels } from '../Utils/AttachModels'
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
@@ -382,7 +382,13 @@ export class WorldClient extends WorldBase {
 						this.clientEntity.push(ocean)
 					} else if (child.material.name === 'grass') {
 						// only sketchbook
-						let grass = new Grass(child, this)
+						let instances = 300000
+						if (child.material.hasOwnProperty('userData')) {
+							if (child.material.userData.hasOwnProperty('instances')) {
+								instances = child.material.userData.instances
+							}
+						}
+						let grass = new Grass(child, this, instances)
 						this.add(grass)
 						// this.grasses.push(grass)
 						this.clientEntity.push(grass)

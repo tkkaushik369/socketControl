@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { WorldBase } from '../World/WorldBase'
+import { WorldBase } from '@WorldBase'
 
 const _pointer = new THREE.Vector2()
 const _event = { type: '', data: _pointer }

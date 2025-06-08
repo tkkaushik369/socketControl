@@ -7,7 +7,7 @@ import { KeyBinding } from '../Core/KeyBinding'
 import { SpringSimulator } from '../Physics/SpringSimulation/SpringSimulator'
 import { Utility } from '../Core/Utility'
 import { EntityType } from '../Enums/EntityType'
-import { WorldBase } from '../World/WorldBase'
+import { WorldBase } from '@WorldBase'
 import { UiControlsGroup } from '../Enums/UiControlsGroup'
 
 export class Airplane extends Vehicle implements IWorldEntity {

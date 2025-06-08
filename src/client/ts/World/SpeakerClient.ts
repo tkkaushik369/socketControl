@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { InteractiveGroup } from '../../../server/ts/Core/InteractiveGroup'
 import { HTMLMesh } from 'three/examples/jsm/interactive/HTMLMesh.js'
 import { Speaker } from '../../../server/ts/World/Spaker'
-import { WorldBase } from '../../../server/ts/World/WorldBase'
+import { WorldBase } from '@WorldBase'
 
 export class SpeakerClient extends Speaker {
 	constructor(world: WorldBase, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {

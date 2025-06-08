@@ -1,9 +1,9 @@
-const path = require('path')
-const { merge } = require('webpack-merge')
-const common = require('./webpack.common.client.js')
-const dev = require('./webpack.dev.base.js')
+import path from 'path'
+import { merge } from 'webpack-merge'
+import common from './webpack.common.client'
+import { config_dev } from './webpack.dev.base'
 
-module.exports = merge(common, dev, {
+export const config_client_dev = {
 	devServer: {
 		static: {
 			directory: path.resolve(__dirname, '../dist/client'),
@@ -22,6 +22,7 @@ module.exports = merge(common, dev, {
 				ws: true,
 			},
 		],
-		port: 8080,
+		port: 8081,
 	},
-})
+}
+export default merge(common, config_dev, config_client_dev)
