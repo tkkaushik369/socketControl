@@ -1,8 +1,7 @@
 import * as THREE from 'three'
 
 import { WorldClient } from './WorldClient'
-import { IWorldEntity } from '../../../server/ts/Interfaces/IWorldEntity'
-import { EntityType } from '../../../server/ts/Enums/EntityType'
+import { IWorldEntity, EntityType } from '@World'
 import { WaterShader } from './WaterShader'
 
 export class Ocean implements IWorldEntity {

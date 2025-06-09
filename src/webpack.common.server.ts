@@ -18,7 +18,21 @@ export const config_server_common: Configuration = {
 	externalsPresets: {
 		node: true,
 	},
-	externals: { canvas: 'cannonjs2 canvas', '@WorldBase': '@WorldBase' },
+	externals: {
+		express: 'commonjs2 express',
+		ws: 'commonjs2 ws',
+		three: 'commonjs2 three',
+		jsdom: 'commonjs2 jsdom',
+		canvas: 'commonjs2 canvas',
+		"node:fs": 'commonjs2 node:fs',
+		"node:path": 'commonjs2 node:path',
+		"node:http": 'commonjs2 node:http',
+		"socket.io": 'commonjs2 socket.io',
+		"socket.io-msgpack-parser": 'commonjs2 socket.io-msgpack-parser',
+		"@socket.io/admin-ui": 'commonjs2 @socket.io/admin-ui',
+		// "@geckos.io/server": 'import @geckos.io/server',
+		'@World': 'this @World'
+	},
 	module: {
 		exprContextCritical: false,
 		unknownContextCritical: false,

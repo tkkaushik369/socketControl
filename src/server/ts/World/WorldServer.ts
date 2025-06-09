@@ -1,8 +1,7 @@
 import * as THREE from 'three'
-import { WorldBase } from '@WorldBase'
+import { WorldBase, Speaker } from '@World'
 import { JSDOM } from 'jsdom'
-import fs from 'fs'
-import { Speaker } from './Spaker'
+import fs from 'node:fs'
 
 export class WorldServer extends WorldBase {
 	modelCache: { [id: string]: any } = {}

@@ -13,7 +13,7 @@
  * Node.js module implementation by Danila Loginov https://loginov.rocks
  */
 
-import * as THREE from 'three'
+// import * as THREE from 'three'
 
 export let GrassShader = {
 	/* uniforms: {

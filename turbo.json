@@ -3,7 +3,7 @@
 	"tasks": {
 		"build:worldbase": {
 			"inputs": ["src/**"],
-			"outputs": ["dist/@WorldBase/**"]
+			"outputs": ["dist/@World/**"]
 		},
 		"build:server": {
 			"inputs": ["src/**"],

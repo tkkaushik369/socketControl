@@ -8,13 +8,10 @@ import { App } from '../common/App'
 
 import * as THREE from 'three'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
+import type * as WorldBaseType from '@World'
+import { Player, PlayerAttachmentType, ControlsTypes, Utility } from '@World'
 import type * as AppServerType from '@server/server'
-import type * as WorldBaseType from '@server/ts/World/WorldBase'
 import type * as WorldServerType from '@server/ts/World/WorldServer'
-import type * as PlayerType from '@server/ts/Core/Player'
-import { Player, PlayerAttachmentType } from '../../server/ts/Core/Player'
-import { ControlsTypes } from '../../server/ts/Enums/ControlsTypes'
-import { Utility } from '../../server/ts/Core/Utility'
 import { AttachModels } from '../../client/ts/Utils/AttachModels'
 import { CannonDebugRenderer } from '../../client/ts/Utils/CannonDebugRenderer'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
@@ -80,6 +77,7 @@ function launchServer() {
 	const clientListDom = document.getElementById('client-list')
 	const worldListDom = document.getElementById('world-list')
 
+	window.AppServer.initServer()
 	appServer = new window.AppServer.default(3000)
 	appServer.Start()
 
@@ -349,7 +347,7 @@ function LeaveWorld(wid: string): void {
 function WorldClientAdd(wid: string, sid: string) {
 	if (appServer === null) return
 	const world: /* WorldBaseType.WorldBase */ WorldServerType.WorldServer | undefined = appServer.GetWorld(wid)
-	const player: PlayerType.Player | undefined = appServer.allUsers[sid]
+	const player: WorldBaseType.Player | undefined = appServer.allUsers[sid]
 	if (world === undefined || player === undefined) return
 	if (isInWorld !== wid) return
 	player.cameraOperator.camera.add(AttachModels.makeCamera())
@@ -401,7 +399,7 @@ function WorldClientAdd(wid: string, sid: string) {
 function WorldClientRemove(wid: string, sid: string) {
 	if (appServer === null) return
 	const world: /* WorldBaseType.WorldBase */ WorldServerType.WorldServer | undefined = appServer.GetWorld(wid)
-	const player: PlayerType.Player | undefined = appServer.allUsers[sid]
+	const player: WorldBaseType.Player | undefined = appServer.allUsers[sid]
 	if (world === undefined || player === undefined) return
 	if (isInWorld !== wid) return
 	player.attachments.forEach((obj) => {

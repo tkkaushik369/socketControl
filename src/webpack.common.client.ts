@@ -19,7 +19,7 @@ export const config_client_common: Configuration = {
 		publicPath: '../client',
 		path: path.resolve(__dirname, '../dist/client'),
 	},
-	externals: { '@WorldBase': '@WorldBase' },
+	externals: { '@World': '@World' },
 	plugins: [
 		new HtmlWebpackPlugin({
 			filename: 'index.html',
@@ -51,7 +51,7 @@ export const config_client_common: Configuration = {
 					tagName: 'script',
 					attributes: {
 						defer: true,
-						src: '../@WorldBase/index.js',
+						src: '../@World/index.js',
 						type: 'text/javascript',
 					},
 				},

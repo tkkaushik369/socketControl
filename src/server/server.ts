@@ -8,8 +8,6 @@
 // `npm start            (this starts nodejs with express and serves the ./dist/client folder)
 // visit http://127.0.0.1:3000
 
-import { Common } from './Common'
-// import * as THREE from 'three'
 import express from 'express'
 import path from 'node:path'
 import http from 'node:http'
@@ -18,26 +16,33 @@ import { Server, Socket } from 'socket.io'
 import { instrument } from '@socket.io/admin-ui'
 import parser from 'socket.io-msgpack-parser'
 // import { pack, unpack } from "msgpackr"
-import { Utility } from './ts/Core/Utility'
-import { Player, PlayerSetMesssage } from './ts/Core/Player'
+import {
+	Common,
+	Utility,
+	Player,
+	PlayerSetMesssage,
+	ControlsTypes,
+	MessageTypes,
+	Communication,
+	DataSender,
+	Packager,
+	WorldCreation,
+} from '@World'
 import { WorldServer } from './ts/World/WorldServer'
-import { ControlsTypes } from './ts/Enums/ControlsTypes'
-import { MessageTypes } from './ts/Enums/MessagesTypes'
-import { Communication, DataSender, Packager, WorldCreation } from './ts/Enums/Communication'
 // import fs from 'node:fs'
 import * as geckosServer from '@geckos.io/server'
 
 // Set the MIME type explicitly
-express.static.mime.define({ 'application/wasm': ['wasm'] })
+// express.static.mime.define({ 'application/wasm': ['wasm'] })
 
-var isDev = false
-if (__dirname.includes('node_modules')) {
-	__dirname = path.resolve(__dirname.split('node_modules')[0], '.webpack/renderer/main_window')
-	isDev = true
+export function initServer() {
+	if (__dirname.includes('node_modules')) {
+		__dirname = path.resolve(__dirname.split('node_modules')[0], '.webpack/renderer/main_window')
+	}
 }
 
-const port: number = Number(process.env.PORT) || 3000
-const privateHost: boolean = false
+// const port: number = Number(process.env.PORT) || 3000
+// const privateHost: boolean = false
 
 export type ConnectedEvent = CustomEvent<{
 	id: string
@@ -116,13 +121,13 @@ export default class AppServer extends EventTarget {
 
 		// const clientPath = path.resolve(__dirname, '../client_window')
 		const clientPath = hostPath === '.' ? path.resolve(__dirname, '../client') : path.resolve(hostPath, '../client')
-		const basePath = hostPath === '.' ? path.resolve(__dirname, '../@WorldBase') : path.resolve(hostPath, '../@WorldBase')
+		const basePath = hostPath === '.' ? path.resolve(__dirname, '../@World') : path.resolve(hostPath, '../@World')
 		console.log(clientPath)
 		console.log(basePath)
 		this.app = express()
 		this.app.use('/', express.static(clientPath))
 		this.app.use('/client', express.static(clientPath))
-		this.app.use('/@WorldBase', express.static(basePath))
+		this.app.use('/@World', express.static(basePath))
 		this.app.use('/audios', express.static(path.join(clientPath, 'audios')))
 		this.app.use('/images', express.static(path.join(clientPath, 'images')))
 		this.app.use('/models', express.static(path.join(clientPath, 'models')))
@@ -836,7 +841,7 @@ export default class AppServer extends EventTarget {
 		})
 	}
 
-	public Start() {
+	public Start(privateHost: boolean = false) {
 		this.server = new http.Server(this.app)
 		if (Common.conn === Communication.SocketIO) {
 			this.io = new Server(this.server, {
@@ -912,7 +917,7 @@ export default class AppServer extends EventTarget {
 			this.server.close()
 			this.server = null
 		}
-		console.log(`Server closed on port ${port}.`)
+		console.log(`Server closed on port ${this.port}.`)
 	}
 
 	public GetWorld(wid: string): WorldServer | undefined {
@@ -920,6 +925,6 @@ export default class AppServer extends EventTarget {
 	}
 }
 
-if (path.basename(process.argv[0]).includes('node')) {
+/* if (path.basename(process.argv[0]).includes('node')) {
 	new AppServer(port).Start()
-}
+} */

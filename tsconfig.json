@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"jsx": "react",
+		"jsx": "react-jsx",
 		// "target": "ES2022",
 		"target": "ES6",
 		// "allowJs": true,
@@ -27,15 +27,15 @@
 			"@client/*": [
 				"./src/client/*"
 			],
-			"@WorldBase": [
-				"./src/server/ts/World/WorldBase"
+			"@World": [
+				"./src/world/ts/World.ts"
 			],
 		},
 		"typeRoots": [
 			"./src/server/*",
 			"./src/client/*",
-			"./node_modules/@types",
-			"./src/server/ts/World/WorldBase"
+			"./src/world/ts/World.ts",
+			"./node_modules/@types"
 		],
 	},
 	"include": [

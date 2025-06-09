@@ -12,12 +12,12 @@
 		// "declarationMap": false,
 		"declarationDir": "../../types/server",
 		"paths": {
-			"@WorldBase": [
-				"../server/ts/World/WorldBase"
+			"@World": [
+				"../world/ts/World.ts"
 			],
 		},
 		"typeRoots": [
-			"../server/ts/World/WorldBase"
+			"../world/ts/World.ts"
 		],
 	},
 	"include": [

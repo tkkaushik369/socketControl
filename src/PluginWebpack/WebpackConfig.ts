@@ -235,10 +235,14 @@ export default class WebpackConfigGenerator {
 				entry.nodeIntegration ?? rendererOptions.nodeIntegration
 					? rendererOptions.nodeIntegration == RendererTargetType.ElectronRendererNode
 						? 'electronRendererNode'
-						: 'electronRenderer'
-					: 'web'
+						: 'web'
+					: 'electronRenderer'
 			const preloadTarget =
-				entry.nodeIntegration ?? rendererOptions.nodeIntegration ? 'electronPreload' : 'sandboxedPreload'
+				entry.nodeIntegration ?? rendererOptions.nodeIntegration
+					? rendererOptions.nodeIntegration == RendererTargetType.ElectronRendererNode
+						? 'electronPreload'
+						: 'sandboxedPreload'
+					: 'electronPreload'
 
 			if (isPreloadOnly(entry)) {
 				entryPointsForTarget[preloadTarget].push(entry)

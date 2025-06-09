@@ -1,78 +1,105 @@
 import './css/main.css'
 import './css/titleBar.css'
 import { FRAME_VISBLE } from '../LoaderMode'
-import { Common } from '../server/Common'
+import {
+	Common,
+	Utility,
+	PlayerSetMesssage,
+	PlayerAttachmentType,
+	ControlsTypes,
+	MessageTypes,
+	Communication,
+	DataSender,
+	Packager,
+} from '@World'
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
-import { Utility } from '../server/ts/Core/Utility'
 import { io, Socket } from 'socket.io-client'
 import parser from 'socket.io-msgpack-parser'
 // import { pack, unpack } from "msgpackr"
 import { WorldClient } from './ts/World/WorldClient'
-import { PlayerSetMesssage, PlayerAttachmentType } from '../server/ts/Core/Player'
 import { PlayerClient } from './ts/Core/PlayerClient'
-import { ControlsTypes } from '../server/ts/Enums/ControlsTypes'
 import { AttachModels } from './ts/Utils/AttachModels'
-import { MessageTypes } from '../server/ts/Enums/MessagesTypes'
-import { Communication, DataSender, Packager } from '../server/ts/Enums/Communication'
 import * as geckosClient from '@geckos.io/client'
 
-export function initClient() {}
-THREE.Cache.enabled = true
 
-const titleBar = document.getElementById('titleBar') as HTMLDivElement
-const pingStats = document.getElementById('pingStats') as HTMLDivElement
-const controls = document.getElementById('controls') as HTMLDivElement
-const controlsMain = document.getElementById('controls-main') as HTMLDivElement
-const workBox = document.getElementById('work') as HTMLDivElement
-// const guiPlayersDom = document.getElementById('gui-players') as HTMLDivElement
-const chatInput = document.getElementById('chat-input') as HTMLFormElement
-const chatDom = document.getElementById('chat-message') as HTMLInputElement
-const chatLogDom = document.getElementById('chat-messages-log') as HTMLInputElement
-const guiMenuDom = document.getElementById('gui-menu') as HTMLInputElement
-const guiMenuUsersDom = document.getElementById('gui-menu-users') as HTMLInputElement
-
-const isElectronApp = Utility.isElectron()
-const isAndroid = Utility.deviceState()
-
-if (navigator.userAgent.includes('QtWebEngine') || isElectronApp) {
-	document.body.classList.add('bodyTransparent')
-	console.log('transparent')
+export type DivsType = {
+	controls: HTMLDivElement
+	workBox: HTMLDivElement
+	pingStats: HTMLDivElement
+	chatInput: HTMLFormElement
+	chatDom: HTMLInputElement
+	guiMenuUsersDom: HTMLInputElement
+	chatLogDom: HTMLInputElement
 }
 
-if (typeof process === 'object') {
-	// workBox.classList.add('Hide')
-	// console.log('isElectron', isElectronApp)
+export function initClient(): DivsType {
+	THREE.Cache.enabled = true
 
-	try {
-		if (!FRAME_VISBLE) {
-			document.body.className = 'bodyTransparent'
-			workBox.classList.add('Hide')
-		}
-	} catch {
-		//
+	const titleBar = document.getElementById('titleBar') as HTMLDivElement
+	const pingStats = document.getElementById('pingStats') as HTMLDivElement
+	const controls = document.getElementById('controls') as HTMLDivElement
+	const controlsMain = document.getElementById('controls-main') as HTMLDivElement
+	const workBox = document.getElementById('work') as HTMLDivElement
+	// const guiPlayersDom = document.getElementById('gui-players') as HTMLDivElement
+	const chatInput = document.getElementById('chat-input') as HTMLFormElement
+	const chatDom = document.getElementById('chat-message') as HTMLInputElement
+	const chatLogDom = document.getElementById('chat-messages-log') as HTMLInputElement
+	const guiMenuDom = document.getElementById('gui-menu') as HTMLInputElement
+	const guiMenuUsersDom = document.getElementById('gui-menu-users') as HTMLInputElement
+
+	const isElectronApp = Utility.isElectron()
+	const isAndroid = Utility.deviceState()
+
+	if (isAndroid) {
+		controlsMain.style.display = 'block'
+		console.log('isAndroid', isAndroid)
 	}
-} else titleBar.style.display = 'none'
 
-if (isAndroid) {
-	controlsMain.style.display = 'block'
-	console.log('isAndroid', isAndroid)
+	guiMenuDom.tabIndex = -1
+	guiMenuDom.addEventListener('click', () => {
+		if (!guiMenuDom.classList.contains('active')) {
+			guiMenuDom.classList.add('active')
+		}
+	})
+
+	guiMenuDom.addEventListener('keydown', (e: KeyboardEvent) => {
+		if (e.key === 'Escape') {
+			if (guiMenuDom.classList.contains('active')) {
+				guiMenuDom.classList.remove('active')
+			}
+		}
+	})
+
+	if (navigator.userAgent.includes('QtWebEngine') || isElectronApp) {
+		document.body.classList.add('bodyTransparent')
+		console.log('transparent')
+	}
+
+	if (typeof process === 'object') {
+		// workBox.classList.add('Hide')
+		// console.log('isElectron', isElectronApp)
+
+		try {
+			if (!FRAME_VISBLE) {
+				document.body.className = 'bodyTransparent'
+				workBox.classList.add('Hide')
+			}
+		} catch {
+			//
+		}
+	} else titleBar.style.display = 'none'
+
+	return {
+		controls: controls,
+		workBox: workBox,
+		pingStats: pingStats,
+		chatInput: chatInput,
+		chatDom: chatDom,
+		guiMenuUsersDom: guiMenuUsersDom,
+		chatLogDom: chatLogDom,
+	}
 }
-
-guiMenuDom.tabIndex = -1
-guiMenuDom.addEventListener('click', () => {
-	if (!guiMenuDom.classList.contains('active')) {
-		guiMenuDom.classList.add('active')
-	}
-})
-
-guiMenuDom.addEventListener('keydown', (e: KeyboardEvent) => {
-	if (e.key === 'Escape') {
-		if (guiMenuDom.classList.contains('active')) {
-			guiMenuDom.classList.remove('active')
-		}
-	}
-})
 
 export default class AppClient {
 	private io: Socket | null
@@ -86,7 +113,8 @@ export default class AppClient {
 	private isReplay: boolean = false
 	private isWorld: boolean = false
 
-	constructor() {
+	private divs: DivsType
+	constructor(divs: DivsType) {
 		// bind functions
 
 		this.SetupConnection = this.SetupConnection.bind(this)
@@ -115,12 +143,13 @@ export default class AppClient {
 		this.ForSocketLoopCallBack = this.ForSocketLoopCallBack.bind(this)
 
 		// init
+		this.divs = divs
 		this.clock = new THREE.Clock()
 		this.io = null
 		this.ws = null
 		this.worldClient = new WorldClient(
-			controls,
-			workBox,
+			this.divs.controls,
+			this.divs.workBox,
 			this.ForSocketLoop,
 			this.ForLaunchMap,
 			this.ForLaunchScenario
@@ -131,13 +160,13 @@ export default class AppClient {
 
 		this.SetupConnection()
 
-		chatInput.addEventListener('submit', (e) => {
+		this.divs.chatInput.addEventListener('submit', (e) => {
 			e.preventDefault()
-			if (chatDom.value !== '') {
-				if (chatDom.value === '/replay') {
+			if (this.divs.chatDom.value !== '') {
+				if (this.divs.chatDom.value === '/replay') {
 					this.PlayReplay(0)
-				} else this.ForMessage(chatDom.value)
-				chatDom.value = ''
+				} else this.ForMessage(this.divs.chatDom.value)
+				this.divs.chatDom.value = ''
 			}
 		})
 	}
@@ -334,13 +363,13 @@ export default class AppClient {
 
 	private PlayReplay(inx: number): void {
 		if (!this.isReplay) {
-			if (!workBox.classList.contains('replay')) workBox.classList.add('replay')
+			if (!this.divs.workBox.classList.contains('replay')) this.divs.workBox.classList.add('replay')
 		}
 		this.isReplay = true
 
 		if (inx >= this.bufferData.length) {
 			this.isReplay = false
-			if (workBox.classList.contains('replay')) workBox.classList.remove('replay')
+			if (this.divs.workBox.classList.contains('replay')) this.divs.workBox.classList.remove('replay')
 			return
 		}
 
@@ -468,8 +497,8 @@ export default class AppClient {
 	}
 
 	private Set(messages: { [id: string]: any }) {
-		pingStats.innerHTML = 'Ping: ' + '<br>'
-		guiMenuUsersDom.innerHTML = ''
+		this.divs.pingStats.innerHTML = 'Ping: ' + '<br>'
+		this.divs.guiMenuUsersDom.innerHTML = ''
 		let players = 0
 		let validRooms: string[] = []
 
@@ -485,31 +514,31 @@ export default class AppClient {
 
 		Object.keys(messages).forEach((id) => {
 			if (messages[id].sID !== undefined) {
-				pingStats.innerHTML += '[' + messages[id].sID + '] '
+				this.divs.pingStats.innerHTML += '[' + messages[id].sID + '] '
 				// pingStats.innerHTML += "[" + messages[id].data.worldId + "][" + messages[id].data.isWS + "] "
 				if (messages[id].sID == this.sID) {
 					if (this.lastUpdate < Date.now() - 1000) {
 						this.worldClient.networkStats.update(messages[id].ping, 100)
 						this.lastUpdate = Date.now()
 					}
-					pingStats.innerHTML += '(YOU) '
+					this.divs.pingStats.innerHTML += '(YOU) '
 				}
-				pingStats.innerHTML += messages[id].uID + ': '
-				pingStats.innerHTML += messages[id].ping + '<br>'
+				this.divs.pingStats.innerHTML += messages[id].uID + ': '
+				this.divs.pingStats.innerHTML += messages[id].ping + '<br>'
 			}
 
 			switch (messages[id].msgType) {
 				case MessageTypes.World: {
 					validRooms.push(messages[id].uID)
-					guiMenuUsersDom.innerHTML += '<div>' + messages[id].uID
-					guiMenuUsersDom.innerHTML += '<ul>'
+					this.divs.guiMenuUsersDom.innerHTML += '<div>' + messages[id].uID
+					this.divs.guiMenuUsersDom.innerHTML += '<ul>'
 					if (messages[id].users !== undefined) {
 						messages[id].users.forEach((usr: string) => {
-							guiMenuUsersDom.innerHTML += '<li>' + usr + '</li>'
+							this.divs.guiMenuUsersDom.innerHTML += '<li>' + usr + '</li>'
 						})
 					}
-					guiMenuUsersDom.innerHTML += '</ul>'
-					guiMenuUsersDom.innerHTML += '</div>'
+					this.divs.guiMenuUsersDom.innerHTML += '</ul>'
+					this.divs.guiMenuUsersDom.innerHTML += '</div>'
 					break
 				}
 				case MessageTypes.Player: {
@@ -575,8 +604,8 @@ export default class AppClient {
 			}
 		})
 
-		pingStats.innerHTML += '<br><b>Players: ' + players + '</b>'
-		pingStats.innerHTML += '<br><b>Current World: ' + this.worldClient.worldId + '</b>'
+		this.divs.pingStats.innerHTML += '<br><b>Players: ' + players + '</b>'
+		this.divs.pingStats.innerHTML += '<br><b>Current World: ' + this.worldClient.worldId + '</b>'
 
 		let toRemoveRooms: string[] = []
 		if (validRooms.length > 0) {
@@ -722,7 +751,7 @@ export default class AppClient {
 		messageDiv.innerHTML = ''
 		messageDiv.innerHTML += `<strong><ins>${from}: </ins></strong>`
 		messageDiv.innerHTML += `${messageData.message}`
-		chatLogDom.appendChild(messageDiv)
+		this.divs.chatLogDom.appendChild(messageDiv)
 	}
 
 	private OnChangeCallBack(messageData: {
@@ -869,4 +898,4 @@ export default class AppClient {
 	}
 }
 
-if (!isElectronApp) new AppClient()
+// if (!isElectronApp) new AppClient()

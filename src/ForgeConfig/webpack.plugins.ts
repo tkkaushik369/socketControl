@@ -7,7 +7,7 @@ import { WEBPACK_USE_BUNDLE } from '../LoaderMode'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ForkTsCheckerWebpackPlugin: typeof IForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
-const renderer_worldbase_dirname = '../renderer/@WorldBase'
+const renderer_worldbase_dirname = '../renderer/@World'
 const renderer_server_dirname = '../renderer/server'
 const renderer_client_dirname = '../renderer/client'
 
@@ -16,7 +16,7 @@ const copyPlugin: CopyPlugin.Pattern[] = []
 if (WEBPACK_USE_BUNDLE) {
 	copyPlugin.push(
 		{
-			from: path.resolve(__dirname, '../../dist/@WorldBase'),
+			from: path.resolve(__dirname, '../../dist/@World'),
 			to: renderer_worldbase_dirname,
 		},
 		{
@@ -69,7 +69,7 @@ plugins.push(
 				tagName: 'script',
 				attributes: {
 					defer: true,
-					src: '../@WorldBase/index.js',
+					src: '../@World/index.js',
 					type: 'text/javascript',
 				},
 			},

@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
-import { Player, PlayerAttachmentType } from '../../../server/ts/Core/Player'
+import { Player, PlayerAttachmentType } from '@World'
 
 export class PlayerClient extends Player {
 	isMe: boolean

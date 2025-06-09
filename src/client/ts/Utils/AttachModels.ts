@@ -1,7 +1,7 @@
 import * as THREE from 'three'
-import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
-import { Character } from '../../../server/ts/Characters/Character'
-import { Idle } from '../../../server/ts/Characters/CharacterStates/_CharacterStateLibrary'
+// import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
+// import { Character } from '@World/Characters/Character'
+// import { Idle } from '@World/Characters/CharacterStates/_CharacterStateLibrary'
 
 // mute color => console.log((75).toString(16), (170).toString(16))
 

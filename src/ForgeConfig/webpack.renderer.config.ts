@@ -31,18 +31,18 @@ export const rendererConfig: Configuration = {
 			'socket.io': path.resolve(__dirname, '../../node_modules/socket.io/client-dist/socket.io.min.js'),
 			'@server/server': path.resolve(__dirname, '../../dist/server/server'),
 			'@client/client': path.resolve(__dirname, '../../dist/client/client'),
-			'@WorldBase': path.resolve(
+			'@World': path.resolve(
 				__dirname,
 				WEBPACK_USE_BUNDLE
-					? '../../dist/@WorldBase/index.js'
-					: '../../.webpack/renderer/@WorldBase/index.js'
+					? '../../dist/@World/index.js'
+					: '../../.webpack/renderer/@World/index.js'
 			),
 		},
 		extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json', '.wasm'],
 	},
 	externals: {
 		canvas: 'commonjs2 canvas', // jsdom dependency not needed,
-		'@WorldBase': '@WorldBase',
+		'@World': '@World',
 	},
 	stats: {
 		warningsFilter: [/Critical dependency:/],

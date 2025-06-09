@@ -9,9 +9,9 @@ const entryPoints: WebpackPluginEntryPoint[] = []
 
 if (!WEBPACK_USE_BUNDLE) {
 	entryPoints.push({
-		name: '@WorldBase',
+		name: '@World',
 		html: './src/electronApp/common/index.html',
-		js: './src/server/ts/World/WorldBase.ts',
+		js: './src/world/ts/World.ts',
 		// js: './src/electronApp/test.ts',
 		nodeIntegration: false,
 	})
@@ -37,7 +37,7 @@ if (SINGLE_PLAYER) {
 				name: 'client_window',
 				html: './src/electronApp/common/index.html',
 				js: './src/electronApp/client_window/renderer.tsx',
-				prefixedEntries: ['./src/electronApp/client_window/clientLoader.tsx'],
+				prefixedEntries: ['./src/electronApp/client_window/clientLoader.ts'],
 				nodeIntegration: false,
 			}
 		)
@@ -56,7 +56,7 @@ if (SINGLE_PLAYER) {
 				html: './src/electronApp/common/index.html',
 				// js: './src/client/client.ts',
 				js: './src/electronApp/client_window/renderer.tsx',
-				prefixedEntries: ['./src/electronApp/client_window/clientLoader.tsx'],
+				prefixedEntries: ['./src/electronApp/client_window/clientLoader.ts'],
 				nodeIntegration: false,
 			}
 		)
