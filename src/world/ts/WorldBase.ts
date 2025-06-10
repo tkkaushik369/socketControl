@@ -153,6 +153,7 @@ export abstract class WorldBase {
 			Debug_Pings: true,
 			Debug_Controls: true,
 			PostProcess: false,
+			Textures: true,
 			FXAA: false,
 			Outline: false,
 			SyncSun: false,
@@ -460,13 +461,13 @@ export abstract class WorldBase {
 								let height = 1
 								let segment = 6
 
-								if(child.userData.hasOwnProperty('radius')) {
+								if (child.userData.hasOwnProperty('radius')) {
 									radius = child.userData.radius
 								}
-								if(child.userData.hasOwnProperty('height')) {
+								if (child.userData.hasOwnProperty('height')) {
 									height = child.userData.height
 								}
-								if(child.userData.hasOwnProperty('segment')) {
+								if (child.userData.hasOwnProperty('segment')) {
 									segment = child.userData.segment
 								}
 
@@ -634,7 +635,14 @@ export abstract class WorldBase {
 		// Update registred objects
 		if (!this.isClient || (this.isClient && this.worldId == null)) {
 			this.updatables.forEach((entity) => {
-				entity.update(timeStep, unscaledTimeStep)
+				if (
+					'entityType' in entity &&
+					['water', 'grass', 'ocean'].includes((entity as IWorldEntity).entityType)
+				) {
+					if (this.settings.Textures) entity.update(timeStep, unscaledTimeStep)
+				} else {
+					entity.update(timeStep, unscaledTimeStep)
+				}
 			})
 
 			// Sun Update

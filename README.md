@@ -1,3 +1,5 @@
+# [Offline Demo](https://tkkaushik369.github.io/socketControl)
+
 # Multiplayer Game
 
 |                    Demo                     |                   Demo Debug                    |
@@ -61,6 +63,12 @@ npm run dev
 -   **Node.js & Express**: Backend server setup.
 
 ### Features
+
+#### 10th June
+
+-   Offline Mode Added
+-   Texture On/Off in Settings > Post Processing
+-	Github demo page Added
 
 #### 12th May
 

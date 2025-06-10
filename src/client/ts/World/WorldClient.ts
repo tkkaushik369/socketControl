@@ -79,6 +79,7 @@ export class WorldClient extends WorldBase {
 		this.toggleControlsFunc = this.toggleControlsFunc.bind(this)
 		this.togglePostFXAA = this.togglePostFXAA.bind(this)
 		this.togglePostOutline = this.togglePostOutline.bind(this)
+		this.toggleTextures = this.toggleTextures.bind(this)
 		this.pointLockFunc = this.pointLockFunc.bind(this)
 		this.mouseSensitivityFunc = this.mouseSensitivityFunc.bind(this)
 		this.timeScaleFunc = this.timeScaleFunc.bind(this)
@@ -245,6 +246,7 @@ export class WorldClient extends WorldBase {
 		postProcess.addBinding(this.settings, 'PostProcess')
 		postProcess.addBinding(this.settings, 'FXAA').on('change', this.togglePostFXAA)
 		postProcess.addBinding(this.settings, 'Outline').on('change', this.togglePostOutline)
+		postProcess.addBinding(this.settings, 'Textures').on('change', this.toggleTextures)
 
 		let inputFolder = folderSettings.addFolder({ title: 'Input', expanded: false })
 		inputFolder.addBinding(this.settings, 'Pointer_Lock').on('change', this.pointLockFunc)
@@ -524,6 +526,10 @@ export class WorldClient extends WorldBase {
 
 	private togglePostOutline(en: { value: boolean }) {
 		this.outlinePass.enabled = en.value
+	}
+
+	private toggleTextures(en: { value: boolean }) {
+		this.settings.texture = en.value
 	}
 
 	private pointLockFunc(en: { value: boolean }) {
