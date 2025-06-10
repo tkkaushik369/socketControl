@@ -322,6 +322,8 @@ if (rootElement !== null) {
 function ReactLoaded() {
 	console.log('react loaded')
 
+	document.title = 'Socket Control [Offline]'
+
 	const titleBar = document.getElementById('titleBar') as HTMLDivElement
 	const pingStats = document.getElementById('pingStats') as HTMLDivElement
 	const controls = document.getElementById('controls') as HTMLDivElement

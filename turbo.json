@@ -15,6 +15,11 @@
 			"dependsOn": ["build:worldbase"],
 			"outputs": ["dist/client/**"]
 		},
+		"build:offline": {
+			"inputs": ["src/**"],
+			"dependsOn": ["build:worldbase"],
+			"outputs": ["dist/offline/**"]
+		},
 		"build_struct": {
 			"dependsOn": ["build:server", "build:client"],
 			"outputs": []
