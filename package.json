@@ -22,7 +22,7 @@
 		"dev:offline": "webpack serve --config ./src/webpack.dev.offline.ts",
 		"dev:nw": "webpack serve --config ./src/webpack.dev.ts",
 		"dev": "concurrently \"npm run dev:world\" \"npm run dev:client\" \"npm run dev:server\" \"npm run dev:offline\"",
-		"start:server": "node ./dist/server/server.js",
+		"start:server": "node ./app.js",
 		"fcm:na": "node forgeConfigMaker.ts",
 		"start:na": "npm run fcm:na && electron-forge start",
 		"start": "electron-forge start",

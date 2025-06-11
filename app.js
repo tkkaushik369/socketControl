@@ -3,13 +3,15 @@ import('./dist/@World/index.js')
 		Object.keys(WorldLib.default).forEach((key) => {
 			global[key] = WorldLib.default[key]
 		})
+		console.log("World Loaded")
 		import('./dist/server/server.js')
 			.then((ServerModuleLib) => {
 				Object.keys(ServerModuleLib.default).forEach((key) => {
 					global[key] = ServerModuleLib.default[key]
 				})
+				console.log("server Loaded")
 				// console.log(this['@World'], ServerModuleLib)
-				const port = 3000
+				const port = process.env.PORT || 3000
 				global.AppServer.initServer()
 				new global.AppServer.default(port).Start()
 			})

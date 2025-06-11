@@ -22,7 +22,6 @@ import { PlayerClient } from './ts/Core/PlayerClient'
 import { AttachModels } from './ts/Utils/AttachModels'
 import * as geckosClient from '@geckos.io/client'
 
-
 export type DivsType = {
 	controls: HTMLDivElement
 	workBox: HTMLDivElement
@@ -178,7 +177,9 @@ export default class AppClient {
 			this.ws = null
 		} else if (Common.conn === Communication.WebSocket) {
 			this.io = null
-			const socketURL = (typeof process === 'object' ? 'localhost' : window.location.hostname) + ':3000'
+			const host_name = typeof process === 'object' ? 'localhost' : window.location.hostname
+			const host_port = window.location.port == '' ? '' : ':' + window.location.port
+			const socketURL = host_name + host_port
 			if (window.location.protocol.includes('https'))
 				this.ws = new WebSocket('wss://' + socketURL, 'echo-protocol')
 			else this.ws = new WebSocket('ws://' + socketURL, 'echo-protocol')
@@ -193,7 +194,12 @@ export default class AppClient {
 					console.log(msg)
 				}
 
-				const channel = geckosClient.geckos({ url: 'http://localhost', port: 3000 })
+				const channel = geckosClient.geckos({
+					url:
+						(window.location.protocol.includes('https') ? 'https://' : 'http://') +
+						window.location.hostname,
+					port: Number(window.location.port),
+				})
 				channel.onConnect(function (error) {
 					if (error) {
 						//message.innerHTML = 'Sorry something went wrong :/'
