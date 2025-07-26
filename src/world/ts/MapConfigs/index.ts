@@ -1,3 +1,4 @@
+import test from './test.json'
 import { BaseScene } from './BaseScene'
 import { ExampleConfig } from './Configs/Example/index'
 import { SketchBookV3Config } from './Configs/SketchBookV3/index'
@@ -21,11 +22,14 @@ export type MapConfigType = {
 	vehicles: MapConfigFOType[]
 }
 
-export var MapConfig: { [id: string]: MapConfigType } = {}
-
-MapConfig[Test2Config.name] = Test2Config
-MapConfig[Test3Config.name] = Test3Config
-MapConfig[ExampleConfig.name] = ExampleConfig
-MapConfig[SketchBookV3Config.name] = SketchBookV3Config
-MapConfig[SketchBookV4Config.name] = SketchBookV4Config
-MapConfig[TestConfig.name] = TestConfig
+export function getMapConfig(): { [id: string]: MapConfigType } {
+	var MapConfig: { [id: string]: MapConfigType } = {}
+	MapConfig[Test2Config.name] = Test2Config
+	MapConfig[Test3Config.name] = Test3Config
+	MapConfig[ExampleConfig.name] = ExampleConfig
+	MapConfig[SketchBookV3Config.name] = SketchBookV3Config
+	MapConfig[SketchBookV4Config.name] = SketchBookV4Config
+	MapConfig[TestConfig.name] = TestConfig
+	console.log(test)
+	return MapConfig
+}

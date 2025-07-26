@@ -1,23 +1,23 @@
 {
 	"$schema": "https://turborepo.com/schema.json",
 	"tasks": {
-		"build:worldbase": {
+		"build:world": {
 			"inputs": ["src/**"],
 			"outputs": ["dist/@World/**"]
 		},
 		"build:server": {
 			"inputs": ["src/**"],
-			"dependsOn": ["build:worldbase"],
+			"dependsOn": ["build:world"],
 			"outputs": ["dist/server/**"]
 		},
 		"build:client": {
 			"inputs": ["src/**"],
-			"dependsOn": ["build:worldbase"],
+			"dependsOn": ["build:world"],
 			"outputs": ["dist/client/**"]
 		},
 		"build:offline": {
 			"inputs": ["src/**"],
-			"dependsOn": ["build:worldbase"],
+			"dependsOn": ["build:world"],
 			"outputs": ["dist/offline/**"]
 		},
 		"build_struct": {

@@ -44,7 +44,7 @@ export const rendererConfig: Configuration = {
 		canvas: 'commonjs2 canvas', // jsdom dependency not needed,
 		'@World': '@World',
 	},
-	stats: {
+	/* stats: {
 		warningsFilter: [/Critical dependency:/],
-	},
+	}, */
 }

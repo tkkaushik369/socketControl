@@ -12,7 +12,7 @@
 		"build:client": "webpack --config ./src/webpack.prod.client.ts",
 		"build:server": "webpack --config ./src/webpack.prod.server.ts",
 		"build:offline": "webpack --config ./src/webpack.prod.offline.ts",
-		"build:nw": "npm run build:world && npm run build:client && npm run build:server && npm run build:offlinr",
+		"build:nw": "npm run build:world && npm run build:client && npm run build:server && npm run build:offline",
 		"build:stats": "webpack --config ./src/webpack.prod.ts --profile --json > stats.json",
 		"build:turbo": "turbo run build_struct",
 		"build": "webpack --config ./src/webpack.prod.ts",

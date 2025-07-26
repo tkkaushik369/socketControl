@@ -15,7 +15,7 @@ import { TabPageApi } from 'tweakpane'
 import { IWorldEntity } from './Interfaces/IWorldEntity'
 import { Character } from './Characters/Character'
 import { Vehicle } from './Vehicles/Vehicle'
-import { MapConfig, MapConfigType } from './MapConfigs'
+import { getMapConfig, MapConfigType } from './MapConfigs'
 import { Water } from './Worldentities/Water'
 import { BaseScene } from './MapConfigs/BaseScene'
 import { BoxWorldEntity } from './Physics/WorldEntity/BoxWorldEntity'
@@ -109,6 +109,7 @@ export abstract class WorldBase {
 		this.lastScenarioID = null
 		this.mapLoadFinishCallBack = null
 		this.maps = {}
+		const MapConfig = getMapConfig()
 		Object.keys(MapConfig).forEach((mn) => {
 			this.maps[MapConfig[mn].name] = () => {
 				this.launchMap(MapConfig[mn].name, MapConfig[mn].isCallback, MapConfig[mn].isLaunched)
@@ -364,6 +365,7 @@ export abstract class WorldBase {
 				this.launchMapCallback(mapID)
 			}
 		} else {
+			const MapConfig = getMapConfig()
 			if (MapConfig[mapID] !== undefined) {
 				const map = MapConfig[mapID]
 				if (map.name == mapID) {

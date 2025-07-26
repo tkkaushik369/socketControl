@@ -9,7 +9,7 @@ import { Utility } from '../Core/Utility'
 import { Character } from '../Characters/Character'
 import { FollowPath } from '../Characters/CharacterAI/FollowPath'
 
-import { MapConfig } from '../MapConfigs'
+import { getMapConfig } from '../MapConfigs'
 import { BaseScene } from '../MapConfigs/BaseScene'
 import { Player } from '../Core/Player'
 
@@ -53,6 +53,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 		if (world.lastMapID === null) return null
 		if (this.type === null) return null
 		const type: string = this.type
+		const MapConfig = getMapConfig()
 
 		let callerCharacter = (model: any, vehicle: Vehicle, player?: Player): Character => {
 			let character = new Character()
