@@ -53,7 +53,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 		if (world.lastMapID === null) return null
 		if (this.type === null) return null
 		const type: string = this.type
-		const MapConfig = getMapConfig()
+		const MapConfig = getMapConfig(world)
 
 		let callerCharacter = (model: any, vehicle: Vehicle, player?: Player): Character => {
 			let character = new Character()

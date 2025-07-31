@@ -65,6 +65,7 @@ export class WorldClient extends WorldBase {
 
 		// functions bind
 		this.getGLTF = this.getGLTF.bind(this)
+		this.getJSON = this.getJSON.bind(this)
 		this.loadScene = this.loadScene.bind(this)
 		this.onWindowResize = this.onWindowResize.bind(this)
 		this.updateControls = this.updateControls.bind(this)
@@ -359,6 +360,16 @@ export class WorldClient extends WorldBase {
 		const loader = new GLTFLoader()
 		loader.load(resPath, (gltf: GLTF) => {
 			callback(gltf)
+		})
+		return resPath
+	}
+
+	public getJSON(path: string, callback: Function) {
+		const resPath = super.getJSON(path, callback)
+		const loader = new THREE.FileLoader()
+		const data = loader.loadAsync(resPath.path)
+		loader.load(resPath.path, (data: string | ArrayBuffer) => {
+			callback(JSON.parse(String(data)))
 		})
 		return resPath
 	}

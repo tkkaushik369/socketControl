@@ -7,7 +7,7 @@
 	"scripts": {
 		"setup": "npm install && npm fund && npm run build",
 		"predeploy": "npm run build:world && npm run build:offline",
-  		"deploy": "gh-pages -d dist",
+		"deploy": "gh-pages -d dist",
 		"build:world": "webpack --config ./src/webpack.prod.world.ts",
 		"build:client": "webpack --config ./src/webpack.prod.client.ts",
 		"build:server": "webpack --config ./src/webpack.prod.server.ts",
@@ -114,7 +114,7 @@
 		"socket.io-msgpack-parser": "^3.0.2",
 		"three": "^0.170.0",
 		"three-to-cannon": "^5.0.2",
-		"turbo": "^2.5.4",
+		"turbo": "^2.5.5",
 		"tweakpane": "^4.0.5",
 		"ws": "^8.18.0"
 	},

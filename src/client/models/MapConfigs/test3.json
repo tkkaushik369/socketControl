@@ -1,0 +1,20 @@
+{
+	"name": "test3",
+	"isCallback": true,
+	"mapCaller": "class:Test3Scene",
+	"isLaunched": true,
+	"characters": [
+		{
+			"objCaller": "boxman.glb",
+			"type": "character",
+			"subtype": null
+		}
+	],
+	"vehicles": [
+		{
+			"objCaller": "car.glb",
+			"type": "car",
+			"subtype": null
+		}
+	]
+}

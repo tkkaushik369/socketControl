@@ -9,11 +9,24 @@ export class WorldServer extends WorldBase {
 	constructor(updatePhysicsCallback: Function | null = null) {
 		super()
 		// bind function
+		this.readJSON = this.readJSON.bind(this)
 		this.getGLTF = this.getGLTF.bind(this)
+		this.getJSON = this.getJSON.bind(this)
 		this.loadScene = this.loadScene.bind(this)
 
 		// init
 		this.updatePhysicsCallback = updatePhysicsCallback
+	}
+
+	private readJSON(resPath: string) {
+		if (typeof window === 'undefined') {
+			const dom = new JSDOM()
+			;(global as any).window = dom.window
+			;(global as any).document = dom.window.document
+			;(global as any).HTMLImageElement = Object
+		}
+
+		return fs.readFileSync(resPath, 'utf8')
 	}
 
 	public getGLTF(path: string, callback: Function) {
@@ -27,14 +40,7 @@ export class WorldServer extends WorldBase {
 			return resPath
 		}
 
-		if (typeof window === 'undefined') {
-			const dom = new JSDOM()
-			;(global as any).window = dom.window
-			;(global as any).document = dom.window.document
-			;(global as any).HTMLImageElement = Object
-		}
-
-		const data: string = fs.readFileSync(resPath, 'utf8')
+		const data: string = this.readJSON(resPath)
 		const jsonObj = JSON.parse(data)
 		this.modelCache[resPath] = data
 
@@ -42,6 +48,14 @@ export class WorldServer extends WorldBase {
 		const model = loader.parse(jsonObj) as any
 		callback({ scene: model, animations: model.animations })
 		return resPath
+	}
+
+	public getJSON(path: string, callback: Function) {
+		const resPath = super.getJSON(path, callback)
+		const data = this.readJSON(resPath.path)
+		callback(JSON.parse(data))
+		return resPath
+		// return JSON.parse(data)
 	}
 
 	public loadScene(gltf: any, isLaunmch: boolean = true): void {

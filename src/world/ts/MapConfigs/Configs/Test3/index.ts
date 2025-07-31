@@ -1,9 +1,9 @@
 import { MapConfigType, MapConfigFOType } from '../../index'
-import { Test2Scene } from './Test3Scene'
+import { Test3Scene } from './Test3Scene'
 
 export const Test3Config: MapConfigType = {
 	name: 'test3',
-	mapCaller: new Test2Scene(),
+	mapCaller: new Test3Scene(),
 	isCallback: true,
 	isLaunched: true,
 	characters: [],

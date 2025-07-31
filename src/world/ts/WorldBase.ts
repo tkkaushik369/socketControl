@@ -75,7 +75,9 @@ export abstract class WorldBase {
 
 	constructor(isClient: boolean = false) {
 		// bind functions
+		this.getPATH = this.getPATH.bind(this)
 		this.getGLTF = this.getGLTF.bind(this)
+		this.getJSON = this.getJSON.bind(this)
 		this.registerUpdatable = this.registerUpdatable.bind(this)
 		this.unregisterUpdatable = this.unregisterUpdatable.bind(this)
 		this.scrollTheTimeScale = this.scrollTheTimeScale.bind(this)
@@ -109,12 +111,7 @@ export abstract class WorldBase {
 		this.lastScenarioID = null
 		this.mapLoadFinishCallBack = null
 		this.maps = {}
-		const MapConfig = getMapConfig()
-		Object.keys(MapConfig).forEach((mn) => {
-			this.maps[MapConfig[mn].name] = () => {
-				this.launchMap(MapConfig[mn].name, MapConfig[mn].isCallback, MapConfig[mn].isLaunched)
-			}
-		})
+
 		this.mapAnimation = []
 		this.mapMixer = null
 		this.lastMapID = null
@@ -136,6 +133,15 @@ export abstract class WorldBase {
 		this.launchMapCallback = null
 		this.launchScenarioCallback = null
 		this.listener = null
+
+		// Maps
+		const MapConfig = getMapConfig(this)
+		Object.keys(MapConfig).forEach((mn) => {
+			this.maps[MapConfig[mn].name] = async () => {
+				await this.launchMap(MapConfig[mn].name, MapConfig[mn].isCallback, MapConfig[mn].isLaunched)
+			}
+		})
+		console.log(this.maps, MapConfig)
 
 		// Settings
 		this.settings = {
@@ -182,11 +188,17 @@ export abstract class WorldBase {
 		this.world.allowSleep = true
 	}
 
-	public getGLTF(path: string, callback: Function) {
+	public getPATH(path: string) {
 		// return this.isClient ? './models/' + path : './dist/' + 'client/models/' + path + '.json'
-		return this.isClient
-			? '../client/models/' + path
-			: (!Utility.isElectron() ? './dist' : './.webpack/renderer') + '/client/models/' + path + '.json'
+		return this.isClient ? '../' + path : (!Utility.isElectron() ? './dist/' : './.webpack/renderer/') + path
+	}
+
+	public getGLTF(path: string, callback: Function) {
+		return this.getPATH('client/models/' + path) + (this.isClient ? '' : '.json')
+	}
+
+	public getJSON(path: string, callback: Function) {
+		return { path: this.getPATH('client/models/MapConfigs/' + path) }
 	}
 
 	public add(worldEntity: IWorldEntity): void {
@@ -365,7 +377,7 @@ export abstract class WorldBase {
 				this.launchMapCallback(mapID)
 			}
 		} else {
-			const MapConfig = getMapConfig()
+			const MapConfig = getMapConfig(this)
 			if (MapConfig[mapID] !== undefined) {
 				const map = MapConfig[mapID]
 				if (map.name == mapID) {

@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { BaseScene } from '../../BaseScene'
 
-export class Test2Scene extends BaseScene {
+export class Test3Scene extends BaseScene {
 	constructor() {
 		super()
 		// bind functions

@@ -11,10 +11,10 @@ export const TestConfig: MapConfigType = {
 	vehicles: [],
 }
 
-const character: MapConfigFOType = {
+/* const character: MapConfigFOType = {
 	objCaller: 'boxman.glb',
 	type: 'character',
 	subtype: null,
 }
 
-TestConfig.characters.push(character)
+TestConfig.characters.push(character) */

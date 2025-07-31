@@ -1,8 +1,0 @@
-{
-	"name": "string",
-	"isCallback": false,
-	"mapCaller": "string | BaseScene",
-	"isLaunched": "false",
-	"characters": "MapConfigFOType[]",
-	"vehicles": "MapConfigFOType[]"
-}
