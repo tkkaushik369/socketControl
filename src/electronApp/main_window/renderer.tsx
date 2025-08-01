@@ -9,7 +9,7 @@ import { App } from '../common/App'
 import * as THREE from 'three'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import type * as WorldBaseType from '@World'
-import { Player, PlayerAttachmentType, ControlsTypes, Utility } from '@World'
+import { Player, PlayerAttachmentType, ControlsTypes, Utility, MapConfigType } from '@World'
 import type * as AppServerType from '@server/server'
 import type * as WorldServerType from '@server/ts/World/WorldServer'
 import { AttachModels } from '../../client/ts/Utils/AttachModels'
@@ -58,7 +58,12 @@ function ReactLoaded() {
 
 	var myInterval: ReturnType<typeof setInterval> | undefined = setInterval(() => {
 		if (window.AppServerLoaded === true) {
-			launchServer()
+			fetch('../client/models/MapConfig.json')
+				.then((response) => response.json())
+				.then((data) => {
+					launchServer(data.maps)
+				})
+				.catch((error) => console.error('Error fetching JSON:', error))
 			clearInterval(myInterval)
 			console.info('Server Loaded')
 			myInterval = undefined
@@ -73,12 +78,12 @@ function ReactLoaded() {
 	}, 1000 * 10 /* seconds */)
 }
 
-function launchServer() {
+function launchServer(maps: MapConfigType[]) {
 	const clientListDom = document.getElementById('client-list')
 	const worldListDom = document.getElementById('world-list')
 
 	window.AppServer.initServer()
-	appServer = new window.AppServer.default(3000)
+	appServer = new window.AppServer.default(maps, 3000)
 	appServer.Start()
 
 	appServer.addEventListener('connected', (event: Event) => {

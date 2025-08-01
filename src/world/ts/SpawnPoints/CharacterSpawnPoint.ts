@@ -5,7 +5,7 @@ import { Character } from '../Characters/Character'
 import { FollowPath } from '../Characters/CharacterAI/FollowPath'
 import { RandomBehaviour } from '../Characters/CharacterAI/RandomBehaviour'
 import { Utility } from '../Core/Utility'
-import { getMapConfig } from '../MapConfigs'
+// import { getMapConfig } from '../MapConfigs'
 
 export class CharacterSpawnPoint implements ISpawnPoint {
 	public object: THREE.Object3D
@@ -28,7 +28,8 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 
 	public spawn(world: WorldBase): Character {
 		let player = new Character()
-		const MapConfig = getMapConfig(world)
+		// const MapConfig = getMapConfig(world)
+		const MapConfig = world.MapConfig
 		const callerCharacter = (gltf: any) => {
 			player.setModel(gltf, world.isClient)
 			player.uID = this.userData.name

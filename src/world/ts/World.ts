@@ -1,5 +1,6 @@
 // World
 export { WorldBase } from './WorldBase'
+export { MapConfigType } from './MapConfigs/index'
 
 // Core
 export { Utility } from './Core/Utility'

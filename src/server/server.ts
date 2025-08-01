@@ -27,6 +27,7 @@ import {
 	DataSender,
 	Packager,
 	WorldCreation,
+	MapConfigType,
 } from '@World'
 import { WorldServer } from './ts/World/WorldServer'
 // import fs from 'node:fs'
@@ -75,11 +76,12 @@ export default class AppServer extends EventTarget {
 	private wss: WebSocketServer | null
 	private app: express.Express
 
+	public maps: MapConfigType[]
 	public allUsers: { [id: string]: Player }
 	public allWorlds: { [id: string]: WorldServer }
 	private uid: number = 1
 
-	constructor(port: number, hostPath: string = '.') {
+	constructor(maps: MapConfigType[], port: number, hostPath: string = '.') {
 		super()
 		// Bind Functions
 		this.initCommunication = this.initCommunication.bind(this)
@@ -113,6 +115,7 @@ export default class AppServer extends EventTarget {
 		// init
 		this.port = port
 		this.server = null
+		this.maps = maps
 		this.allUsers = {}
 		this.allWorlds = {}
 		this.io = null
@@ -264,7 +267,7 @@ export default class AppServer extends EventTarget {
 
 	private CreateNewWorld(worldId: string) {
 		console.log('World Created: ' + worldId)
-		this.allWorlds[worldId] = new WorldServer(this.ForSocketLoop)
+		this.allWorlds[worldId] = new WorldServer(this.maps, this.ForSocketLoop)
 		this.allWorlds[worldId].launchMap(Object.keys(this.allWorlds[worldId].maps)[0], false, true)
 		this.allWorlds[worldId].worldId = worldId
 		this.dispatchEvent(

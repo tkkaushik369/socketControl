@@ -45,6 +45,7 @@ export abstract class WorldBase {
 	public scenariosCalls: { [id: string]: any }
 	public lastScenarioID: string | null
 	public mapLoadFinishCallBack: Function | null
+	public MapConfig: { [id: string]: MapConfigType }
 	public maps: { [id: string]: any }
 	private mapAnimation: any[]
 	private mapMixer: THREE.AnimationMixer | null
@@ -73,7 +74,7 @@ export abstract class WorldBase {
 	public boxSize: THREE.Vector3 = new THREE.Vector3()
 	public listener: THREE.AudioListener | null
 
-	constructor(isClient: boolean = false) {
+	constructor(maps: MapConfigType[], isClient: boolean = false) {
 		// bind functions
 		this.getPATH = this.getPATH.bind(this)
 		this.getGLTF = this.getGLTF.bind(this)
@@ -135,13 +136,13 @@ export abstract class WorldBase {
 		this.listener = null
 
 		// Maps
-		const MapConfig = getMapConfig(this)
-		Object.keys(MapConfig).forEach((mn) => {
-			this.maps[MapConfig[mn].name] = async () => {
-				await this.launchMap(MapConfig[mn].name, MapConfig[mn].isCallback, MapConfig[mn].isLaunched)
+		this.MapConfig = getMapConfig(this, maps)
+		Object.keys(this.MapConfig).forEach((mn) => {
+			this.maps[this.MapConfig[mn].name] = async () => {
+				await this.launchMap(this.MapConfig[mn].name, this.MapConfig[mn].isCallback, this.MapConfig[mn].isLaunched)
 			}
 		})
-		console.log(this.maps, MapConfig)
+		// console.log(this.maps, MapConfig)
 
 		// Settings
 		this.settings = {
@@ -377,7 +378,8 @@ export abstract class WorldBase {
 				this.launchMapCallback(mapID)
 			}
 		} else {
-			const MapConfig = getMapConfig(this)
+			// const MapConfig = getMapConfig(this)
+			const MapConfig = this.MapConfig
 			if (MapConfig[mapID] !== undefined) {
 				const map = MapConfig[mapID]
 				if (map.name == mapID) {

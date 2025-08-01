@@ -79,5 +79,10 @@ function ReactLoaded() {
 }
 
 function launchClient() {
-	appClient = new window.AppClient.default(window.AppClient.initClient())
+	fetch('../client/models/MapConfig.json')
+		.then((response) => response.json())
+		.then((data) => {
+			appClient = new window.AppClient.default(data.maps, window.AppClient.initClient())
+		})
+		.catch((error) => console.error('Error fetching JSON:', error))
 }

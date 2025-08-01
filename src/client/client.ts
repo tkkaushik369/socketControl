@@ -11,6 +11,7 @@ import {
 	Communication,
 	DataSender,
 	Packager,
+	MapConfigType,
 } from '@World'
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
@@ -113,7 +114,7 @@ export default class AppClient {
 	private isWorld: boolean = false
 
 	private divs: DivsType
-	constructor(divs: DivsType) {
+	constructor(maps: MapConfigType[], divs: DivsType) {
 		// bind functions
 
 		this.SetupConnection = this.SetupConnection.bind(this)
@@ -147,6 +148,7 @@ export default class AppClient {
 		this.io = null
 		this.ws = null
 		this.worldClient = new WorldClient(
+			maps,
 			this.divs.controls,
 			this.divs.workBox,
 			this.ForSocketLoop,

@@ -6,7 +6,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
-import { Utility, WorldBase, UiControlsGroup, UiControls, UiControlsType } from '@World'
+import { Utility, WorldBase, UiControlsGroup, UiControls, UiControlsType, MapConfigType } from '@World'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { Pane } from 'tweakpane'
 import { TabApi, TabPageApi } from '@tweakpane/core'
@@ -55,13 +55,14 @@ export class WorldClient extends WorldBase {
 	private updateAnimationCallback: Function | null = null
 
 	constructor(
+		maps: MapConfigType[],
 		controlsDom: HTMLDivElement,
 		parentDom: HTMLDivElement,
 		updatateCallback: Function,
 		launchMapCallback: Function,
 		launchScenarioCallback: Function
 	) {
-		super(true)
+		super(maps, true)
 
 		// functions bind
 		this.getGLTF = this.getGLTF.bind(this)

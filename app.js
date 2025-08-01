@@ -10,13 +10,17 @@ import('./dist/@World/index.js')
 					global[key] = ServerModuleLib.default[key]
 				})
 				console.log("server Loaded")
-				// console.log(this['@World'], ServerModuleLib)
-				const port = process.env.PORT || 3000
-				global.AppServer.initServer()
-				new global.AppServer.default(port).Start()
+				import('./dist/client/models/MapConfig.json', { with: { type: 'json' } })
+					.then(data => {
+						// console.log(this['@World'], ServerModuleLib)
+						const port = process.env.PORT || 3000
+						global.AppServer.initServer()
+						new global.AppServer.default(data.default.maps, port).Start()
+					})
+					.catch(error => console.error('Error fetching JSON:', error));
 			})
 			.catch((err) => {
-				console.log(err)
+				// console.log(err)
 				console.log('err server')
 			})
 	})

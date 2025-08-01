@@ -87,6 +87,20 @@ var config: WebpackPluginConfig = {
 		"default-src 'self'; connect-src 'self' ws://localhost:3000 ws://localhost:8080 ws://localhost:8081 http://localhost:3000 blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' 'unsafe-inline' blob: data:;",
 	devServer: {
 		hot: true,
+		proxy: [
+			{
+				context: '/socket.io',
+				target: 'http://127.0.0.1:3000',
+				changeOrigin: true,
+				ws: true,
+			},
+			{
+				context: '*',
+				target: 'ws://127.0.0.1:3000',
+				changeOrigin: true,
+				ws: true,
+			},
+		],
 	},
 }
 export default config

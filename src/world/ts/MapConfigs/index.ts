@@ -126,10 +126,10 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 	return config
 }
 
-export function getMapConfig(world: WorldBase): { [id: string]: MapConfigType } {
+export function getMapConfig(world: WorldBase, maps: MapConfigType[]): { [id: string]: MapConfigType } {
 	var MapConfig: { [id: string]: MapConfigType } = {}
 
-	const allConfigs = [test2, test3, example, sketchbookv3, sketchbookv4, test]
+	// const allConfigs = [test2, test3, example, sketchbookv3, sketchbookv4, test]
 	/* const allConfigs: MapConfigType[] = [
 		Test2Config,
 		Test3Config,
@@ -169,21 +169,21 @@ export function getMapConfig(world: WorldBase): { [id: string]: MapConfigType } 
 		// MapConfig[key.name] = key
 	}) */
 
-	for (let i = 0; i < allConfigs.length; i++) {
-		const config = MapConfigurator(allConfigs[i])
+	for (let i = 0; i < maps.length; i++) {
+		const config = MapConfigurator(maps[i])
 		// console.log(config.name)
 		MapConfig[config.name] = config
 		// MapConfig[key.name] = key
 	}
 
-	const names = ['test', 'test2', 'test3', 'example', 'sketchbookv3', 'sketchbookv4']
+	/* const names = ['test', 'test2', 'test3', 'example', 'sketchbookv3', 'sketchbookv4']
 
 	for (let i = 0; i < names.length; i++) {
 		world.getJSON(`${names[i]}.json`, (data: any) => {
 			const config = MapConfigurator(data)
 			MapConfig[config.name] = config
-			console.log(config, typeof config)
+			// console.log(config, typeof config)
 		})
-	}
+	} */
 	return MapConfig
 }

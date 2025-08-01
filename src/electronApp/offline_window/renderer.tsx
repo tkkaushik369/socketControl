@@ -7,7 +7,7 @@ import '../../client/css/titleBar.css'
 import { FRAME_VISBLE } from '../../LoaderMode'
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
-import { Utility, PlayerAttachmentType, ControlsTypes, MessageTypes } from '@World'
+import { Utility, PlayerAttachmentType, ControlsTypes, MessageTypes, MapConfigType } from '@World'
 import { WorldClient } from '../../client/ts/World/WorldClient'
 import { PlayerClient } from '../../client/ts/Core/PlayerClient'
 import { AttachModels } from '../../client/ts/Utils/AttachModels'
@@ -23,7 +23,7 @@ class AppOffline {
 	private lastUpdate: number
 	private isWorld: boolean = false
 
-	constructor(controls: HTMLDivElement, workBox: HTMLDivElement) {
+	constructor(maps: MapConfigType[], controls: HTMLDivElement, workBox: HTMLDivElement) {
 		// bind functions
 		this.ForControls = this.ForControls.bind(this)
 		this.ForLoopCallback = this.ForLoopCallback.bind(this)
@@ -49,6 +49,7 @@ class AppOffline {
 		}
 
 		this.worldClient = new WorldClient(
+			maps,
 			controls,
 			this.workBox,
 			this.ForLoopCallback,
@@ -354,5 +355,11 @@ function ReactLoaded() {
 		}
 	})
 
-	const appOffline = new AppOffline(controls, workBox)
+	fetch('../client/models/MapConfig.json')
+		.then((response) => response.json())
+		.then((data) => {
+			// new AppClient.AppClient()
+			const appOffline = new AppOffline(data.maps, controls, workBox)
+		})
+		.catch((error) => console.error('Error fetching JSON:', error))
 }

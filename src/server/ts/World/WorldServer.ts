@@ -1,13 +1,13 @@
 import * as THREE from 'three'
-import { WorldBase, Speaker } from '@World'
+import { WorldBase, Speaker, MapConfigType } from '@World'
 import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
 
 export class WorldServer extends WorldBase {
 	modelCache: { [id: string]: any } = {}
 
-	constructor(updatePhysicsCallback: Function | null = null) {
-		super()
+	constructor(maps: MapConfigType[], updatePhysicsCallback: Function | null = null) {
+		super(maps)
 		// bind function
 		this.readJSON = this.readJSON.bind(this)
 		this.getGLTF = this.getGLTF.bind(this)
