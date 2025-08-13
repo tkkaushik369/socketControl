@@ -1,0 +1,26 @@
+/**
+ * @license
+ * Copyright 2010-2024 Three.js Authors
+ * SPDX-License-Identifier: MIT
+ */
+
+/**
+ * @license
+ * Lodash <https://lodash.com/>
+ * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
+ * Released under MIT license <https://lodash.com/license>
+ * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+ * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+ */
+
+/**
+ * @package      npmjs.com/package/@yandeu/events (events.min.js)
+ *
+ * @author       Arnout Kazemier (https://github.com/3rd-Eden)
+ * @copyright    Copyright (c) 2014 Arnout Kazemier
+ * @license      {@link https://github.com/primus/eventemitter3/blob/master/LICENSE|MIT}
+ *
+ * @author       Yannick Deubel (https://github.com/yandeu)
+ * @copyright    Copyright (c) 2021 Yannick Deubel; Project Url: https://github.com/yandeu/events
+ * @license      {@link https://github.com/yandeu/events/blob/master/LICENSE|MIT}
+ */
