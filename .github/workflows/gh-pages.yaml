@@ -29,8 +29,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build app
-        run: npm run build:world && npm run build:offline
+      - name: Building:World
+        run: npm run build:world
+      - name: Building:Offline
+        run: npm run build:offline
+      - name: Building:Client
+        run: npm run build:client
+      - name: Building:Server
+        run: npm run build:server
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
