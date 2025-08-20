@@ -60,6 +60,6 @@ export class WorldServer extends WorldBase {
 
 	public loadScene(gltf: any, isLaunmch: boolean = true): void {
 		super.loadScene(gltf, isLaunmch)
-		this.add(new Speaker())
+		// this.add(new Speaker())
 	}
 }

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { BaseScene } from '../../BaseScene'
+import { Utility } from '../../../Core/Utility'
 
 export class Test3Scene extends BaseScene {
 	constructor() {
@@ -211,18 +212,6 @@ export class Test3Scene extends BaseScene {
 				this.scene.add(grassObj)
 			}
 		}
-		// box
-		{
-			const boxPhy = new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial({ color: 0xccffff }))
-			boxPhy.scale.set(1, 0.4, 1)
-			boxPhy.position.set(15, 2, -15)
-			boxPhy.userData = {
-				data: 'physics',
-				type: 'box_entity',
-				mass: 1,
-			}
-			this.scene.add(boxPhy)
-		}
 	}
 
 	private MakeScenario() {
@@ -278,6 +267,7 @@ export class Test3Scene extends BaseScene {
 				invisible: 'true',
 			}
 
+			// vehicles
 			{
 				{
 					let spawnVehicle = new THREE.Object3D()
@@ -286,6 +276,17 @@ export class Test3Scene extends BaseScene {
 						data: 'spawn',
 						type: 'car',
 						name: 'car_glb',
+					}
+					scenario2.add(spawnVehicle)
+				}
+
+				{
+					let spawnVehicle = new THREE.Object3D()
+					spawnVehicle.position.set(6, 2, 0)
+					spawnVehicle.userData = {
+						data: 'spawn',
+						type: 'heli',
+						name: 'heliglb',
 					}
 					scenario2.add(spawnVehicle)
 				}
@@ -303,6 +304,44 @@ export class Test3Scene extends BaseScene {
 				}
 				scenario2.add(spawnVehicle)
 			}
+
+			// box
+			{
+				const boxPhy = new THREE.Mesh(
+					new THREE.BoxGeometry(),
+					new THREE.MeshStandardMaterial({ color: 0xccffff })
+				)
+				boxPhy.scale.set(1, 0.4, 1)
+				boxPhy.position.set(15, 2, -15)
+				boxPhy.userData = {
+					data: 'spawn',
+					type: 'shape',
+					subtype: 'box',
+					name: 'shape_box_1',
+					mass: 1,
+				}
+				scenario2.add(boxPhy)
+			}
+
+			// sphere
+			{
+				const radius = 0.3
+				const boxPhy = new THREE.Mesh(
+					new THREE.SphereGeometry(radius),
+					new THREE.MeshStandardMaterial({ color: 0xccffff })
+				)
+				boxPhy.position.set(16, 2, -15)
+				boxPhy.userData = {
+					data: 'spawn',
+					type: 'shape',
+					subtype: 'sphere',
+					name: 'shape_sphere_1',
+					mass: 1,
+					radius: radius,
+				}
+				scenario2.add(boxPhy)
+			}
+
 			this.scene.add(scenario2)
 		}
 	}

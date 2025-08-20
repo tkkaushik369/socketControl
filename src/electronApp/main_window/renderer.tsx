@@ -13,7 +13,7 @@ import { Player, PlayerAttachmentType, ControlsTypes, Utility, MapConfigType } f
 import type * as AppServerType from '@server/server'
 import type * as WorldServerType from '@server/ts/World/WorldServer'
 import { AttachModels } from '../../client/ts/Utils/AttachModels'
-import { CannonDebugRenderer } from '../../client/ts/Utils/CannonDebugRenderer'
+// import { CannonDebugRenderer } from '../../client/ts/Utils/CannonDebugRenderer'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 
 declare global {
@@ -45,7 +45,7 @@ var renderer: THREE.WebGLRenderer
 var labelRenderer: CSS2DRenderer
 var camera: THREE.PerspectiveCamera
 var player: Player
-var cannonDebugRenderer: CannonDebugRenderer
+// var cannonDebugRenderer: CannonDebugRenderer
 var ambLight: THREE.AmbientLight
 var stats: Stats
 var isInWorld: string | null = null
@@ -182,7 +182,7 @@ function EnterWorld(wid: string): void {
 	worldView.appendChild(renderer.domElement)
 	renderer.setAnimationLoop(animate)
 
-	cannonDebugRenderer = new CannonDebugRenderer(world.scene, world.world)
+	// cannonDebugRenderer = new CannonDebugRenderer(world.scene, world.world)
 
 	// Label Renderer
 	labelRenderer = new CSS2DRenderer()
@@ -295,7 +295,7 @@ function EnterWorld(wid: string): void {
 	}
 
 	function animate() {
-		cannonDebugRenderer.update()
+		// cannonDebugRenderer.update()
 		stats.update()
 		if (world !== undefined) {
 			renderer.render(world.scene, camera)
@@ -335,7 +335,7 @@ function LeaveWorld(wid: string): void {
 	world.unregisterUpdatable(player.cameraOperator)
 	world.scene.remove(ambLight)
 	world.scene.remove(camera)
-	cannonDebugRenderer.clearMeshes()
+	// cannonDebugRenderer.clearMeshes()
 	renderer.dispose()
 	// labelRenderer.dispose()
 	const worldView = document.getElementById('worldView')

@@ -115,6 +115,7 @@ body {
 	left: 4px;
 	font-family: 'Courier New', Courier, monospace;
 	user-select: none;
+	z-index: 1;
 }
 
 #controls .controls-title {
@@ -128,13 +129,15 @@ body {
 
 #controls .ctrl-key {
 	color: #cc6666;
-	padding: 4px;
+	padding: 4px 8px;
 	margin: 2px;
 	border: 1px solid #cc6666;
+	border-radius: 4px;
 }
 
 #controls .ctrl-desc {
 	color: #6666cc;
+	margin-left: 12px;
 }
 
 #chat {

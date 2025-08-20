@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
 import { VehicleSpawnPoint } from '../SpawnPoints/VehicleSpawnPoint'
 import { CharacterSpawnPoint } from '../SpawnPoints/CharacterSpawnPoint'
+import { ShapeSpawnPoint } from '../SpawnPoints/ShapeSpawnPoint'
 import { WorldBase } from '../WorldBase'
 import { Character } from '../Characters/Character'
 import { Vehicle } from '../Vehicles/Vehicle'
@@ -74,11 +75,11 @@ export class Scenario {
 						// this.spawnPoints.push(sp)
 						let pos = new THREE.Vector3().add(root.position).add(child.position)
 						this.playerPosition = new THREE.Vector3().copy(pos)
-					} else if (child.userData.type === 'character_ai') {
+					} else if (child.userData.type === 'character_ai' || child.userData.type === 'character_follow') {
 						let sp = new CharacterSpawnPoint(child, child.userData)
 						this.spawnPoints.push(sp)
-					} else if (child.userData.type === 'character_follow') {
-						let sp = new CharacterSpawnPoint(child, child.userData)
+					} else if (child.userData.type === 'shape') {
+						let sp = new ShapeSpawnPoint(child, child.userData)
 						this.spawnPoints.push(sp)
 					}
 				}
@@ -120,7 +121,7 @@ export class Scenario {
 					}
 				})
 			} else {
-				let ent: Character | Vehicle = sp.spawn(world) // only vehicles
+				let ent: ISpawnPoint = sp.spawn(world) // only vehicles and shapes
 				if (ent === null) {
 					console.log('Unknown Spawn: ', sp.userData)
 				}

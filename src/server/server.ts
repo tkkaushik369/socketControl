@@ -759,6 +759,15 @@ export default class AppServer extends EventTarget {
 					if (water.uID !== null) alldata[water.uID] = water.Out()
 				})
 			}
+
+			// World Shapes Data
+			{
+				this.allWorlds[worldId].shapes.forEach((shape) => {
+					shape.ping = Date.now() - shape.timeStamp
+					shape.timeStamp = Date.now()
+					if (shape.uID !== null) alldata[shape.uID] = shape.Out()
+				})
+			}
 		}
 
 		return alldata

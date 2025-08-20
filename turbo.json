@@ -21,7 +21,7 @@
 			"outputs": ["dist/offline/**"]
 		},
 		"build_struct": {
-			"dependsOn": ["build:server", "build:client"],
+			"dependsOn": ["build:server", "build:client", "build:offline"],
 			"outputs": []
 		},
 		"dev": {

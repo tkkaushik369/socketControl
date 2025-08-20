@@ -155,7 +155,6 @@ export default class AppClient {
 			this.ForLaunchMap,
 			this.ForLaunchScenario
 		)
-		this.worldClient.launchMap(Object.keys(this.worldClient.maps)[0], false, true)
 		this.sID = ''
 		this.lastUpdate = Date.now()
 
@@ -327,6 +326,7 @@ export default class AppClient {
 				console.log('Close: ', JSON.stringify(event))
 				this.OnDisConnect(this.sID)
 				setTimeout(this.SetupConnection, 1000)
+				this.ws == null
 			}
 			this.ws.onerror = (event) => {
 				console.error('Socket encountered error: ', event, 'Closing socket')
@@ -394,6 +394,8 @@ export default class AppClient {
 		console.log('Connected')
 		this.worldClient.stats.dom.classList.remove('noPing')
 		this.worldClient.stats.dom.classList.add('ping')
+
+		this.worldClient.launchMap(Object.keys(this.worldClient.maps)[0], false, true)
 	}
 
 	private OnDisConnect(str: string | null, desc?: Error | { description: string }) {
@@ -409,7 +411,7 @@ export default class AppClient {
 		Object.keys(this.worldClient.users).forEach((sID) => {
 			if (this.worldClient.users[sID] !== undefined) {
 				if (str === null) {
-					this.worldClient.users[sID].removeUser(this.worldClient)
+						this.worldClient.users[sID].removeUser(this.worldClient)
 					if (this.sID !== sID) delete this.worldClient.users[sID]
 				}
 			}
@@ -601,6 +603,14 @@ export default class AppClient {
 					this.worldClient.waters.forEach((water) => {
 						if (water.uID === messages[id].uID) {
 							water.Set(messages[id])
+						}
+					})
+					break
+				}
+				case MessageTypes.Shape: {
+					this.worldClient.shapes.forEach((shape) => {
+						if (shape.uID === messages[id].uID) {
+							shape.Set(messages[id])
 						}
 					})
 					break

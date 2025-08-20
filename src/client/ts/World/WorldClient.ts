@@ -82,6 +82,7 @@ export class WorldClient extends WorldBase {
 		this.togglePostFXAA = this.togglePostFXAA.bind(this)
 		this.togglePostOutline = this.togglePostOutline.bind(this)
 		this.toggleTextures = this.toggleTextures.bind(this)
+		this.toggleShadows = this.toggleShadows.bind(this)
 		this.pointLockFunc = this.pointLockFunc.bind(this)
 		this.mouseSensitivityFunc = this.mouseSensitivityFunc.bind(this)
 		this.timeScaleFunc = this.timeScaleFunc.bind(this)
@@ -99,7 +100,7 @@ export class WorldClient extends WorldBase {
 
 		// Renderer
 		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-		this.renderer.setPixelRatio(window.devicePixelRatio)
+		// this.renderer.setPixelRatio(window.devicePixelRatio)
 		this.renderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
 		this.renderer.autoClear = false
 		this.renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -265,6 +266,7 @@ export class WorldClient extends WorldBase {
 			.on('change', this.timeScaleFunc)
 
 		let sunFolder = folderSettings.addFolder({ title: 'Sun', expanded: false })
+		sunFolder.addBinding(this.settings, 'Shadows').on('change', this.toggleShadows)
 		sunFolder
 			.addBinding(this.effectController, 'turbidity', { min: 0.0, max: 20.0, step: 0.1 })
 			.on('change', this.sunGuiChanged)
@@ -408,7 +410,7 @@ export class WorldClient extends WorldBase {
 			}
 		})
 
-		this.add(new SpeakerClient(this, this.renderer, this.camera))
+		// this.add(new SpeakerClient(this, this.renderer, this.camera))
 	}
 
 	private onWindowResize() {
@@ -541,7 +543,19 @@ export class WorldClient extends WorldBase {
 	}
 
 	private toggleTextures(en: { value: boolean }) {
-		this.settings.texture = en.value
+		this.settings.Textures = en.value
+	}
+
+	private toggleShadows(en: { value: boolean }) {
+		this.settings.Shadows = en.value
+
+		this.renderer.shadowMap.enabled = en.value
+
+		this.scene.traverse((child: any) => {
+			if (child.material) {
+				child.material.needsUpdate = true
+			}
+		})
 	}
 
 	private pointLockFunc(en: { value: boolean }) {
@@ -593,6 +607,11 @@ export class WorldClient extends WorldBase {
 		/* this.grasses.forEach((grass) => {
 			grass.update((this.timeScaleTarget * 1.0) / 60.0)
 		}) */
+		if (this.player !== null) {
+			if (this.player.uiControls !== this.uiControls) {
+				this.updateControls(this.player.uiControls)
+			}
+		}
 
 		{
 			this.outlinePass.selectedObjects = []

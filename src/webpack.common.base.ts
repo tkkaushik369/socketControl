@@ -9,7 +9,7 @@ export const config_common: Configuration = {
 			name: "[name]",
 			umdNamedDefine: true,
 		},
-		globalObject: "this",
+		globalObject: "globalThis",
 	},
 	resolve: {
 		alias: {

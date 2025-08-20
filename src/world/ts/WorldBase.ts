@@ -18,7 +18,7 @@ import { Vehicle } from './Vehicles/Vehicle'
 import { getMapConfig, MapConfigType } from './MapConfigs'
 import { Water } from './Worldentities/Water'
 import { BaseScene } from './MapConfigs/BaseScene'
-import { BoxWorldEntity } from './Physics/WorldEntity/BoxWorldEntity'
+import { ShapeEntityBase } from './Physics/ShapeEntity/ShapeEntityBase'
 
 export abstract class WorldBase {
 	public worldId: string | null = null
@@ -53,6 +53,7 @@ export abstract class WorldBase {
 	public characters: Character[]
 	public vehicles: Vehicle[]
 	public waters: Water[]
+	public shapes: ShapeEntityBase[]
 	protected clientEntity: IWorldEntity[] = []
 
 	public sceneObjects: THREE.Object3D[]
@@ -119,6 +120,7 @@ export abstract class WorldBase {
 		this.characters = []
 		this.vehicles = []
 		this.waters = []
+		this.shapes = []
 		this.clientEntity = []
 
 		this.sceneObjects = []
@@ -139,7 +141,11 @@ export abstract class WorldBase {
 		this.MapConfig = getMapConfig(this, maps)
 		Object.keys(this.MapConfig).forEach((mn) => {
 			this.maps[this.MapConfig[mn].name] = async () => {
-				await this.launchMap(this.MapConfig[mn].name, this.MapConfig[mn].isCallback, this.MapConfig[mn].isLaunched)
+				await this.launchMap(
+					this.MapConfig[mn].name,
+					this.MapConfig[mn].isCallback,
+					this.MapConfig[mn].isLaunched
+				)
 			}
 		})
 		// console.log(this.maps, MapConfig)
@@ -162,6 +168,7 @@ export abstract class WorldBase {
 			Debug_Controls: true,
 			PostProcess: false,
 			Textures: true,
+			Shadows: true,
 			FXAA: false,
 			Outline: false,
 			SyncSun: false,
@@ -458,8 +465,13 @@ export abstract class WorldBase {
 								})
 								this.addWorldObject(phys.body)
 							} else if (child.userData.type === 'sphere') {
+								let mass = 0
+								if (child.userData.hasOwnProperty('mass')) {
+									mass = child.userData.mass
+								}
 								let phys = new SphereCollider({
-									size: new THREE.Vector3(child.radius),
+									radius: child.radius,
+									mass: child.mass,
 								})
 								phys.body.position.copy(Utility.cannonVector(child.position))
 								phys.body.quaternion.copy(Utility.cannonQuat(child.quaternion))
@@ -505,15 +517,11 @@ export abstract class WorldBase {
 								this.addWorldObject(phys.body)
 							} else if (child.userData.type === 'trimesh') {
 								let phys = new TrimeshCollider(child, {})
-								// phys.body.shapes.forEach((shape) => {
-								// 	shape.collisionFilterMask = CollisionGroups.Default | CollisionGroups.Characters | CollisionGroups.TrimeshColliders
-								// 	shape.collisionFilterGroup = CollisionGroups.Default
-								// })
+								phys.body.shapes.forEach((shape) => {
+									shape.collisionFilterMask = CollisionGroups.Default | CollisionGroups.Characters | CollisionGroups.TrimeshColliders
+									// shape.collisionFilterGroup = CollisionGroups.TrimeshColliders
+								})
 								this.addWorldObject(phys.body)
-							} else if (child.userData.type === 'box_entity') {
-								const boxWorldEntity = new BoxWorldEntity(this, child, true)
-								this.add(boxWorldEntity)
-								child.visible = true
 							}
 						}
 					} else if (child.userData.data === 'path') {
@@ -673,6 +681,9 @@ export abstract class WorldBase {
 			this.vehicles.forEach((vehi) => {
 				vehi.update(timeStep)
 			})
+			this.shapes.forEach((shape) => {
+				shape.update(timeStep, unscaledTimeStep)
+			})
 			if (this.player !== null && !this.settings.SyncInputs) {
 				this.player.inputManager.update(timeStep, unscaledTimeStep)
 				this.player.cameraOperator.update(timeStep, unscaledTimeStep)
@@ -714,6 +725,14 @@ export abstract class WorldBase {
 				if (vehicle.spawnPoint !== null) vehicle.spawnPoint.getWorldPosition(worldPos)
 				worldPos.y += 1
 				this.outOfBoundsRespawn(vehicle.rayCastVehicle.chassisBody, Utility.cannonVector(worldPos))
+			}
+		})
+
+		this.shapes.forEach((shape) => {
+			if (shape.phys !== null) {
+				if (this.isOutOfBounds(shape.phys.body.position)) {
+					this.outOfBoundsRespawn(shape.phys.body)
+				}
 			}
 		})
 	}

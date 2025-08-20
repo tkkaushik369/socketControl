@@ -13,6 +13,9 @@ export class InputManager implements IUpdatable {
 	public isLocked: boolean
 	public inputReceiver: IInputReceiver | null
 
+	private currentTouchIndex: number
+	private previousTouch: Touch | null
+
 	// callback Controls
 	public controlsCallBack: Function | null
 
@@ -26,6 +29,9 @@ export class InputManager implements IUpdatable {
 		this.onMouseDown = this.onMouseDown.bind(this)
 		this.onMouseMove = this.onMouseMove.bind(this)
 		this.onMouseUp = this.onMouseUp.bind(this)
+		this.onTouchDown = this.onTouchDown.bind(this)
+		this.onTouchMove = this.onTouchMove.bind(this)
+		this.onTouchUp = this.onTouchUp.bind(this)
 		this.onKeyDown = this.onKeyDown.bind(this)
 		this.onKeyUp = this.onKeyUp.bind(this)
 		this.onMouseWheelMove = this.onMouseWheelMove.bind(this)
@@ -44,6 +50,8 @@ export class InputManager implements IUpdatable {
 		this.isLocked = false
 		this.inputReceiver = null
 		this.controlsCallBack = null
+		this.currentTouchIndex = 0
+		this.previousTouch = null
 
 		if (this.domElement !== null) {
 			// Init event listeners
@@ -54,6 +62,11 @@ export class InputManager implements IUpdatable {
 			document.addEventListener('wheel', this.onMouseWheelMove, false)
 			document.addEventListener('pointerlockchange', this.onPointerlockChange, false)
 			document.addEventListener('pointerlockerror', this.onPointerlockError, false)
+
+			// Touch
+			this.domElement.addEventListener('touchstart', this.onTouchDown, false)
+			this.domElement.addEventListener('touchmove', this.onTouchMove, false)
+			this.domElement.addEventListener('touchend', this.onTouchUp, false)
 
 			// Keys
 			this.domElement.addEventListener('keydown', this.onKeyDown, false)
@@ -83,12 +96,12 @@ export class InputManager implements IUpdatable {
 		if (document.pointerLockElement === this.domElement) {
 			this.domElement.addEventListener('mousemove', this.onMouseMove, false)
 			this.domElement.addEventListener('mouseup', this.onMouseUp, false)
-			if (!parentDom.classList.contains('crosshair')) parentDom.classList.add('crosshair')
+			// if (!parentDom.classList.contains('crosshair')) parentDom.classList.add('crosshair')
 			this.isLocked = true
 		} else {
 			this.domElement.removeEventListener('mousemove', this.onMouseMove, false)
 			this.domElement.removeEventListener('mouseup', this.onMouseUp, false)
-			if (parentDom.classList.contains('crosshair')) parentDom.classList.remove('crosshair')
+			// if (parentDom.classList.contains('crosshair')) parentDom.classList.remove('crosshair')
 			this.isLocked = false
 		}
 	}
@@ -130,6 +143,25 @@ export class InputManager implements IUpdatable {
 		}
 
 		this.setMouseButton('mouse' + event.button, false, true)
+	}
+
+	private onTouchDown(event: TouchEvent): void {
+		this.currentTouchIndex = event.touches.length - 1
+	}
+
+	private onTouchMove(event: TouchEvent): void {
+		const touch = event.touches[this.currentTouchIndex]
+		if (this.previousTouch) {
+			let sensivity = 1.2
+			const movementX = touch.pageX - this.previousTouch.pageX
+			const movementY = touch.pageY - this.previousTouch.pageY
+			this.setMouseMove(movementX * sensivity, movementY * sensivity, true)
+		}
+		this.previousTouch = touch
+	}
+
+	private onTouchUp(event: TouchEvent): void {
+		this.previousTouch = null
 	}
 
 	public onKeyDown(event: KeyboardEvent): void {

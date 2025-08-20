@@ -3,11 +3,17 @@ import AllConfigs from './webpack.dev'
 import Logger, { Tab } from '@electron-forge/web-multi-logger'
 
 async function Start() {
-	const logger = new Logger(9000)
+	const port = 9000
+	const logger = new Logger(port)
 	await logger.start()
+
+	console.log(globalThis)
+
+	console.log(`Dev Logger Started at http://localhost:${port}`)
 
 	AllConfigs.forEach((Config) => {
 		const Name = (Config.output as unknown as any).library.name
+		console.log(`Logging: ${Name}`)
 		if(Config.plugins !== undefined) {
 			Config.plugins.shift() // remove webpack Progress plugin
 		}

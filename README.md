@@ -64,13 +64,20 @@ npm run dev
 
 ### Features
 
-#### 10th June
+#### 21th August 2025
+
+-   MapConfig `client/models/MapConfig.json` to load Maps
+-   Character Follow Added `Check Map > Example`
+-   Box and Sphere Shape Physics Added `Check Map > Example`
+-   Touch Support Started
+
+#### 10th June 2025
 
 -   Offline Mode Added
 -   Texture On/Off in Settings > Post Processing
 -	Github demo page Added
 
-#### 12th May
+#### 12th May 2025
 
 -	Webpack Optimaization added turborepo
 

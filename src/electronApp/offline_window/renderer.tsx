@@ -56,11 +56,10 @@ class AppOffline {
 			this.ForLaunchMap,
 			this.ForLaunchScenario
 		)
-		this.worldClient.launchMap(Object.keys(this.worldClient.maps)[0], false, true)
 
 		{
 			const UID: string = 'Player_Offline'
-			const SID = 'offline_player'
+			const SID: string = 'offline_player'
 
 			this.worldClient.player = new PlayerClient(
 				SID,
@@ -97,8 +96,8 @@ class AppOffline {
 			console.log(`Username: ${UID}`)
 			this.worldClient.users[this.worldClient.player.sID] = this.worldClient.player
 
+			this.worldClient.launchMap(Object.keys(this.worldClient.maps)[0], false, true)
 			this.MapLoader()
-
 			this.worldClient.mapLoadFinishCallBack = null
 		}
 	}

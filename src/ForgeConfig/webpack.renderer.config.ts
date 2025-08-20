@@ -16,7 +16,7 @@ export const rendererConfig: Configuration = {
 			name: '[name]',
 			umdNamedDefine: true,
 		},
-		globalObject: 'this',
+		globalObject: 'globalThis',
 	},
 	experiments: { asyncWebAssembly: true },
 	module: {

@@ -22,5 +22,12 @@ const car: MapConfigFOType = {
 	subtype: null,
 }
 
+const heli: MapConfigFOType = {
+	objCaller: 'heli.glb',
+	type: 'heli',
+	subtype: null,
+}
+
 Test3Config.characters.push(character)
 Test3Config.vehicles.push(car)
+Test3Config.vehicles.push(heli)

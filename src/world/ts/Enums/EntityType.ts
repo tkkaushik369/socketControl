@@ -8,4 +8,5 @@ export enum EntityType {
 	Ocean = 'ocean',
 	Speaker = 'speaker',
 	System = 'system',
+	Shape = 'shape',
 }

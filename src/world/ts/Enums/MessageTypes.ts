@@ -5,4 +5,5 @@ export enum MessageTypes {
 	Vehicle = 'vehicle',
 	Water = 'water',
 	Speaker = 'speaker',
+	Shape = 'shape',
 }

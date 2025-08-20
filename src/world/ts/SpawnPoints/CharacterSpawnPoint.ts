@@ -3,6 +3,7 @@ import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
 import { WorldBase } from '../WorldBase'
 import { Character } from '../Characters/Character'
 import { FollowPath } from '../Characters/CharacterAI/FollowPath'
+import { FollowTarget } from '../Characters/CharacterAI/FollowTarget'
 import { RandomBehaviour } from '../Characters/CharacterAI/RandomBehaviour'
 import { Utility } from '../Core/Utility'
 // import { getMapConfig } from '../MapConfigs'
@@ -64,6 +65,16 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 			} else if (this.userData.type == 'character_ai') {
 				let behaviour = new RandomBehaviour(player)
 				player.setBehaviour(behaviour)
+			} else if (this.userData.type == 'character_follow') {
+				if(this.userData.target !== undefined) {
+					for(let i = 0; i < world.characters.length; i++) {
+						if(this.userData.target === world.characters[i].uID) {
+							let behaviour = new FollowTarget(player, world.characters[i])
+							player.setBehaviour(behaviour)
+							break
+						}
+					}
+				}
 			}
 		}
 		if (world.lastMapID !== null && MapConfig[world.lastMapID] !== undefined) {
