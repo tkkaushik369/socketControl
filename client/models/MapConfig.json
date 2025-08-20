@@ -37,6 +37,11 @@
 					"objCaller": "car.glb",
 					"type": "car",
 					"subtype": null
+				},
+				{
+					"objCaller": "heli.glb",
+					"type": "heli",
+					"subtype": null
 				}
 			]
 		},
