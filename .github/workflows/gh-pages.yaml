@@ -31,6 +31,10 @@ jobs:
 
       - name: Building:World
         run: npm run build:world
+      - name: Building:WorldClient
+        run: npm run build:worldclient
+      - name: Building:WorldServer
+        run: npm run build:worldserver
       - name: Building:Offline
         run: npm run build:offline
       - name: Building:Client
