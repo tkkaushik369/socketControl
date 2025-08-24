@@ -17,9 +17,13 @@
 			"@World": [
 				"../world/ts/World.ts"
 			],
+			"@WorldClient": [
+				"../worldclient/ts/World/WorldClient.ts"
+			],
 		},
 		"typeRoots": [
-			"../world/ts/World.ts"
+			"../world/ts/World.ts",
+			"../worldclient/ts/World/WorldClient.ts"
 		],
 	},
 	"include": [

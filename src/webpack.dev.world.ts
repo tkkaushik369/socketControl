@@ -6,7 +6,7 @@ import { config_dev } from './webpack.dev.base'
 export const config_world_dev = {
 	devServer: {
 		static: {
-			directory: path.resolve(__dirname, '../dist/server'),
+			directory: path.resolve(__dirname, '../dist/@World'),
 		},
 		port: 8080,
 	},

@@ -12,14 +12,14 @@ export const config_offline_common: Configuration = {
 	output: {
 		library: {
 			// type: 'umd',
-			type: 'this',
+			type: 'global',
 			name: 'AppOffline',
 		},
 		filename: 'offline.js',
 		publicPath: '../offline',
 		path: path.resolve(__dirname, '../dist/offline'),
 	},
-	externals: { '@World': '@World' },
+	externals: { '@World': 'window @World', '@WorldClient': 'window @WorldClient' },
 	plugins: [
 		new HtmlWebpackPlugin({
 			filename: 'index.html',
@@ -51,6 +51,14 @@ export const config_offline_common: Configuration = {
 		}),
 		new HtmlWebpackInjectPlugin({
 			externals: [
+				{
+					tagName: 'script',
+					attributes: {
+						defer: true,
+						src: '../@WorldClient/index.js',
+						type: 'text/javascript',
+					},
+				},
 				{
 					tagName: 'script',
 					attributes: {

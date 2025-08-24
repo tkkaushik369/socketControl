@@ -8,7 +8,7 @@ export const config_world_common = {
 	output: {
 		library: {
 			// type: 'umd',
-			type: 'this',
+			type: 'global',
 			name: '@World'
 		},
 		filename: 'index.js',

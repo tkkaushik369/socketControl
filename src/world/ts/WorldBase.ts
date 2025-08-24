@@ -394,9 +394,13 @@ export abstract class WorldBase {
 						const gltf = map.mapCaller.getScene()
 						onSceneCollect(map, gltf)
 					} else {
-						this.getGLTF(map.mapCaller, (gltf: any) => {
-							onSceneCollect(map, gltf)
-						})
+						if (typeof map.mapCaller === 'object' && Object.keys(map.mapCaller).length == 2) {
+							onSceneCollect(map, map.mapCaller)
+						} else {
+							this.getGLTF(map.mapCaller, (gltf: any) => {
+								onSceneCollect(map, gltf)
+							})
+						}
 					}
 				}
 			}
@@ -518,7 +522,10 @@ export abstract class WorldBase {
 							} else if (child.userData.type === 'trimesh') {
 								let phys = new TrimeshCollider(child, {})
 								phys.body.shapes.forEach((shape) => {
-									shape.collisionFilterMask = CollisionGroups.Default | CollisionGroups.Characters | CollisionGroups.TrimeshColliders
+									shape.collisionFilterMask =
+										CollisionGroups.Default |
+										CollisionGroups.Characters |
+										CollisionGroups.TrimeshColliders
 									// shape.collisionFilterGroup = CollisionGroups.TrimeshColliders
 								})
 								this.addWorldObject(phys.body)

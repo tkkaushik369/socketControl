@@ -1,19 +1,22 @@
 import * as THREE from 'three'
 import { WorldBase } from '../WorldBase'
-import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
+// import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
+import { SpawnBase } from './SpawnBase'
 import { BoxShapeEntity } from '../Physics/ShapeEntity/BoxShapeEntity'
 import { SphereShapeEntity } from '../Physics/ShapeEntity/SphereShapeEntity'
 
-export class ShapeSpawnPoint implements ISpawnPoint {
-	public object: THREE.Object3D
-	public userData: { [id: string]: any }
+export class ShapeSpawnPoint extends SpawnBase {
+	// public object: THREE.Object3D
+	// public userData: { [id: string]: any }
 
 	constructor(object: THREE.Object3D, userData: { [id: string]: any }) {
-		this.object = object
-		this.userData = userData
+		super(object, userData)
+		// this.object = object
+		// this.userData = userData
 	}
 
 	public spawn(world: WorldBase): any {
+		super.spawn(world)
 		if (this.userData.subtype === "box") {
 			const boxWorldEntity = new BoxShapeEntity(this.object, true)
 			boxWorldEntity.uID = this.userData.name

@@ -16,9 +16,13 @@
 			"@World": [
 				"../world/ts/World.ts"
 			],
+			"@WorldServer": [
+				"../worldserver/ts/World/WorldServer.ts"
+			],
 		},
 		"typeRoots": [
-			"../world/ts/World.ts"
+			"../world/ts/World.ts",
+			"../worldserver/ts/World/WorldServer.ts"
 		],
 	},
 	"include": [

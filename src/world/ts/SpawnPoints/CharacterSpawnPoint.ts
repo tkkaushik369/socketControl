@@ -1,25 +1,29 @@
 import * as THREE from 'three'
-import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
+// import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
+import { SpawnBase } from './SpawnBase'
 import { WorldBase } from '../WorldBase'
 import { Character } from '../Characters/Character'
 import { FollowPath } from '../Characters/CharacterAI/FollowPath'
 import { FollowTarget } from '../Characters/CharacterAI/FollowTarget'
 import { RandomBehaviour } from '../Characters/CharacterAI/RandomBehaviour'
 import { Utility } from '../Core/Utility'
+// import { clone as SkeletonUtilsClone } from 'three/examples/jsm/utils/SkeletonUtils'
 // import { getMapConfig } from '../MapConfigs'
 
-export class CharacterSpawnPoint implements ISpawnPoint {
-	public object: THREE.Object3D
-	public userData: { [id: string]: any }
+export class CharacterSpawnPoint extends SpawnBase {
+	// public object: THREE.Object3D
+	// public userData: { [id: string]: any }
 	public firstAINode: string | null
 
 	constructor(object: THREE.Object3D, userData: { [id: string]: any }) {
+		super(object, userData)
+
 		// bind functions
 		this.spawn = this.spawn.bind(this)
 
 		// init
-		this.object = object
-		this.userData = userData
+		// this.object = object
+		// this.userData = userData
 		this.firstAINode = null
 
 		if (this.userData.hasOwnProperty('first_node')) {
@@ -28,6 +32,7 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 	}
 
 	public spawn(world: WorldBase): Character {
+		super.spawn(world)
 		let player = new Character()
 		// const MapConfig = getMapConfig(world)
 		const MapConfig = world.MapConfig
@@ -66,9 +71,9 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 				let behaviour = new RandomBehaviour(player)
 				player.setBehaviour(behaviour)
 			} else if (this.userData.type == 'character_follow') {
-				if(this.userData.target !== undefined) {
-					for(let i = 0; i < world.characters.length; i++) {
-						if(this.userData.target === world.characters[i].uID) {
+				if (this.userData.target !== undefined) {
+					for (let i = 0; i < world.characters.length; i++) {
+						if (this.userData.target === world.characters[i].uID) {
 							let behaviour = new FollowTarget(player, world.characters[i])
 							player.setBehaviour(behaviour)
 							break
@@ -86,7 +91,7 @@ export class CharacterSpawnPoint implements ISpawnPoint {
 							let model = gltf
 							callerCharacter(model)
 						})
-					}
+					} else callerCharacter(this.clone(char.objCaller as any))
 					break
 				}
 			}

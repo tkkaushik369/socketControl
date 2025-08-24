@@ -12,16 +12,17 @@ import {
 	DataSender,
 	Packager,
 	MapConfigType,
+	AttachModels,
 } from '@World'
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import { io, Socket } from 'socket.io-client'
 import parser from 'socket.io-msgpack-parser'
 // import { pack, unpack } from "msgpackr"
-import { WorldClient } from './ts/World/WorldClient'
-import { PlayerClient } from './ts/Core/PlayerClient'
-import { AttachModels } from './ts/Utils/AttachModels'
-import * as geckosClient from '@geckos.io/client'
+import { WorldClient, PlayerClient } from '@WorldClient'
+// import { PlayerClient } from '../worldclient/ts/Core/PlayerClient'
+// import { AttachModels } from '../worldclient/ts/Utils/AttachModels'
+// import * as geckosClient from '@geckos.io/client'
 
 export type DivsType = {
 	controls: HTMLDivElement
@@ -185,13 +186,13 @@ export default class AppClient {
 				this.ws = new WebSocket('wss://' + socketURL, 'echo-protocol')
 			else this.ws = new WebSocket('ws://' + socketURL, 'echo-protocol')
 
-			{
+			/* {
 				const appendMessage = function appendMessage(msg: string) {
-					/* if (list) {
-						const li = document.createElement('li')
-						li.innerHTML = msg
-						list.appendChild(li)
-					} */
+					// if (list) {
+					// 	const li = document.createElement('li')
+					// 	li.innerHTML = msg
+					// 	list.appendChild(li)
+					// }
 					console.log(msg)
 				}
 
@@ -209,9 +210,9 @@ export default class AppClient {
 					} else {
 						// message.innerHTML = "You're connected :)"
 						console.log("You're connected!")
-						/* setTimeout(function () {
-							message.remove()
-						}, 2500) */
+						// setTimeout(function () {
+						// 	message.remove()
+						// }, 2500)
 					}
 
 					channel.emit('chat message', "Hello everyone, I'm " + channel.id)
@@ -220,23 +221,23 @@ export default class AppClient {
 						console.log('You got disconnected')
 					})
 
-					/* if (button) {
-						button.addEventListener('click', (): void => {
-							if (text) {
-								const content = text.value as string
-								if (content && content.trim().length > 0) {
-									channel.emit('chat message', content.trim())
-									text.value = ''
-								}
-							}
-						})
-					} */
+					// if (button) {
+					// 	button.addEventListener('click', (): void => {
+					// 		if (text) {
+					// 			const content = text.value as string
+					// 			if (content && content.trim().length > 0) {
+					// 				channel.emit('chat message', content.trim())
+					// 				text.value = ''
+					// 			}
+					// 		}
+					// 	})
+					// }
 
 					channel.on('chat message', (data): void => {
 						appendMessage(data.toString())
 					})
 				})
-			}
+			} */
 		}
 
 		// Configuration

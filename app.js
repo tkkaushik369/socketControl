@@ -4,28 +4,35 @@ import('./dist/@World/index.js')
 			global[key] = WorldLib.default[key]
 		})
 		console.log("World Loaded")
-		import('./dist/server/server.js')
-			.then((ServerModuleLib) => {
-				Object.keys(ServerModuleLib.default).forEach((key) => {
-					global[key] = ServerModuleLib.default[key]
+		import('./dist/@WorldServer/index.js')
+			.then((WorldServerLib) => {
+				Object.keys(WorldServerLib.default).forEach((key) => {
+					global[key] = WorldServerLib.default[key]
 				})
-				console.log("server Loaded")
-				import('./dist/client/models/MapConfig.json', { with: { type: 'json' } })
-					.then(data => {
-						// console.log(this['@World'], ServerModuleLib)
-						const port = process.env.PORT || 3000
-						global.AppServer.initServer()
-						new global.AppServer.default(data.default.maps, port).Start()
+				console.log("WorldServer Loaded")
+				import('./dist/server/server.js')
+					.then((ServerModuleLib) => {
+						Object.keys(ServerModuleLib.default).forEach((key) => {
+							global[key] = ServerModuleLib.default[key]
+						})
+						console.log("server Loaded")
+						import('./dist/client/models/MapConfig.json', { with: { type: 'json' } })
+							.then(data => {
+								// console.log(this['@World'], ServerModuleLib)
+								const port = process.env.PORT || 3000
+								global.AppServer.initServer()
+								new global.AppServer.default(data.default.maps, port).Start()
+							})
+							.catch(error => console.error('Error fetching JSON:', error));
 					})
-					.catch(error => console.error('Error fetching JSON:', error));
-			})
-			.catch((err) => {
-				// console.log(err)
-				console.log('err server')
+					.catch((err) => {
+						// console.log(err)
+						console.log('err server')
+					})
 			})
 	})
 	.catch((err) => {
-		// console.log(err)
+		console.log(err)
 		console.log('err worldbase')
 	})
 

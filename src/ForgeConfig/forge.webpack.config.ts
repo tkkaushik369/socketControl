@@ -15,6 +15,20 @@ if (!WEBPACK_USE_BUNDLE) {
 		// js: './src/electronApp/test.ts',
 		nodeIntegration: false,
 	})
+	entryPoints.push({
+		name: '@WorldClient',
+		html: './src/electronApp/common/index.html',
+		js: './src/worldclient/ts/World/WorldClient.ts',
+		// js: './src/electronApp/test.ts',
+		nodeIntegration: false,
+	})
+	entryPoints.push({
+		name: '@WorldServer',
+		html: './src/electronApp/common/index.html',
+		js: './src/worldserver/ts/World/WorldServer.ts',
+		// js: './src/electronApp/test.ts',
+		nodeIntegration: false,
+	})
 }
 
 if (SINGLE_PLAYER) {

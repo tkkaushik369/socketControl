@@ -1,22 +1,19 @@
-import { Configuration } from 'webpack'
 import { config_common } from './webpack.common.base'
 import { merge } from 'webpack-merge'
 import path from 'path'
 
-export const config_server_common: Configuration = {
-	target: ['node', 'electron-renderer'],
-	entry: './src/server/server.ts',
+export const config_worldserver_common = {
+	target: 'web',
+	entry: './src/worldserver/ts/World/WorldServer.ts',
 	output: {
 		library: {
 			// type: 'umd',
 			type: 'global',
-			name: 'AppServer',
+			name: '@WorldServer'
 		},
-		filename: 'server.js',
-		path: path.resolve(__dirname, '../dist/server'),
-	},
-	externalsPresets: {
-		node: true,
+		filename: 'index.js',
+		publicPath: '../@WorldServer',
+		path: path.resolve(__dirname, '../dist/@WorldServer'),
 	},
 	externals: {
 		express: 'commonjs2 express',
@@ -32,11 +29,7 @@ export const config_server_common: Configuration = {
 		"@socket.io/admin-ui": 'commonjs2 @socket.io/admin-ui',
 		// "@geckos.io/server": 'import @geckos.io/server',
 		'@World': 'this @World',
-		'@WorldServer': 'this @WorldServer'
-	},
-	module: {
-		exprContextCritical: false,
-		unknownContextCritical: false,
 	},
 }
-export default merge(config_common, config_server_common)
+
+export default merge(config_common, config_worldserver_common)

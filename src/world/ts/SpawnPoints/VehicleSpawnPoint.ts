@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
+// import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
+import { SpawnBase } from './SpawnBase'
 import { WorldBase } from '../WorldBase'
 import { Vehicle } from '../Vehicles/Vehicle'
 import { Helicopter } from '../Vehicles/Helicopter'
@@ -13,24 +14,25 @@ import { FollowPath } from '../Characters/CharacterAI/FollowPath'
 import { BaseScene } from '../MapConfigs/BaseScene'
 import { Player } from '../Core/Player'
 
-export class VehicleSpawnPoint implements ISpawnPoint {
+export class VehicleSpawnPoint extends SpawnBase {
 	public type: string | null
 	public subtype: string | null
 	public driver: string | null // ai | player
 	public playerData: { player: Player; position: THREE.Vector3 } | null
 	public firstAINode: string | null
 
-	public object: THREE.Object3D
-	public userData: { [id: string]: any }
+	// public object: THREE.Object3D
+	// public userData: { [id: string]: any }
 
 	constructor(object: THREE.Object3D) {
-		this.object = object
+		super(object, object.userData)
+		// this.object = object
+		// this.userData = this.object.userData
 		this.type = null
 		this.subtype = null
 		this.driver = null
 		this.playerData = null
 		this.firstAINode = null
-		this.userData = this.object.userData
 
 		if (this.userData.hasOwnProperty('type')) {
 			this.type = this.userData.type
@@ -50,6 +52,7 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 	}
 
 	public async spawn(world: WorldBase): Promise<Vehicle | null> {
+		super.spawn(world)
 		if (world.lastMapID === null) return null
 		if (this.type === null) return null
 		const type: string = this.type
@@ -125,7 +128,11 @@ export class VehicleSpawnPoint implements ISpawnPoint {
 										playerData !== undefined ? playerData.player : undefined
 									)
 								})
-							}
+							} else  callerCharacter(
+								this.clone(char.objCaller as any),
+								vehicle,
+								playerData !== undefined ? playerData.player : undefined
+							)
 							break
 						}
 					}

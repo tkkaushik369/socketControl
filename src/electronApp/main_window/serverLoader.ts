@@ -11,13 +11,19 @@ declare global {
 
 function loadFile() {
 	if (WEBPACK_USE_BUNDLE) {
-		const sc_import = document.createElement('script')
-		sc_import.id = 'sc_import'
-		sc_import.defer = true
-		sc_import.src = '../server/server.js'
-		document.head.appendChild(sc_import)
+		const sc_import_1 = document.createElement('script')
+		sc_import_1.id = 'sc_import_1'
+		sc_import_1.defer = true
+		sc_import_1.src = '../@WorldServer/index.js'
+		document.head.appendChild(sc_import_1)
 
-		sc_import.onload = () => {
+		const sc_import_2 = document.createElement('script')
+		sc_import_2.id = 'sc_import_2'
+		sc_import_2.defer = true
+		sc_import_2.src = '../server/server.js'
+		document.head.appendChild(sc_import_2)
+
+		sc_import_2.onload = () => {
 			window.AppServerLoaded = true
 		}
 
@@ -29,9 +35,11 @@ function loadFile() {
 			console.log(file)
 		}) */
 	} else {
-		import('../../server/server').then((AppServer) => {
-			;(window as unknown as any)['AppServer'] = AppServer
-			window.AppServerLoaded = true
+		eval(`import('../../@WorldServer/index.js')`).then(() => {
+			import('../../server/server').then((AppServer) => {
+				;(window as unknown as any)['AppServer'] = AppServer
+				window.AppServerLoaded = true
+			})
 		})
 	}
 }

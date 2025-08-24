@@ -5,14 +5,24 @@
 			"inputs": ["src/**"],
 			"outputs": ["dist/@World/**"]
 		},
-		"build:server": {
+		"build:worldclient": {
 			"inputs": ["src/**"],
 			"dependsOn": ["build:world"],
+			"outputs": ["dist/@WorldClient/**"]
+		},
+		"build:worldserver": {
+			"inputs": ["src/**"],
+			"dependsOn": ["build:world"],
+			"outputs": ["dist/@WorldServer/**"]
+		},
+		"build:server": {
+			"inputs": ["src/**"],
+			"dependsOn": ["build:worldserver"],
 			"outputs": ["dist/server/**"]
 		},
 		"build:client": {
 			"inputs": ["src/**"],
-			"dependsOn": ["build:world"],
+			"dependsOn": ["build:worldclient"],
 			"outputs": ["dist/client/**"]
 		},
 		"build:offline": {

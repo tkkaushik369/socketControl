@@ -1,7 +1,5 @@
 import { WEBPACK_USE_BUNDLE } from '../../LoaderMode'
 
-
-
 /* import type * as AppClient from '../../client/client'
 
 declare global {
@@ -30,15 +28,21 @@ console.log('client runner started')
 } */
 
 function loadFile() {
-	console.log('react loaded')
+	console.log('react loaded', WEBPACK_USE_BUNDLE)
 	if (WEBPACK_USE_BUNDLE) {
-		const sc_import = document.createElement('script')
-		sc_import.id = 'sc_import'
-		sc_import.defer = true
-		sc_import.src = '../client/client.js'
-		document.head.appendChild(sc_import)
+		const sc_import_1 = document.createElement('script')
+		sc_import_1.id = 'sc_import_1'
+		sc_import_1.defer = true
+		sc_import_1.src = '../@WorldClient/index.js'
+		document.head.appendChild(sc_import_1)
 
-		sc_import.onload = () => {
+		const sc_import_2 = document.createElement('script')
+		sc_import_2.id = 'sc_import_2'
+		sc_import_2.defer = true
+		sc_import_2.src = '../client/client.js'
+		document.head.appendChild(sc_import_2)
+
+		sc_import_2.onload = () => {
 			window.AppClientLoaded = true
 		}
 
@@ -50,12 +54,18 @@ function loadFile() {
 			console.log(file)
 		}) */
 	} else {
-		import('../../client/client')
-			.then((AppClient) => {
-				;(window as unknown as any)['AppClient'] = AppClient
-				window.AppClientLoaded = true
+		eval(`import('../../@WorldClient/index.js')`)
+			.then(() => {
+				import('../../client/client')
+					.then((AppClient) => {
+						;(window as unknown as any)['AppClient'] = AppClient
+						window.AppClientLoaded = true
+					})
+					.catch((err) => {
+						console.log('Error: ', err)
+					})
 			})
-			.catch((err) => {
+			.catch((err: any) => {
 				console.log('Error: ', err)
 			})
 	}

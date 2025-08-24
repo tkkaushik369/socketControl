@@ -12,7 +12,7 @@ rules.push({
 export const rendererConfig: Configuration = {
 	output: {
 		library: {
-			type: 'this',
+			type: 'global',
 			name: '[name]',
 			umdNamedDefine: true,
 		},
@@ -37,12 +37,26 @@ export const rendererConfig: Configuration = {
 					? '../../dist/@World/index.js'
 					: '../../.webpack/renderer/@World/index.js'
 			),
+			'@WorldClient': path.resolve(
+				__dirname,
+				WEBPACK_USE_BUNDLE
+					? '../../dist/@WorldClient/index.js'
+					: '../../.webpack/renderer/@WorldClient/index.js'
+			),
+			'@WorldServer': path.resolve(
+				__dirname,
+				WEBPACK_USE_BUNDLE
+					? '../../dist/@WorldServer/index.js'
+					: '../../.webpack/renderer/@WorldServer/index.js'
+			),
 		},
 		extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json', '.wasm'],
 	},
 	externals: {
 		canvas: 'commonjs2 canvas', // jsdom dependency not needed,
 		'@World': '@World',
+		'@WorldClient': '@WorldClient',
+		'@WorldServer': '@WorldServer',
 	},
 	/* stats: {
 		warningsFilter: [/Critical dependency:/],

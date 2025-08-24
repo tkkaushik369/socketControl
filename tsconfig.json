@@ -30,11 +30,19 @@
 			"@World": [
 				"./src/world/ts/World.ts"
 			],
+			"@WorldClient": [
+				"./src/worldclient/ts/World/WorldClient.ts"
+			],
+			"@WorldServer": [
+				"./src/worldserver/ts/World/WorldServer.ts"
+			],
 		},
 		"typeRoots": [
 			"./src/server/*",
 			"./src/client/*",
 			"./src/world/ts/World.ts",
+			"./src/worldclient/ts/World/WorldClient.ts",
+			"./src/worldserver/ts/World/WorldServer.ts",
 			"./node_modules/@types"
 		],
 	},

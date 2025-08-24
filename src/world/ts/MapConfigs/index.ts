@@ -44,7 +44,7 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 		characters: [],
 		vehicles: [],
 	}
-	if (conf.mapCaller.includes('class:')) {
+	if (typeof conf.mapCaller === 'string' && conf.mapCaller.includes('class:')) {
 		let mapCaller = conf.mapCaller.replace('class:', '')
 		switch (mapCaller) {
 			case 'Example': {
@@ -75,7 +75,7 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 			type: 'character',
 			subtype: null,
 		}
-		if (character.objCaller.includes('class:')) {
+		if (typeof character.objCaller === 'string' && character.objCaller.includes('class:')) {
 			/* let objCaller = character.objCaller.replace('class:', '')
 			switch (objCaller) {
 				default: {
@@ -94,7 +94,7 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 			type: 'car',
 			subtype: null,
 		}
-		if (vehicles.objCaller.includes('class:')) {
+		if (typeof vehicles.objCaller === 'string' && vehicles.objCaller.includes('class:')) {
 			let objCaller = vehicles.objCaller.replace('class:', '')
 			switch (objCaller) {
 				case 'Example': {
@@ -171,7 +171,6 @@ export function getMapConfig(world: WorldBase, maps: MapConfigType[]): { [id: st
 
 	for (let i = 0; i < maps.length; i++) {
 		const config = MapConfigurator(maps[i])
-		// console.log(config.name)
 		MapConfig[config.name] = config
 		// MapConfig[key.name] = key
 	}

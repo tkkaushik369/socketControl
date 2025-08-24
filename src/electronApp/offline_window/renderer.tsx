@@ -7,10 +7,10 @@ import '../../client/css/titleBar.css'
 import { FRAME_VISBLE } from '../../LoaderMode'
 import * as THREE from 'three'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
-import { Utility, PlayerAttachmentType, ControlsTypes, MessageTypes, MapConfigType } from '@World'
-import { WorldClient } from '../../client/ts/World/WorldClient'
-import { PlayerClient } from '../../client/ts/Core/PlayerClient'
-import { AttachModels } from '../../client/ts/Utils/AttachModels'
+import { Utility, PlayerAttachmentType, ControlsTypes, MessageTypes, MapConfigType, AttachModels } from '@World'
+import { WorldClient, PlayerClient } from '@WorldClient'
+// import { PlayerClient } from '../../worldclient/ts/Core/PlayerClient'
+// import { AttachModels } from '../../worldclient/ts/Utils/AttachModels'
 
 THREE.Cache.enabled = true
 

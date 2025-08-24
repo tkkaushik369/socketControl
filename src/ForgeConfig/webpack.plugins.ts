@@ -3,11 +3,13 @@ import { EnvironmentPlugin } from 'webpack'
 import path from 'node:path'
 import CopyPlugin from 'copy-webpack-plugin'
 import HtmlWebpackInjectPlugin from 'html-webpack-inject-plugin'
-import { WEBPACK_USE_BUNDLE } from '../LoaderMode'
+import { WEBPACK_USE_BUNDLE, SINGLE_PLAYER } from '../LoaderMode'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ForkTsCheckerWebpackPlugin: typeof IForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin')
 
 const renderer_worldbase_dirname = '../renderer/@World'
+const renderer_worldclient_dirname = '../renderer/@WorldClient'
+const renderer_worldserver_dirname = '../renderer/@WorldServer'
 const renderer_server_dirname = '../renderer/server'
 const renderer_client_dirname = '../renderer/client'
 
@@ -20,13 +22,21 @@ if (WEBPACK_USE_BUNDLE) {
 			to: renderer_worldbase_dirname,
 		},
 		{
+			from: path.resolve(__dirname, '../../dist/@WorldClient'),
+			to: renderer_worldclient_dirname,
+		},
+		{
+			from: path.resolve(__dirname, '../../dist/@WorldServer'),
+			to: renderer_worldserver_dirname,
+		},
+		{
 			from: path.resolve(__dirname, '../../dist/server'),
 			to: renderer_server_dirname,
 		},
 		{
 			from: path.resolve(__dirname, '../../dist/client'),
 			to: renderer_client_dirname,
-		},
+		}
 	)
 } else {
 	copyPlugin.push(
@@ -62,18 +72,31 @@ if (copyPlugin.length > 0) {
 	)
 }
 
+const html_inject = []
+
+if (SINGLE_PLAYER) {
+	html_inject.push({
+		tagName: 'script',
+		attributes: {
+			defer: true,
+			src: '../@WorldClient/index.js',
+			type: 'text/javascript',
+		},
+	})
+}
+
+html_inject.push({
+	tagName: 'script',
+	attributes: {
+		defer: true,
+		src: '../@World/index.js',
+		type: 'text/javascript',
+	},
+})
+
 plugins.push(
 	new HtmlWebpackInjectPlugin({
-		externals: [
-			{
-				tagName: 'script',
-				attributes: {
-					defer: true,
-					src: '../@World/index.js',
-					type: 'text/javascript',
-				},
-			},
-		],
+		externals: html_inject,
 		prepend: true,
 	})
 )

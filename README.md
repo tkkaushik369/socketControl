@@ -4,13 +4,13 @@
 
 |                    Demo                     |                   Demo Debug                    |
 | :-----------------------------------------: | :---------------------------------------------: |
-|     ![images/demo.png](images/demo.png)     | ![images/demo_debug.png](images/demo_debug.png) |
+|     ![images/demo_1.png](images/demo_1.png)     | ![images/demo_debug_1.png](images/demo_debug_1.png) |
 |                  Player 1                   |                    Player 2                     |
-| ![images/Player_1.png](images/Player_1.png) |   ![images/Player_2.png](images/Player_2.png)   |
-
-    				Electron Forge Server and Client
-
-![images/Screenshot_2024-11-14_234340.png](images/Screenshot_2024-11-14_234340.png)
+| ![images/Player_1_1.png](images/Player_1_1.png) |   ![images/Player_2_1.png](images/Player_2_1.png)   |
+|                  Electron                   |                    Electron Debug                     |
+| ![images/electron_1.png](images/electron_1.png) | ![images/electron_debug_1.png](images/electron_debug_1.png) |
+|                  THREE.js Editor                   |                    THREE.js Editor                     |
+| ![images/editor_1.png](images/editor_1.png) | ![images/editor_3.png](images/editor_3.png) |
 
 **Multiplayer Game** is a real-time, browser-based 3D game built with [Three.js](https://threejs.org/), [Cannon-es](https://github.com/pmndrs/cannon-es), and [Socket.io](https://socket.io/). This project demonstrates how to create an interactive multiplayer environment where players can connect, interact, and compete within a dynamic 3D world.
 
@@ -30,14 +30,31 @@ This project is based on the source code from swift502/[Sketchbook](https://gith
 
 -   Node.js v19 or higher (Using Node v22.11 as of now)
 
+# Code Map
+![images/CodeMap.svg](images/CodeMap.svg)
+
 # Installation
 
 ```
 // to install
 npm install
 
-// to build
+// to build (High Resources but fast)
 npm run build
+
+// to build (High Time Build)
+npm run build:nw
+
+// to build using Turbo (Optimal Speed)
+npm run build:turbo
+
+// to build individual
+npm run build:world
+npm run build:worldclient
+npm run build:worldserver
+npm run build:client
+npm run build:server
+npm run build:offline
 
 // start server
 npm run start:server
@@ -51,9 +68,11 @@ npm run dev
 
 # Quick Install & Build then Run
 
--   `npm run setup`
--   `npm run start:server`
-    #### `http://localhost:3000`
+```
+npm run setup
+npm run start:server
+```
+#### `http://localhost:3000`
 
 # Technologies Used
 
@@ -63,6 +82,19 @@ npm run dev
 -   **Node.js & Express**: Backend server setup.
 
 ### Features
+
+#### 24th August 2025
+
+-	@WorldClient  and @WorldServer splitted from client.ts and server.ts
+-	Files can be imported to THREE.js Editor, need to disable CORS in browser (use extension)
+	```
+	// host files using
+	npx serve ./dist
+	```
+	1. Example file in `ThreejsEditor/project.json`.
+	2. Open in THREE.js Editor
+	3. Select Scene > Script Tab will Show > Update Script `SB`
+	4. In Project Tab Click Play
 
 #### 21th August 2025
 

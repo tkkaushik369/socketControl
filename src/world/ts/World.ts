@@ -25,3 +25,6 @@ export { IWorldEntity } from './Interfaces/IWorldEntity'
 
 // Worldentities
 export { Speaker } from './Worldentities/Spaker'
+
+// AttachModels
+export { AttachModels } from './Utils/AttachModels'

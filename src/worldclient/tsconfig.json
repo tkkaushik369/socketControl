@@ -4,24 +4,28 @@
 		// "target": "ES2022",
 		"target": "ES6",
 		"module": "commonjs",
-		"outDir": "../../dist/@World",
+		"outDir": "../../dist/@WorldClient",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"declaration": true,
 		// "declarationMap": false,
-		"declarationDir": "../../types/world",
+		"declarationDir": "../../types/worldclient",
 		"paths": {
 			"@World": [
 				"../world/ts/World.ts"
 			],
+			"@WorldClient": [
+				"../worldclient/ts/World/WorldClient.ts"
+			],
 		},
 		"typeRoots": [
-			"../world/ts/World.ts"
+			"../world/ts/World.ts",
+			"../worldclient/ts/World/WorldClient.ts"
 		],
 	},
 	"include": [
 		"**/*.ts"
-	]
+, "../world/ts/Utils/AttachModels.ts"	]
 }

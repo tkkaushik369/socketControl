@@ -12,14 +12,14 @@ export const config_client_common: Configuration = {
 	output: {
 		library: {
 			// type: 'umd',
-			type: 'this',
+			type: 'global',
 			name: 'AppClient',
 		},
 		filename: 'client.js',
 		publicPath: '../client',
 		path: path.resolve(__dirname, '../dist/client'),
 	},
-	externals: { '@World': '@World' },
+	externals: { '@World': 'window @World', '@WorldClient': 'window @WorldClient' },
 	plugins: [
 		new HtmlWebpackPlugin({
 			filename: 'index.html',
@@ -29,7 +29,7 @@ export const config_client_common: Configuration = {
 			patterns: [
 				/* {
 					from: path.resolve(__dirname, "./client/index.html"),
-					to: path.resolve(__dirname, "../dist/client_window"),
+					to: path.resolve(__dirname, "../dist/client"),
 				}, */
 				{
 					from: path.resolve(__dirname, './client/images'),
@@ -47,6 +47,14 @@ export const config_client_common: Configuration = {
 		}),
 		new HtmlWebpackInjectPlugin({
 			externals: [
+				{
+					tagName: 'script',
+					attributes: {
+						defer: true,
+						src: '../@WorldClient/index.js',
+						type: 'text/javascript',
+					},
+				},
 				{
 					tagName: 'script',
 					attributes: {

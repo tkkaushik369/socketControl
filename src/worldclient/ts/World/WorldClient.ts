@@ -6,12 +6,12 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
-import { Utility, WorldBase, UiControlsGroup, UiControls, UiControlsType, MapConfigType } from '@World'
+import { Utility, WorldBase, UiControlsGroup, UiControls, UiControlsType, MapConfigType, AttachModels } from '@World'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { Pane } from 'tweakpane'
 import { TabApi, TabPageApi } from '@tweakpane/core'
 import { CannonDebugRenderer } from '../Utils/CannonDebugRenderer'
-import { AttachModels } from '../Utils/AttachModels'
+// import { AttachModels } from '../../../world/ts/Utils/AttachModels'
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { CSM } from 'three/examples/jsm/csm/CSM'
 import { Sky } from 'three/examples/jsm/objects/Sky'
@@ -24,6 +24,7 @@ export class WorldClient extends WorldBase {
 	private parentDom: HTMLDivElement
 	private controlsDom: HTMLDivElement
 	public renderer: THREE.WebGLRenderer
+	private isOwnRenderer: boolean
 	public labelRenderer: CSS2DRenderer
 	public camera: THREE.PerspectiveCamera
 	private clientClock: THREE.Clock
@@ -60,7 +61,8 @@ export class WorldClient extends WorldBase {
 		parentDom: HTMLDivElement,
 		updatateCallback: Function,
 		launchMapCallback: Function,
-		launchScenarioCallback: Function
+		launchScenarioCallback: Function,
+		renderer: THREE.WebGLRenderer | null = null
 	) {
 		super(maps, true)
 
@@ -99,21 +101,28 @@ export class WorldClient extends WorldBase {
 		this.uiControls = UiControlsGroup.None
 
 		// Renderer
-		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-		// this.renderer.setPixelRatio(window.devicePixelRatio)
-		this.renderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
-		this.renderer.autoClear = false
-		this.renderer.toneMapping = THREE.ACESFilmicToneMapping
-		this.renderer.toneMappingExposure = 1
-		this.renderer.shadowMap.enabled = true
-		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
-		if (this.scene.fog !== null) this.renderer.setClearColor(this.scene.fog.color, 0.1)
-		this.parentDom.appendChild(this.renderer.domElement)
-		this.renderer.setAnimationLoop(this.animate)
+		if (renderer === null) {
+			this.isOwnRenderer = true
+			this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+			// this.renderer.setPixelRatio(window.devicePixelRatio)
+			this.renderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
+			this.renderer.autoClear = false
+			this.renderer.toneMapping = THREE.ACESFilmicToneMapping
+			this.renderer.toneMappingExposure = 1
+			this.renderer.shadowMap.enabled = true
+			this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+			if (this.scene.fog !== null) this.renderer.setClearColor(this.scene.fog.color, 0.1)
+			this.parentDom.appendChild(this.renderer.domElement)
+			this.renderer.setAnimationLoop(this.animate)
+		} else {
+			this.isOwnRenderer = false
+			this.renderer = renderer
+		}
 
 		// Label Renderer
 		this.labelRenderer = new CSS2DRenderer()
 		this.labelRenderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
+		this.labelRenderer.domElement.id = 'labelRenderer'
 		this.labelRenderer.domElement.style.position = 'absolute'
 		this.labelRenderer.domElement.style.top = '0px'
 		this.labelRenderer.domElement.style.pointerEvents = 'none'
@@ -207,7 +216,7 @@ export class WorldClient extends WorldBase {
 				this.outlinePass.patternTexture = texture
 				texture.wrapS = THREE.RepeatWrapping
 				texture.wrapT = THREE.RepeatWrapping
-			})
+			}, undefined, undefined)
 			this.outlinePass.selectedObjects = []
 			this.outlinePass.usePatternTexture = false
 
@@ -222,6 +231,7 @@ export class WorldClient extends WorldBase {
 
 		// Stats
 		this.stats = new Stats()
+		this.stats.dom.id = "stats"
 		this.networkStats = new Stats.Panel('PING', '#dd0', '#220')
 		this.stats.addPanel(this.networkStats)
 		this.stats.showPanel(0)
@@ -229,6 +239,9 @@ export class WorldClient extends WorldBase {
 
 		// GUI
 		this.gui = new Pane()
+		this.gui.element.id = "gui"
+		// this.parentDom.appendChild(this.gui.element)
+
 		let folderSettings = this.gui.addFolder({ title: 'Settings', expanded: false })
 		let cannonSettings = folderSettings.addFolder({ title: 'Cannon Renderer', expanded: false })
 		// cannonSettings.addBinding(this.settings, 'Debug_Physics_Engine').on('change', this.debugPhysicsEngineFunc)
@@ -420,7 +433,7 @@ export class WorldClient extends WorldBase {
 		this.camera.aspect = width / height
 		this.camera.updateProjectionMatrix()
 
-		this.renderer.setSize(width, height)
+		if(this.isOwnRenderer) this.renderer.setSize(width, height)
 		this.labelRenderer.setSize(width, height)
 		const pixelRatio = this.renderer.getPixelRatio()
 
@@ -587,7 +600,7 @@ export class WorldClient extends WorldBase {
 		this.csm.lightDirection = new THREE.Vector3().copy(this.sun).normalize().multiplyScalar(-1)
 
 		this.renderer.toneMappingExposure = this.effectController.exposure
-		this.renderer.render(this.scene, this.camera)
+		if(this.isOwnRenderer) this.renderer.render(this.scene, this.camera)
 		this.labelRenderer.render(this.scene, this.camera)
 	}
 
@@ -636,7 +649,9 @@ export class WorldClient extends WorldBase {
 		if (this.settings.Debug_Physics) this.cannonDebugRenderer.update()
 
 		if (this.settings.PostProcess) this.composer.render()
-		else this.renderer.render(this.scene, this.camera)
+		else if(this.isOwnRenderer) this.renderer.render(this.scene, this.camera)
 		this.labelRenderer.render(this.scene, this.camera)
 	}
 }
+
+export { PlayerClient } from '../Core/PlayerClient'

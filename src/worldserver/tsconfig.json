@@ -4,21 +4,25 @@
 		// "target": "ES2022",
 		"target": "ES6",
 		"module": "commonjs",
-		"outDir": "../../dist/@World",
+		"outDir": "../../dist/@WorldServer",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"declaration": true,
 		// "declarationMap": false,
-		"declarationDir": "../../types/world",
+		"declarationDir": "../../types/worldserver",
 		"paths": {
 			"@World": [
 				"../world/ts/World.ts"
 			],
+			"@WorldServer": [
+				"./ts/World/WorldServer.ts"
+			],
 		},
 		"typeRoots": [
-			"../world/ts/World.ts"
+			"../world/ts/World.ts",
+			"./ts/World/WorldServer.ts",
 		],
 	},
 	"include": [

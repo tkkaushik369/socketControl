@@ -5,7 +5,7 @@ export const config_common: Configuration = {
 	output: {
 		library: {
 			// type: 'umd',
-			type: 'this',
+			type: 'global',
 			name: "[name]",
 			umdNamedDefine: true,
 		},
@@ -15,6 +15,8 @@ export const config_common: Configuration = {
 		alias: {
 			three: path.resolve('./node_modules/three'),
 			'@World': path.resolve('./dist/@World/index.js'),
+			'@WorldClient': path.resolve('./dist/@WorldClient/index.js'),
+			'@WorldServer': path.resolve('./dist/@WorldServer/index.js'),
 		},
 		extensions: ['.tsx', '.ts', '.js'],
 	},

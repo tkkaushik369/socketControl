@@ -29,9 +29,9 @@ import {
 	WorldCreation,
 	MapConfigType,
 } from '@World'
-import { WorldServer } from './ts/World/WorldServer'
+import { WorldServer } from '@WorldServer'
 // import fs from 'node:fs'
-import * as geckosServer from '@geckos.io/server'
+// import * as geckosServer from '@geckos.io/server'
 
 // Set the MIME type explicitly
 // express.static.mime.define({ 'application/wasm': ['wasm'] })
@@ -72,7 +72,7 @@ export default class AppServer extends EventTarget {
 	private port: number
 	private server: http.Server | null
 	private io: Server | null
-	private io_g: geckosServer.GeckosServer | null
+	// private io_g: geckosServer.GeckosServer | null
 	private wss: WebSocketServer | null
 	private app: express.Express
 
@@ -119,18 +119,21 @@ export default class AppServer extends EventTarget {
 		this.allUsers = {}
 		this.allWorlds = {}
 		this.io = null
-		this.io_g = null
+		// this.io_g = null
 		this.wss = null
 
 		// const clientPath = path.resolve(__dirname, '../client_window')
-		const clientPath = hostPath === '.' ? path.resolve(__dirname, '../client') : path.resolve(hostPath, '../client')
 		const basePath = hostPath === '.' ? path.resolve(__dirname, '../@World') : path.resolve(hostPath, '../@World')
-		console.log(clientPath)
+		const baseClientPath = hostPath === '.' ? path.resolve(__dirname, '../@WorldClient') : path.resolve(hostPath, '../@WorldClient')
+		const clientPath = hostPath === '.' ? path.resolve(__dirname, '../client') : path.resolve(hostPath, '../client')
 		console.log(basePath)
+		console.log(baseClientPath)
+		console.log(clientPath)
 		this.app = express()
 		this.app.use('/', express.static(clientPath))
 		this.app.use('/client', express.static(clientPath))
 		this.app.use('/@World', express.static(basePath))
+		this.app.use('/@WorldClient', express.static(baseClientPath))
 		this.app.use('/audios', express.static(path.join(clientPath, 'audios')))
 		this.app.use('/images', express.static(path.join(clientPath, 'images')))
 		this.app.use('/models', express.static(path.join(clientPath, 'models')))
@@ -876,7 +879,7 @@ export default class AppServer extends EventTarget {
 			this.wss = null
 		}
 
-		{
+		/* {
 			this.io_g = geckosServer.geckos({
 				iceServers: geckosServer.iceServers,
 				portRange: {
@@ -903,7 +906,7 @@ export default class AppServer extends EventTarget {
 					channel.room.emit('chat message', data)
 				})
 			})
-		}
+		} */
 
 		this.server.listen(this.port, privateHost ? '127.0.0.1' : '0.0.0.0', () => {
 			console.log(`Server listening on port ${this.port}.`)

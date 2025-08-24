@@ -1,0 +1,55 @@
+<mxfile host="65bd71144e">
+    <diagram id="7cx2JdZs4cbP85rYaWpW" name="Page-1">
+        <mxGraphModel dx="633" dy="537" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="Code Map" style="swimlane;startSize=20;horizontal=1;childLayout=treeLayout;horizontalTree=0;sortEdges=1;resizable=0;containerType=tree;fontSize=12;gradientColor=none;fillColor=none;strokeColor=#999999;fontColor=#999999;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="110" width="420" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="@World" style="whiteSpace=wrap;html=1;strokeColor=#999999;fontColor=#999999;fillColor=none;" parent="2" vertex="1">
+                    <mxGeometry x="195" y="40" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="@WorldClient" style="whiteSpace=wrap;html=1;strokeColor=#999999;fontColor=#999999;fillColor=none;" parent="2" vertex="1">
+                    <mxGeometry x="90" y="130" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=1;curved=0;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;startSize=6;endSize=6;strokeColor=#999999;" parent="2" source="3" target="6" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=1;curved=0;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;startSize=6;endSize=6;fontColor=#999999;strokeColor=#999999;" parent="2" source="6" target="15" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-136" y="230" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="15" value="offlline" style="whiteSpace=wrap;html=1;fontColor=#999999;strokeColor=#999999;fillColor=none;" parent="2" vertex="1">
+                    <mxGeometry x="20" y="220" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=1;curved=0;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;startSize=6;endSize=6;fontColor=#999999;strokeColor=#999999;" parent="2" source="6" target="17" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="-136" y="230" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="17" value="client" style="whiteSpace=wrap;html=1;fontColor=#999999;strokeColor=#999999;fillColor=none;" parent="2" vertex="1">
+                    <mxGeometry x="160" y="220" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="server" style="whiteSpace=wrap;html=1;fontColor=#999999;strokeColor=#999999;fillColor=none;" parent="2" vertex="1">
+                    <mxGeometry x="300" y="220" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="@WorldServer" style="whiteSpace=wrap;html=1;fontColor=#999999;strokeColor=#999999;fillColor=none;" parent="2" vertex="1">
+                    <mxGeometry x="300" y="130" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=1;curved=0;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;startSize=6;endSize=6;strokeColor=#999999;" parent="2" source="3" target="10" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=1;curved=0;sourcePerimeterSpacing=0;targetPerimeterSpacing=0;startSize=6;endSize=6;fontColor=#999999;strokeColor=#999999;" parent="2" source="10" target="21" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="305" y="230" as="sourcePoint"/>
+                        <Array as="points">
+                            <mxPoint x="350" y="190"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

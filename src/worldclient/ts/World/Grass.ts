@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-import { WorldClient } from './WorldClient'
+import { WorldClient } from '@WorldClient'
 import { IWorldEntity, EntityType } from '@World'
 import { Noise } from '../Utils/Perlin'
 import { GrassShader } from './GrassShader'
