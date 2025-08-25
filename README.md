@@ -86,7 +86,7 @@ npm run start:server
 #### 24th August 2025
 
 -	@WorldClient  and @WorldServer splitted from client.ts and server.ts
--	Files can be imported to THREE.js Editor, need to disable CORS in browser (use extension)
+-	Files can be imported to THREE.js Editor, ~~need to disable CORS in browser (use extension)~~ github pages is accessable in editor so imported from them.
 	```
 	// host files using
 	npx serve ./dist
