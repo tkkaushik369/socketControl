@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/x-icon" href="../client/images/favicon.ico" />
+		<title>Browser Multiplayer (Single HTML)</title>
+		<style>
+			body {
+				font-family: sans-serif;
+				padding: 20px;
+			}
+			#clients {
+				margin-top: 20px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Browser Multiplayer Server</h1>
+		<button id="addClient">Add Client</button>
+
+		<div id="clients">
+			<h2>Connected Clients:</h2>
+			<ul id="clientList"></ul>
+		</div>
+		<script src="./@World/index.js" defer></script>
+		<script src="./@WorldClient/index.js" defer></script>
+		<script>
+			;(function () {
+				const isClient = window.location.hash === '#client'
+				const channel = new BroadcastChannel('game_channel')
+
+				if (isClient) {
+					// ===== CLIENT =====
+					const clientId = Math.floor(Math.random() * 10000)
+					document.body.innerHTML = `
+					<h1>Client</h1>
+					<div id="status">Client ID: ${clientId}</div>
+					<button id="sendMessage">Send Random Message</button>
+					`
+
+					const status = document.getElementById('status')
+
+					// Notify server of join
+					channel.postMessage({ type: 'join', clientId })
+
+					document.getElementById('sendMessage').addEventListener('click', () => {
+						const msg = 'Hello ' + Math.floor(Math.random() * 1000)
+						channel.postMessage({ type: 'message', clientId, payload: msg })
+					})
+
+					// Notify server when window is closing
+					window.addEventListener('beforeunload', () => {
+						channel.postMessage({ type: 'leave', clientId })
+					})
+
+					// Listen for server broadcasts
+					channel.onmessage = (e) => {
+						const { type, payload } = e.data
+						if (type === 'broadcast') {
+							status.textContent = `Client ${clientId} received: ${payload}`
+						}
+					}
+				} else {
+					// ===== SERVER =====
+					const clientList = document.getElementById('clientList')
+					const clients = {}
+
+					channel.onmessage = (e) => {
+						const { type, clientId, payload } = e.data
+
+						if (type === 'join') {
+							if (!clients[clientId]) {
+								clients[clientId] = true
+								const li = document.createElement('li')
+								li.id = 'client-' + clientId
+								li.textContent = `Client ${clientId} joined`
+								clientList.appendChild(li)
+							}
+						} else if (type === 'leave') {
+							delete clients[clientId]
+							const li = document.getElementById('client-' + clientId)
+							if (li) li.remove()
+							console.log(`Client ${clientId} left`)
+						} else if (type === 'message') {
+							console.log(`Client ${clientId} says:`, payload)
+							// Broadcast to all clients
+							channel.postMessage({ type: 'broadcast', payload: `Server received: ${payload}` })
+						}
+					}
+
+					document.getElementById('addClient').addEventListener('click', () => {
+						window.open(location.href + '#client', '_blank', 'width=400,height=400')
+					})
+				}
+			})()
+		</script>
+	</body>
+</html>

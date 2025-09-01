@@ -83,7 +83,7 @@ npm run start:server
 
 ### Features
 
-#### 29th August 2025
+#### 02th September 2025
 -   Vehicles First Person Camera Lock Added
 -   Teleport to Camera Lock Added, if inside vehicle it will teleports with you.
 -   Race Lap Count Added (Unfinished)
