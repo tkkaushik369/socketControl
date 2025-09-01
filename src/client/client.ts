@@ -1,5 +1,8 @@
 import './css/main.css'
 import './css/titleBar.css'
+import './css/animate.css'
+import './css/cubeLoader.css'
+import './css/loadingScreen.css'
 import { FRAME_VISBLE } from '../LoaderMode'
 import {
 	Common,
@@ -159,7 +162,25 @@ export default class AppClient {
 		this.sID = ''
 		this.lastUpdate = Date.now()
 
-		this.SetupConnection()
+		this.worldClient.loadingManager.addEventListener('user_interface', (evt: any) => {
+			// console.log('user_interface', evt.detail)
+			const work_ele = document.getElementById('work')
+			if (work_ele !== null) work_ele.style.display = evt.detail.visible ? 'block' : 'none'
+		})
+		this.worldClient.loadingManager.addEventListener('loading_screen', (evt: any) => {
+			// console.log('loading_screen', evt.detail)
+			const loading_ele = document.getElementById('loading-screen')
+			if (loading_ele !== null) loading_ele.style.display = evt.detail.visible ? 'flex' : 'none'
+		})
+		this.worldClient.loadingManager.addEventListener('loading_progress', (evt: any) => {
+			// console.log('loading_progress', evt.detail)
+			const loading_percent_ele = document.getElementById('loading-text-percent')
+			if (loading_percent_ele !== null)
+				loading_percent_ele.innerText =
+					evt.detail.progress !== 1 ? `${Number(evt.detail.progress * 100).toFixed(2)}%` : '100%'
+		})
+
+		this.SetupConnection(false)
 
 		this.divs.chatInput.addEventListener('submit', (e) => {
 			e.preventDefault()
@@ -172,7 +193,7 @@ export default class AppClient {
 		})
 	}
 
-	private SetupConnection() {
+	private SetupConnection(isReconnect: boolean) {
 		// Connection
 		if (Common.conn === Communication.SocketIO) {
 			this.io = io({ parser: parser })
@@ -256,7 +277,11 @@ export default class AppClient {
 			const ws = this.ws
 			this.ws.binaryType = 'arraybuffer'
 			this.ws.onopen = (event) => {
-				this.OnConnect()
+				if (isReconnect) {
+					location.reload()
+				} else {
+					this.OnConnect()
+				}
 			}
 			this.ws.onmessage = (event) => {
 				let data = {} as any
@@ -326,7 +351,9 @@ export default class AppClient {
 			this.ws.onclose = (event) => {
 				console.log('Close: ', JSON.stringify(event))
 				this.OnDisConnect(this.sID)
-				setTimeout(this.SetupConnection, 1000)
+				setTimeout(() => {
+					this.SetupConnection(true)
+				}, 1000)
 				this.ws == null
 			}
 			this.ws.onerror = (event) => {
@@ -412,7 +439,7 @@ export default class AppClient {
 		Object.keys(this.worldClient.users).forEach((sID) => {
 			if (this.worldClient.users[sID] !== undefined) {
 				if (str === null) {
-						this.worldClient.users[sID].removeUser(this.worldClient)
+					this.worldClient.users[sID].removeUser(this.worldClient)
 					if (this.sID !== sID) delete this.worldClient.users[sID]
 				}
 			}

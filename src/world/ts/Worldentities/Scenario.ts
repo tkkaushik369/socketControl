@@ -4,9 +4,10 @@ import { VehicleSpawnPoint } from '../SpawnPoints/VehicleSpawnPoint'
 import { CharacterSpawnPoint } from '../SpawnPoints/CharacterSpawnPoint'
 import { ShapeSpawnPoint } from '../SpawnPoints/ShapeSpawnPoint'
 import { WorldBase } from '../WorldBase'
-import { Character } from '../Characters/Character'
+// import { Character } from '../Characters/Character'
 import { Vehicle } from '../Vehicles/Vehicle'
 import { Utility } from '../Core/Utility'
+import { RaceContent } from './RaceContent'
 
 export class Scenario {
 	public name: string
@@ -16,15 +17,21 @@ export class Scenario {
 	public descriptionTitle: string
 	public descriptionContent: string
 
-	private rootNode: THREE.Object3D
+	public rootNode: THREE.Object3D
 	public spawnPoints: ISpawnPoint[] = []
 	private invisible: boolean = false // Vehicle spwn
 	public initialCameraAngle: number
 
 	public playerPosition: THREE.Vector3 | null
 	public isPlayerPositionNearVehicle: boolean
+	public raceContent: RaceContent | null
 
 	constructor(root: THREE.Object3D, world: WorldBase) {
+		// bind functions
+		this.createLaunchLink = this.createLaunchLink.bind(this)
+		this.launch = this.launch.bind(this)
+
+		// init
 		this.rootNode = root
 		this.world = world
 		this.name = '_name_'
@@ -33,10 +40,15 @@ export class Scenario {
 		this.initialCameraAngle = 0
 		this.playerPosition = null
 		this.isPlayerPositionNearVehicle = false
+		this.raceContent = null
 
 		// Scenario
 		if (root.userData.hasOwnProperty('name')) {
 			this.name = root.userData.name
+			let name = root.userData.name
+			if (name.toLowerCase().includes('race')) {
+				this.raceContent = new RaceContent(this)
+			}
 		}
 		if (root.userData.hasOwnProperty('default') && root.userData.default === 'true') {
 			this.default = true
@@ -90,6 +102,9 @@ export class Scenario {
 	public createLaunchLink(): void {
 		this.world.scenariosCalls[this.name] = () => {
 			this.world.launchScenario(this.name, this.world.isClient)
+			if (this.raceContent !== null) {
+				this.raceContent.launch()
+			}
 		}
 
 		if (this.world.scenarioGUIFolderCallback !== null) {
@@ -101,6 +116,7 @@ export class Scenario {
 
 	public launch(world: WorldBase): void {
 		// Spawn Vehicles
+		const isRace = this.raceContent === null? false : true
 		this.spawnPoints.forEach((sp) => {
 			if (sp.userData.hasOwnProperty('driver') && sp.userData.driver === 'player') {
 				const pos = Utility.GridPosition(world.users, new THREE.Vector3(), 3, 3, 2)
@@ -114,12 +130,17 @@ export class Scenario {
 							player: world.users[sID],
 							position: pos[--tot],
 						}
-						let ent = vsp.spawn(world) // only vehicles
+						let ent = vsp.spawn(world, isRace) // only vehicles
 						if (ent === null) {
 							console.log('Unknown Spawn: ', vsp.userData)
 						}
 					}
 				})
+			} else if (sp.userData.hasOwnProperty('driver') && sp.userData.driver === 'ai') {
+				let ent: Promise<Vehicle | null> = (sp as VehicleSpawnPoint).spawn(world, isRace) // only vehicles and shapes
+				if (ent === null) {
+					console.log('Unknown Spawn: ', ent)
+				}
 			} else {
 				let ent: ISpawnPoint = sp.spawn(world) // only vehicles and shapes
 				if (ent === null) {

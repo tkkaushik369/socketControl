@@ -83,6 +83,11 @@ npm run start:server
 
 ### Features
 
+#### 29th August 2025
+-   Vehicles First Person Camera Lock Added
+-   Teleport to Camera Lock Added, if inside vehicle it will teleports with you.
+-   Race Lap Count Added (Unfinished)
+
 #### 24th August 2025
 
 -	@WorldClient  and @WorldServer splitted from client.ts and server.ts

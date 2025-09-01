@@ -20,6 +20,10 @@ const CameraOperator: UiControlsType = [
 		keys: ['Shift', '+', 'C'],
 		desc: 'Exit free camera mode',
 	},
+	{
+		keys: ['T'],
+		desc: 'Teleport to camera',
+	},
 ]
 
 const Character: UiControlsType = [

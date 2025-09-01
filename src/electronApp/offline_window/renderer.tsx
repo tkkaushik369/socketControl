@@ -1,5 +1,8 @@
 import '../../client/css/main.css'
 import '../../client/css/titleBar.css'
+import '../../client/css/animate.css'
+import '../../client/css/cubeLoader.css'
+import '../../client/css/loadingScreen.css'
 // import React from 'react'
 // import ReactDOM from 'react-dom/client'
 // import { App } from '../common/App'
@@ -56,6 +59,26 @@ class AppOffline {
 			this.ForLaunchMap,
 			this.ForLaunchScenario
 		)
+
+		{
+			this.worldClient.loadingManager.addEventListener('user_interface', (evt: any) => {
+				// console.log('user_interface', evt.detail)
+				const work_ele = document.getElementById('work')
+				if (work_ele !== null) work_ele.style.display = evt.detail.visible ? 'block' : 'none'
+			})
+			this.worldClient.loadingManager.addEventListener('loading_screen', (evt: any) => {
+				// console.log('loading_screen', evt.detail)
+				const loading_ele = document.getElementById('loading-screen')
+				if (loading_ele !== null) loading_ele.style.display = evt.detail.visible ? 'flex' : 'none'
+			})
+			this.worldClient.loadingManager.addEventListener('loading_progress', (evt: any) => {
+				// console.log('loading_progress', evt.detail)
+				const loading_percent_ele = document.getElementById('loading-text-percent')
+				if (loading_percent_ele !== null)
+					loading_percent_ele.innerText =
+						evt.detail.progress !== 1 ? `${Number(evt.detail.progress * 100).toFixed(2)}%` : '100%'
+			})
+		}
 
 		{
 			const UID: string = 'Player_Offline'
@@ -296,6 +319,19 @@ if (rootElement !== null) {
 			No Ping
 		</div>
 		<div id="controls">f</div>
+
+		<div id="loading-screen">
+			<div id="loading-screen-background"></div>
+			<h1 id="main-title" class="sb-font">Sketchbook 0.4</h1>
+			<div class="cubeWrap">
+				<div class="cube">
+					<div class="faces1"></div>
+					<div class="faces2"></div>
+				</div>
+			</div>
+			<div id="loading-text">Loading...<i id="loading-text-percent"></i></div>
+		</div>
+
 		<div id="work">
 			<div id="controls-main"></div>
 		</div>
@@ -306,6 +342,7 @@ if (rootElement !== null) {
 				<input id="chat-message" type="text" name="chat-message" />
 			</form>
 		</div>-->
+		<div id="console"></div>
 		<div id="all-audios"></div>
 		<div id="gui-menu">
 			<div id="gui-menu-container">

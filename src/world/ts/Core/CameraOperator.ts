@@ -7,6 +7,7 @@ import { Player } from '../Core/Player'
 import { KeyBinding } from './KeyBinding'
 import { Character } from '../Characters/Character'
 import { UiControlsGroup } from '../Enums/UiControlsGroup'
+import { Vehicle } from '../Vehicles/Vehicle'
 
 export class CameraOperator implements IUpdatable, IInputReceiver {
 	public updateOrder: number = 4
@@ -35,6 +36,10 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 	public followMode: boolean = false
 
 	public characterCaller: Character | null
+
+	private lastMouseMoveTime: number = performance.now()
+	private autoRotateDelay: number = 400
+	private autoRotateLerpFactor: number = 0.1
 
 	constructor(
 		player: Player,
@@ -94,6 +99,7 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 		this.theta %= 360
 		this.phi += deltaY * (this.sensitivity.y / 2)
 		this.phi = Math.min(85, Math.max(-85, this.phi))
+		this.lastMouseMoveTime = performance.now()
 	}
 
 	public update(timestep: number, unscaledTimeStep: number) {
@@ -118,7 +124,42 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 				this.target.z +
 				this.radius * Math.cos((this.theta * Math.PI) / 180) * Math.cos((this.phi * Math.PI) / 180)
 			this.camera.updateMatrix()
-			this.camera.lookAt(this.target)
+
+			const currentTime = performance.now()
+			const timeSinceLastMouseMove = currentTime - this.lastMouseMoveTime
+
+			let vehicle: Vehicle | null = null
+			if (
+				this.player.character !== null &&
+				this.player.character.occupyingSeat !== null &&
+				this.player.character.occupyingSeat.vehicle instanceof Vehicle &&
+				this.characterCaller === null
+			) {
+				vehicle = this.player.character.occupyingSeat.vehicle
+			}
+
+			if (vehicle !== null && vehicle.getIsFirstPersonView()) {
+				let lookDirection = new THREE.Vector3(0, 0, -1)
+				lookDirection.applyQuaternion(vehicle.quaternion)
+				let targetPosition = this.target.clone().add(lookDirection)
+
+				if (timeSinceLastMouseMove > this.autoRotateDelay) {
+					const dummy = new THREE.Object3D()
+					dummy.position.copy(this.camera.position)
+					dummy.lookAt(targetPosition)
+					const targetQuat = dummy.quaternion
+					let factor = this.autoRotateLerpFactor
+					if (this.camera.quaternion.angleTo(targetQuat) < 0.05) factor = 0.025
+					this.camera.quaternion.slerp(targetQuat, factor)
+					this.camera.up.set(0, 1, 0)
+				} else {
+					this.camera.up.set(0, 1, 0)
+					this.camera.lookAt(this.target)
+				}
+				const angles = Utility.quaternionToEuler(this.camera.quaternion)
+				this.theta = angles.theta
+				this.phi = angles.phi
+			} else this.camera.lookAt(this.target)
 		}
 
 		this.player.data.cameraRadius = this.radius
@@ -139,6 +180,19 @@ export class CameraOperator implements IUpdatable, IInputReceiver {
 			if (this.characterCaller !== null) {
 				this.player.inputManager.setInputReceiver(this.characterCaller)
 				this.characterCaller = null
+			}
+		} else if (code === 'KeyT' && pressed === true) {
+			if (this.characterCaller !== null) {
+				if (this.characterCaller.controlledObject) {
+					const body = this.characterCaller.controlledObject.collision
+					body.position.set(this.target.x, this.target.y, this.target.z)
+					body.interpolatedPosition.set(this.target.x, this.target.y, this.target.z)
+					body.velocity.setZero()
+					body.angularVelocity.setZero()
+				} else {
+					this.characterCaller.characterCapsule.body.position.set(this.target.x, this.target.y, this.target.z)
+					this.characterCaller.characterCapsule.body.velocity.set(0, 0, 0)
+				}
 			}
 		} else {
 			for (const action in this.actions) {

@@ -19,6 +19,7 @@ import { getMapConfig, MapConfigType } from './MapConfigs'
 import { Water } from './Worldentities/Water'
 import { BaseScene } from './MapConfigs/BaseScene'
 import { ShapeEntityBase } from './Physics/ShapeEntity/ShapeEntityBase'
+import { LoadingManager } from './Core/LoadingManager'
 
 export abstract class WorldBase {
 	public worldId: string | null = null
@@ -60,6 +61,7 @@ export abstract class WorldBase {
 	public worldObjects: CANNON.Body[]
 
 	public chatData: { from: string; message: string }[]
+	public loadingManager: LoadingManager
 
 	// server
 	protected updatePhysicsCallback: Function | null
@@ -136,6 +138,7 @@ export abstract class WorldBase {
 		this.launchMapCallback = null
 		this.launchScenarioCallback = null
 		this.listener = null
+		this.loadingManager = new LoadingManager(this)
 
 		// Maps
 		this.MapConfig = getMapConfig(this, maps)
@@ -166,6 +169,7 @@ export abstract class WorldBase {
 			Debug_Helper: true,
 			Debug_Pings: true,
 			Debug_Controls: true,
+			Debug_Console: true,
 			PostProcess: false,
 			Textures: true,
 			Shadows: true,
@@ -608,6 +612,13 @@ export abstract class WorldBase {
 		for (let i = 0; i < this.vehicles.length; i++) {
 			this.remove(this.vehicles[i])
 			i--
+		}
+
+		for (let i = 0; i < this.scenarios.length; i++) {
+			const raceContent = this.scenarios[i].raceContent
+			if (raceContent !== null) {
+				this.remove(raceContent)
+			}
 		}
 
 		if (isClean) {

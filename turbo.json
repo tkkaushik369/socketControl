@@ -2,32 +2,37 @@
 	"$schema": "https://turborepo.com/schema.json",
 	"tasks": {
 		"build:world": {
-			"inputs": ["src/**"],
+			"inputs": ["src/world/**"],
 			"outputs": ["dist/@World/**"]
 		},
 		"build:worldclient": {
-			"inputs": ["src/**"],
+			"inputs": ["src/worldclient/**"],
 			"dependsOn": ["build:world"],
 			"outputs": ["dist/@WorldClient/**"]
 		},
 		"build:worldserver": {
-			"inputs": ["src/**"],
+			"inputs": ["src/worldserver/**"],
 			"dependsOn": ["build:world"],
 			"outputs": ["dist/@WorldServer/**"]
 		},
 		"build:server": {
-			"inputs": ["src/**"],
+			"inputs": ["src/server/**"],
 			"dependsOn": ["build:worldserver"],
 			"outputs": ["dist/server/**"]
 		},
 		"build:client": {
-			"inputs": ["src/**"],
+			"inputs": ["src/client/**"],
 			"dependsOn": ["build:worldclient"],
 			"outputs": ["dist/client/**"]
 		},
 		"build:offline": {
-			"inputs": ["src/**"],
-			"dependsOn": ["build:world"],
+			"inputs": [
+				"src/electronApp/offline_window/**",
+				"src/electronApp/commmon/**",
+				"src/client/css/**",
+				"src/LoaderMode.ts"
+			],
+			"dependsOn": ["build:worldclient"],
 			"outputs": ["dist/offline/**"]
 		},
 		"build_struct": {

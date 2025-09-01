@@ -27,10 +27,10 @@ export const config_offline_common: Configuration = {
 		}),
 		new CopyPlugin({
 			patterns: [
-				/* {
-					from: path.resolve(__dirname, "./client/index.html"),
-					to: path.resolve(__dirname, "../dist/client_window"),
-				}, */
+				{
+					from: path.resolve(__dirname, "./electronApp/offline_window/server_tab.html"),
+					to: path.resolve(__dirname, "../dist/offline"),
+				},
 				{
 					from: path.resolve(__dirname, './index.html'),
 					to: path.resolve(__dirname, '../dist'),

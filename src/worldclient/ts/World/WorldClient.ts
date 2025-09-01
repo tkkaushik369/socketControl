@@ -19,6 +19,7 @@ import { Ocean } from './Ocean'
 import { Grass } from './Grass'
 import _ from 'lodash'
 import { SpeakerClient } from './SpeakerClient'
+import { InfoStack } from '../Core/InfoStack'
 
 export class WorldClient extends WorldBase {
 	private parentDom: HTMLDivElement
@@ -55,6 +56,8 @@ export class WorldClient extends WorldBase {
 	public cannonDebugRenderer: CannonDebugRenderer
 	private updateAnimationCallback: Function | null = null
 
+	private infoStack: InfoStack
+
 	constructor(
 		maps: MapConfigType[],
 		controlsDom: HTMLDivElement,
@@ -81,6 +84,7 @@ export class WorldClient extends WorldBase {
 		this.toggleHelpersFunc = this.toggleHelpersFunc.bind(this)
 		this.togglePingsFunc = this.togglePingsFunc.bind(this)
 		this.toggleControlsFunc = this.toggleControlsFunc.bind(this)
+		this.toggleConsoleFunc = this.toggleConsoleFunc.bind(this)
 		this.togglePostFXAA = this.togglePostFXAA.bind(this)
 		this.togglePostOutline = this.togglePostOutline.bind(this)
 		this.toggleTextures = this.toggleTextures.bind(this)
@@ -90,6 +94,7 @@ export class WorldClient extends WorldBase {
 		this.timeScaleFunc = this.timeScaleFunc.bind(this)
 		this.sunGuiChanged = this.sunGuiChanged.bind(this)
 		this.launchMap = this.launchMap.bind(this)
+		this.launchScenario = this.launchScenario.bind(this)
 		this.animate = this.animate.bind(this)
 
 		// init
@@ -99,6 +104,9 @@ export class WorldClient extends WorldBase {
 		this.launchMapCallback = launchMapCallback
 		this.launchScenarioCallback = launchScenarioCallback
 		this.uiControls = UiControlsGroup.None
+		this.infoStack = new InfoStack()
+
+		this.add(this.infoStack)
 
 		// Renderer
 		if (renderer === null) {
@@ -211,12 +219,17 @@ export class WorldClient extends WorldBase {
 			this.outlinePass.edgeGlow = 0.0
 			this.outlinePass.edgeThickness = 0.5
 			this.outlinePass.pulsePeriod = 0.0
-			const textureLoader = new THREE.TextureLoader()
-			textureLoader.load('../client/images/tri_pattern.jpg', (texture) => {
-				this.outlinePass.patternTexture = texture
-				texture.wrapS = THREE.RepeatWrapping
-				texture.wrapT = THREE.RepeatWrapping
-			}, undefined, undefined)
+			/* const textureLoader = new THREE.TextureLoader()
+			textureLoader.load(
+				'../client/images/tri_pattern.jpg',
+				(texture) => {
+					this.outlinePass.patternTexture = texture
+					texture.wrapS = THREE.RepeatWrapping
+					texture.wrapT = THREE.RepeatWrapping
+				},
+				undefined,
+				undefined
+			) */
 			this.outlinePass.selectedObjects = []
 			this.outlinePass.usePatternTexture = false
 
@@ -231,7 +244,7 @@ export class WorldClient extends WorldBase {
 
 		// Stats
 		this.stats = new Stats()
-		this.stats.dom.id = "stats"
+		this.stats.dom.id = 'stats'
 		this.networkStats = new Stats.Panel('PING', '#dd0', '#220')
 		this.stats.addPanel(this.networkStats)
 		this.stats.showPanel(0)
@@ -239,7 +252,7 @@ export class WorldClient extends WorldBase {
 
 		// GUI
 		this.gui = new Pane()
-		this.gui.element.id = "gui"
+		this.gui.element.id = 'gui'
 		// this.parentDom.appendChild(this.gui.element)
 
 		let folderSettings = this.gui.addFolder({ title: 'Settings', expanded: false })
@@ -257,6 +270,7 @@ export class WorldClient extends WorldBase {
 		debugSettings.addBinding(this.settings, 'Debug_Helper').on('change', this.toggleHelpersFunc)
 		debugSettings.addBinding(this.settings, 'Debug_Pings').on('change', this.togglePingsFunc)
 		debugSettings.addBinding(this.settings, 'Debug_Controls').on('change', this.toggleControlsFunc)
+		debugSettings.addBinding(this.settings, 'Debug_Console').on('change', this.toggleConsoleFunc)
 
 		let postProcess = folderSettings.addFolder({ title: 'Post Process', expanded: false })
 		postProcess.addBinding(this.settings, 'PostProcess')
@@ -355,9 +369,10 @@ export class WorldClient extends WorldBase {
 			this.debugPhysicsOpacityFunc({ value: this.settings.Debug_Physics_MeshOpacity })
 			this.debugPhysicsEdgesFunc({ value: this.settings.Debug_Physics_MeshEdges })
 			this.toggleStatsFunc({ value: this.settings.Debug_FPS })
-			this.toggleHelpersFunc({ value: this.settings.Debug_Controls })
+			this.toggleHelpersFunc({ value: this.settings.Debug_Helper })
 			this.togglePingsFunc({ value: this.settings.Debug_Pings })
-			this.toggleControlsFunc({ value: this.settings.Debug_Helper })
+			this.toggleControlsFunc({ value: this.settings.Debug_Controls })
+			this.toggleConsoleFunc({ value: this.settings.Debug_Console })
 			this.togglePostFXAA({ value: this.settings.FXAA })
 			this.togglePostOutline({ value: this.settings.Outline })
 			this.pointLockFunc({ value: this.settings.Pointer_Lock })
@@ -372,11 +387,27 @@ export class WorldClient extends WorldBase {
 	}
 
 	public getGLTF(path: string, callback: Function) {
+		let trackerEntry = this.loadingManager.addLoadingEntry(path)
 		const resPath = super.getGLTF(path, callback)
 		const loader = new GLTFLoader()
-		loader.load(resPath, (gltf: GLTF) => {
-			callback(gltf)
-		})
+		loader.load(
+			resPath,
+			(gltf: GLTF) => {
+				callback(gltf)
+				this.loadingManager.doneLoading(trackerEntry)
+			},
+			(xhr) => {
+				if (xhr.lengthComputable) {
+					this.loadingManager.dispatchEvent(
+						new CustomEvent('loading_progress', { detail: { progress: xhr.loaded / xhr.total } })
+					)
+					trackerEntry.progress = xhr.loaded / xhr.total
+				}
+			},
+			(error) => {
+				console.error(error)
+			}
+		)
 		return resPath
 	}
 
@@ -423,6 +454,54 @@ export class WorldClient extends WorldBase {
 			}
 		})
 
+		this.scenarios.forEach((scenario) => {
+			if (scenario.raceContent !== null) {
+				scenario.raceContent.addEventListener('race_update', (evt: any) => {
+					// console.log('race_update', evt.detail)
+					const race = document.getElementById('race')
+					if (race !== null) {
+						const racers: { uID: string; lapCount: number; checkpointIndex: number }[] = []
+						for (let i = 0; i < this.characters.length; i++) {
+							if (this.characters[i].lapCount > -1) {
+								racers.push({
+									uID: this.characters[i].uID || "",
+									lapCount: this.characters[i].lapCount,
+									checkpointIndex: this.characters[i].nextCheckpointIndex,
+								})
+							}
+						}
+						for (let i = 0; i < racers.length - 1; i++) {
+							for (let j = i + 1; j < racers.length; j++) {
+								if (racers[i].lapCount < racers[j].lapCount) {
+									let temp = racers[i]
+									racers[i] = racers[j]
+									racers[j] = temp
+								} else if (racers[i].lapCount === racers[j].lapCount) {
+									if (racers[i].checkpointIndex < racers[j].checkpointIndex) {
+										let temp = racers[i]
+										racers[i] = racers[j]
+										racers[j] = temp
+									}
+								}
+							}
+						}
+						race.innerHTML = ''
+						for (let i = 0; i < racers.length; i++) {
+							const li_ele = document.createElement('a')
+							li_ele.innerText = `[${racers[i].lapCount.toString().padStart(2, '0')}/${racers[i].checkpointIndex.toString().padStart(2, '0')}]: ${racers[i].uID}`
+							race.appendChild(li_ele)
+							race.appendChild(document.createElement('br'))
+						}
+					}
+				})
+				scenario.raceContent.addEventListener('race_update_lap', (evt: any) => {
+					console.log('race_update_lap', evt.detail)
+				})
+				scenario.raceContent.addEventListener('race_update_illegal', (evt: any) => {
+					console.log('race_update_illegal', evt.detail)
+				})
+			}
+		})
 		// this.add(new SpeakerClient(this, this.renderer, this.camera))
 	}
 
@@ -433,7 +512,7 @@ export class WorldClient extends WorldBase {
 		this.camera.aspect = width / height
 		this.camera.updateProjectionMatrix()
 
-		if(this.isOwnRenderer) this.renderer.setSize(width, height)
+		if (this.isOwnRenderer) this.renderer.setSize(width, height)
 		this.labelRenderer.setSize(width, height)
 		const pixelRatio = this.renderer.getPixelRatio()
 
@@ -547,6 +626,10 @@ export class WorldClient extends WorldBase {
 		this.controlsDom.style.display = en.value ? 'block' : 'none'
 	}
 
+	private toggleConsoleFunc(en: { value: boolean }) {
+		;(document.getElementById('console') as HTMLDivElement).style.display = en.value ? 'block' : 'none'
+	}
+
 	private togglePostFXAA(en: { value: boolean }) {
 		this.fxaaPass.enabled = en.value
 	}
@@ -600,14 +683,20 @@ export class WorldClient extends WorldBase {
 		this.csm.lightDirection = new THREE.Vector3().copy(this.sun).normalize().multiplyScalar(-1)
 
 		this.renderer.toneMappingExposure = this.effectController.exposure
-		if(this.isOwnRenderer) this.renderer.render(this.scene, this.camera)
+		if (this.isOwnRenderer) this.renderer.render(this.scene, this.camera)
 		this.labelRenderer.render(this.scene, this.camera)
 	}
 
 	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
 		super.launchMap(mapID, isCallback, isLaunched)
+		if (!isCallback) this.infoStack.addMessage(`Map Loaded: ${mapID}`)
 		// this.oceans = []
 		// this.grasses = []
+	}
+
+	public launchScenario(scenarioID: string | null, isCallback: boolean): void {
+		super.launchScenario(scenarioID, isCallback)
+		if (!isCallback) this.infoStack.addMessage(`Scenario Loaded: ${scenarioID}`)
 	}
 
 	private animate() {
@@ -649,7 +738,7 @@ export class WorldClient extends WorldBase {
 		if (this.settings.Debug_Physics) this.cannonDebugRenderer.update()
 
 		if (this.settings.PostProcess) this.composer.render()
-		else if(this.isOwnRenderer) this.renderer.render(this.scene, this.camera)
+		else if (this.isOwnRenderer) this.renderer.render(this.scene, this.camera)
 		this.labelRenderer.render(this.scene, this.camera)
 	}
 }

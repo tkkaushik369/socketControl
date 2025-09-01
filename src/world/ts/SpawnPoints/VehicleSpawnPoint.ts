@@ -51,7 +51,7 @@ export class VehicleSpawnPoint extends SpawnBase {
 		}
 	}
 
-	public async spawn(world: WorldBase): Promise<Vehicle | null> {
+	public async spawn(world: WorldBase, inRace = false): Promise<Vehicle | null> {
 		super.spawn(world)
 		if (world.lastMapID === null) return null
 		if (this.type === null) return null
@@ -64,6 +64,10 @@ export class VehicleSpawnPoint extends SpawnBase {
 			// world.getGLTF('boxman.glb', (gltf: any) => {
 			character.setModel(model, world.isClient)
 			character.uID = vehicle.uID + '_driver'
+			if(inRace) {
+				character.nextCheckpointIndex = 0
+				character.lapCount = 0
+			}
 			// })
 			world.add(character)
 			if (player !== undefined) {
@@ -128,11 +132,12 @@ export class VehicleSpawnPoint extends SpawnBase {
 										playerData !== undefined ? playerData.player : undefined
 									)
 								})
-							} else  callerCharacter(
-								this.clone(char.objCaller as any),
-								vehicle,
-								playerData !== undefined ? playerData.player : undefined
-							)
+							} else
+								callerCharacter(
+									this.clone(char.objCaller as any),
+									vehicle,
+									playerData !== undefined ? playerData.player : undefined
+								)
 							break
 						}
 					}

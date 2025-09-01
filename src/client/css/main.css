@@ -281,3 +281,28 @@ body {
 	box-sizing: border-box;
 	z-index: 1000000000;
 }
+
+#console {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	transform: translate(-50%, 0);
+	font-family: 'Courier New', Courier, monospace;
+	user-select: none;
+	opacity: 0.4;
+	background-color: #1a1a1a;
+	color: #66cc66;
+	padding: 4px;
+	min-width: 160px;
+	font-size: 12px;
+}
+
+#race {
+	position: absolute;
+	top: 8px;
+	right: 280px;
+	opacity: 0.4;
+	font-size: 12px;
+	padding: 4px;
+	background-color: #1a1a1a;
+}

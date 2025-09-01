@@ -274,6 +274,10 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 		this.setFirstPersonView(!this.firstPerson)
 	}
 
+	public getIsFirstPersonView(): boolean {
+		return this.firstPerson
+	}
+
 	public triggerAction(actionName: string, value: boolean): void {
 		// Get action and set it's parameters
 		let action = this.actions[actionName]

@@ -290,4 +290,30 @@ export class Utility {
 			return pos
 		}
 	}
+
+	static quaternionToEuler(quaternion: THREE.Quaternion) {
+		const { w, x, y, z } = quaternion
+
+		// Yaw (theta) - rotation around the Y-axis
+		const theta = Math.atan2(2 * (w * y + x * z), 1 - 2 * (y * y + x * x))
+
+		// Pitch (phi) - rotation around the X-axis
+		const sin_phi = 2 * (w * x - y * z)
+		let phi
+		if (Math.abs(sin_phi) >= 1) {
+			// Clamp, if sin_phi goes beyond the range
+			phi = Math.sin(sin_phi) * (Math.PI / 2) // 90 degrees in radians
+		} else {
+			phi = Math.asin(sin_phi)
+		}
+
+		// Convert radians to degrees
+		const thetaInDegrees = theta * (180 / Math.PI)
+		const phiInDegrees = phi * (180 / Math.PI)
+
+		return {
+			theta: thetaInDegrees,
+			phi: -phiInDegrees,
+		}
+	}
 }
