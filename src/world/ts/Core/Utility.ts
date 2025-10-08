@@ -9,6 +9,8 @@ import { Vehicle } from '../Vehicles/Vehicle'
 import { VehicleSeat } from '../Vehicles/VehicleSeat'
 import { Player } from './Player'
 
+type J2H = { type: string; props?: { [id: string]: string }; children?: string | J2H[] }[]
+
 export class Utility {
 	static getRight(obj: THREE.Object3D, space: Space = Space.Global): THREE.Vector3 {
 		const matrix = Utility.getMatrix(obj, space)
@@ -315,5 +317,51 @@ export class Utility {
 			theta: thetaInDegrees,
 			phi: -phiInDegrees,
 		}
+	}
+
+	static JSONtoHTML(json: J2H): DocumentFragment {
+		// create a fragment
+		const fragment = document.createDocumentFragment()
+
+		if (Array.isArray(json)) {
+			// convert each entry of array to DOM element
+			for (let entry of json) {
+				// create the element
+				const element = document.createElement(entry.type)
+
+				// if props available
+				// set them
+				if (entry.props !== undefined) {
+					for (let key in entry.props) {
+						element.setAttribute(key, entry.props[key])
+					}
+				}
+
+				// if array of children
+				if (entry.children !== undefined) {
+					if (Array.isArray(entry.children)) {
+						// recursively convert the children to DOM
+						// and assign them
+						for (let child of entry.children) {
+							element.appendChild(Utility.JSONtoHTML(child))
+						}
+					}
+					// if children is string / text
+					else {
+						element.innerText = entry.children
+					}
+				}
+
+				// add the element back to the fragment
+				fragment.appendChild(element)
+			}
+		}
+		// if not array recursively call the same function
+		// pass the entry as an array.
+		else {
+			return Utility.JSONtoHTML([json])
+		}
+
+		return fragment
 	}
 }

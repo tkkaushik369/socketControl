@@ -35,4 +35,9 @@ export const config_common: Configuration = {
 	},
 	externalsType: 'this',
 	plugins: [new Webpack.ProgressPlugin()],
+	cache: {
+		type: 'filesystem',
+		allowCollectingMemory: true,
+		cacheDirectory: path.resolve(__dirname, '../.webpack_cache'),
+	},
 }

@@ -33,6 +33,23 @@ if (rootElement !== null) {
 				No Ping
 			</div>
 			<div id="controls">f</div>
+
+			<div id="loading-screen">
+				<div id="loading-screen-background"></div>
+				<h1 id="main-title" className="sb-font">
+					Sketchbook 0.4
+				</h1>
+				<div className="cubeWrap">
+					<div className="cube">
+						<div className="faces1"></div>
+						<div className="faces2"></div>
+					</div>
+				</div>
+				<div id="loading-text">
+					Loading...<i id="loading-text-percent"></i>
+				</div>
+			</div>
+
 			<div id="work">
 				<div id="controls-main"></div>
 			</div>
@@ -43,6 +60,8 @@ if (rootElement !== null) {
 					<input id="chat-message" type="text" name="chat-message" />
 				</form>
 			</div>
+			<div id="console"></div>
+			<div id="race"></div>
 			<div id="all-audios"></div>
 			<div id="gui-menu">
 				<div id="gui-menu-container">

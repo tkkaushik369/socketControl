@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, nativeTheme, screen } from 'electron'
-import { FRAME_VISBLE, WEBPACK_USE_BUNDLE, SHOW_RAPIER, SINGLE_PLAYER } from '../LoaderMode'
+import { FRAME_VISBLE, SINGLE_PLAYER } from '../LoaderMode'
 // import electronReload from 'electron-reload'
 // import Squirrel from 'electron-squirrel-startup'
 // import path from 'node:path';
@@ -10,7 +10,6 @@ declare const SERVER_WEBPACK_ENTRY: string
 declare const CLIENT_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const CLIENT_WINDOW_WEBPACK_ENTRY: string
-declare const RAPIER_WINDOW_WEBPACK_ENTRY: string
 declare const OFFLINE_WINDOW_WEBPACK_ENTRY: string
 
 /* electronReload(__dirname, {
@@ -34,7 +33,7 @@ const QuitHandle = () => {
 const createBrowserWindow = (path: string, x?: number, y?: number, devTools?: Electron.OpenDevToolsOptions) => {
 	// Get the primary display's dimensions
 	const { width: screenWidth } = screen.getPrimaryDisplay().workAreaSize
-	var windowWidth = 600 // Set the window width
+	var windowWidth = 800 // Set the window width
 	var windowHeight = 400 // Set the window height
 
 	// Create the browser window.
@@ -102,21 +101,12 @@ const createWindow = (): void => {
 	// /* progressIntervalWin1 = */ createBrowserWindow(CLIENT_WINDOW_WEBPACK_ENTRY)
 	// /* progressIntervalWin1 = */ createBrowserWindow(SERVER_WEBPACK_ENTRY)
 	// /* progressIntervalWin1 = */ createBrowserWindow(CLIENT_WEBPACK_ENTRY)
-	// /* progressIntervalWin1 = */ createBrowserWindow(RAPIER_WINDOW_WEBPACK_ENTRY)
 
 	if (SINGLE_PLAYER) {
 		/* progressIntervalWin1 = */ createBrowserWindow(OFFLINE_WINDOW_WEBPACK_ENTRY)
 	} else {
-		if (WEBPACK_USE_BUNDLE) {
-			/* progressIntervalWin1 = */ createBrowserWindow(MAIN_WINDOW_WEBPACK_ENTRY, 0, 0)
-			/* progressIntervalWin2 = */ createBrowserWindow(CLIENT_WINDOW_WEBPACK_ENTRY, 0, 500)
-		} else {
-			/* progressIntervalWin1 = */ createBrowserWindow(SERVER_WEBPACK_ENTRY, 0, 0)
-			/* progressIntervalWin2 = */ createBrowserWindow(CLIENT_WEBPACK_ENTRY, 0, 500)
-		}
-	}
-	if (SHOW_RAPIER) {
-		/* progressIntervalWin1 = */ createBrowserWindow(RAPIER_WINDOW_WEBPACK_ENTRY, 620, 0)
+		/* progressIntervalWin1 = */ createBrowserWindow(MAIN_WINDOW_WEBPACK_ENTRY, 0, 0)
+		/* progressIntervalWin2 = */ createBrowserWindow(CLIENT_WINDOW_WEBPACK_ENTRY, 0, 500)
 	}
 }
 

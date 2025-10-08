@@ -25,7 +25,6 @@ import parser from 'socket.io-msgpack-parser'
 import { WorldClient, PlayerClient } from '@WorldClient'
 // import { PlayerClient } from '../worldclient/ts/Core/PlayerClient'
 // import { AttachModels } from '../worldclient/ts/Utils/AttachModels'
-// import * as geckosClient from '@geckos.io/client'
 
 export type DivsType = {
 	controls: HTMLDivElement
@@ -206,59 +205,6 @@ export default class AppClient {
 			if (window.location.protocol.includes('https'))
 				this.ws = new WebSocket('wss://' + socketURL, 'echo-protocol')
 			else this.ws = new WebSocket('ws://' + socketURL, 'echo-protocol')
-
-			/* {
-				const appendMessage = function appendMessage(msg: string) {
-					// if (list) {
-					// 	const li = document.createElement('li')
-					// 	li.innerHTML = msg
-					// 	list.appendChild(li)
-					// }
-					console.log(msg)
-				}
-
-				const channel = geckosClient.geckos({
-					url:
-						(window.location.protocol.includes('https') ? 'https://' : 'http://') +
-						window.location.hostname,
-					port: Number(window.location.port),
-				})
-				channel.onConnect(function (error) {
-					if (error) {
-						//message.innerHTML = 'Sorry something went wrong :/'
-						appendMessage(error.message)
-						return
-					} else {
-						// message.innerHTML = "You're connected :)"
-						console.log("You're connected!")
-						// setTimeout(function () {
-						// 	message.remove()
-						// }, 2500)
-					}
-
-					channel.emit('chat message', "Hello everyone, I'm " + channel.id)
-
-					channel.onDisconnect(function () {
-						console.log('You got disconnected')
-					})
-
-					// if (button) {
-					// 	button.addEventListener('click', (): void => {
-					// 		if (text) {
-					// 			const content = text.value as string
-					// 			if (content && content.trim().length > 0) {
-					// 				channel.emit('chat message', content.trim())
-					// 				text.value = ''
-					// 			}
-					// 		}
-					// 	})
-					// }
-
-					channel.on('chat message', (data): void => {
-						appendMessage(data.toString())
-					})
-				})
-			} */
 		}
 
 		// Configuration

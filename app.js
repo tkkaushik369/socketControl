@@ -1,59 +1,17 @@
-import('./dist/@World/index.js')
-	.then((WorldLib) => {
-		Object.keys(WorldLib.default).forEach((key) => {
-			global[key] = WorldLib.default[key]
-		})
-		console.log("World Loaded")
-		import('./dist/@WorldServer/index.js')
-			.then((WorldServerLib) => {
-				Object.keys(WorldServerLib.default).forEach((key) => {
-					global[key] = WorldServerLib.default[key]
-				})
-				console.log("WorldServer Loaded")
-				import('./dist/server/server.js')
-					.then((ServerModuleLib) => {
-						Object.keys(ServerModuleLib.default).forEach((key) => {
-							global[key] = ServerModuleLib.default[key]
-						})
-						console.log("server Loaded")
-						import('./dist/client/models/MapConfig.json', { with: { type: 'json' } })
-							.then(data => {
-								// console.log(this['@World'], ServerModuleLib)
-								const port = process.env.PORT || 3000
-								global.AppServer.initServer()
-								new global.AppServer.default(data.default.maps, port).Start()
-							})
-							.catch(error => console.error('Error fetching JSON:', error));
-					})
-					.catch((err) => {
-						// console.log(err)
-						console.log('err server')
-					})
-			})
-	})
-	.catch((err) => {
-		console.log(err)
-		console.log('err worldbase')
-	})
+// import * as WorldLib from './dist/@World/index.js'
+// import * as WorldServerLib from './dist/@WorldServer/index.js'
+// import * as ServerModuleLib from './dist/server/server.js'
+// import * as data from './dist/client/models/MapConfig.json'
 
-// function commonjsImporter(libPath/* : string */, target/* : Record<string, any> */) {
-// 	const targetLoader = (cjLib/* : Record<string, any> */) => {
-// 		Object.keys(cjLib).forEach((key/* : string */) => {
-// 			if (key === 'default') return
-// 			console.log("key: ", key)
-// 			target[key] = cjLib[key]
-// 		})
-// 	}
-
-// 	// import(libPath).then(targetLoader)
-// 	const cjLib/* : { [id: string]: any }  */= require(libPath)
-// 	targetLoader(cjLib)
-// }
+const WorldLib = require('./dist/@World/index.js')
+console.log("World Loaded")
+const WorldServerLib = require('./dist/@WorldServer/index.js')
+console.log("WorldServer Loaded")
+const ServerModuleLib = require('./dist/server/server.js')
+console.log("server Loaded")
+const data = require('./dist/client/models/MapConfig.json')
 
 
-
-// commonjsImporter('./dist/@World/index.js', this)
-// console.log(this)
-// commonjsImporter('./dist/server/server.js', this)
-// console.log(this)
-
+const port = process.env.PORT || 3000
+global.AppServer.initServer()
+new global.AppServer.default(data.maps, port).Start()

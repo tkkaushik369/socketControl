@@ -31,7 +31,6 @@ import {
 } from '@World'
 import { WorldServer } from '@WorldServer'
 // import fs from 'node:fs'
-// import * as geckosServer from '@geckos.io/server'
 
 // Set the MIME type explicitly
 // express.static.mime.define({ 'application/wasm': ['wasm'] })
@@ -72,7 +71,6 @@ export default class AppServer extends EventTarget {
 	private port: number
 	private server: http.Server | null
 	private io: Server | null
-	// private io_g: geckosServer.GeckosServer | null
 	private wss: WebSocketServer | null
 	private app: express.Express
 
@@ -878,35 +876,6 @@ export default class AppServer extends EventTarget {
 			this.io = null
 			this.wss = null
 		}
-
-		/* {
-			this.io_g = geckosServer.geckos({
-				iceServers: geckosServer.iceServers,
-				portRange: {
-					min: process.env.PORT_RANGE_MIN ? parseInt(process.env.PORT_RANGE_MIN) : 10000,
-					max: process.env.PORT_RANGE_MAX ? parseInt(process.env.PORT_RANGE_MAX) : 10007,
-				},
-				cors: {
-					origin: '*',
-					allowAuthorization: true,
-				},
-			})
-
-			this.io_g.addServer(this.server)
-
-			this.io_g.onConnection((channel) => {
-				console.log(channel.id)
-				channel.onDisconnect(() => {
-					console.log(`${channel.id} got disconnected`)
-				})
-
-				channel.emit('chat message', `Welcome to the chat ${channel.id}!`)
-
-				channel.on('chat message', (data) => {
-					channel.room.emit('chat message', data)
-				})
-			})
-		} */
 
 		this.server.listen(this.port, privateHost ? '127.0.0.1' : '0.0.0.0', () => {
 			console.log(`Server listening on port ${this.port}.`)

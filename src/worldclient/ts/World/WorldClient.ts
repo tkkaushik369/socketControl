@@ -25,7 +25,8 @@ export class WorldClient extends WorldBase {
 	private parentDom: HTMLDivElement
 	private controlsDom: HTMLDivElement
 	public renderer: THREE.WebGLRenderer
-	private isOwnRenderer: boolean
+	private isOwnRenderer3d: boolean
+	private isOwnRenderer2d: boolean
 	public labelRenderer: CSS2DRenderer
 	public camera: THREE.PerspectiveCamera
 	private clientClock: THREE.Clock
@@ -65,7 +66,8 @@ export class WorldClient extends WorldBase {
 		updatateCallback: Function,
 		launchMapCallback: Function,
 		launchScenarioCallback: Function,
-		renderer: THREE.WebGLRenderer | null = null
+		renderer: THREE.WebGLRenderer | null = null,
+		labelRenderer: CSS2DRenderer | null = null
 	) {
 		super(maps, true)
 
@@ -110,7 +112,7 @@ export class WorldClient extends WorldBase {
 
 		// Renderer
 		if (renderer === null) {
-			this.isOwnRenderer = true
+			this.isOwnRenderer3d = true
 			this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
 			// this.renderer.setPixelRatio(window.devicePixelRatio)
 			this.renderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
@@ -123,18 +125,24 @@ export class WorldClient extends WorldBase {
 			this.parentDom.appendChild(this.renderer.domElement)
 			this.renderer.setAnimationLoop(this.animate)
 		} else {
-			this.isOwnRenderer = false
+			this.isOwnRenderer3d = false
 			this.renderer = renderer
 		}
 
 		// Label Renderer
-		this.labelRenderer = new CSS2DRenderer()
-		this.labelRenderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
-		this.labelRenderer.domElement.id = 'labelRenderer'
-		this.labelRenderer.domElement.style.position = 'absolute'
-		this.labelRenderer.domElement.style.top = '0px'
-		this.labelRenderer.domElement.style.pointerEvents = 'none'
-		this.parentDom.appendChild(this.labelRenderer.domElement)
+		if (labelRenderer === null) {
+			this.isOwnRenderer2d = true
+			this.labelRenderer = new CSS2DRenderer()
+			this.labelRenderer.setSize(this.parentDom.offsetWidth, this.parentDom.offsetHeight)
+			this.labelRenderer.domElement.id = 'labelRenderer'
+			this.labelRenderer.domElement.style.position = 'absolute'
+			this.labelRenderer.domElement.style.top = '0px'
+			this.labelRenderer.domElement.style.pointerEvents = 'none'
+			this.parentDom.appendChild(this.labelRenderer.domElement)
+		} else {
+			this.isOwnRenderer2d = false
+			this.labelRenderer = labelRenderer
+		}
 
 		// Camera
 		this.camera = Utility.defaultCamera()
@@ -464,7 +472,7 @@ export class WorldClient extends WorldBase {
 						for (let i = 0; i < this.characters.length; i++) {
 							if (this.characters[i].lapCount > -1) {
 								racers.push({
-									uID: this.characters[i].uID || "",
+									uID: this.characters[i].uID || '',
 									lapCount: this.characters[i].lapCount,
 									checkpointIndex: this.characters[i].nextCheckpointIndex,
 								})
@@ -488,7 +496,11 @@ export class WorldClient extends WorldBase {
 						race.innerHTML = ''
 						for (let i = 0; i < racers.length; i++) {
 							const li_ele = document.createElement('a')
-							li_ele.innerText = `[${racers[i].lapCount.toString().padStart(2, '0')}/${racers[i].checkpointIndex.toString().padStart(2, '0')}]: ${racers[i].uID}`
+							li_ele.innerText = `[${racers[i].lapCount.toString().padStart(2, '0')}/${racers[
+								i
+							].checkpointIndex
+								.toString()
+								.padStart(2, '0')}]: ${racers[i].uID}`
 							race.appendChild(li_ele)
 							race.appendChild(document.createElement('br'))
 						}
@@ -512,8 +524,8 @@ export class WorldClient extends WorldBase {
 		this.camera.aspect = width / height
 		this.camera.updateProjectionMatrix()
 
-		if (this.isOwnRenderer) this.renderer.setSize(width, height)
-		this.labelRenderer.setSize(width, height)
+		if (this.isOwnRenderer3d) this.renderer.setSize(width, height)
+		if (this.isOwnRenderer2d) this.labelRenderer.setSize(width, height)
 		const pixelRatio = this.renderer.getPixelRatio()
 
 		this.fxaaPass.uniforms['resolution'].value.set(1 / (width * pixelRatio), 1 / (height * pixelRatio))
@@ -683,8 +695,8 @@ export class WorldClient extends WorldBase {
 		this.csm.lightDirection = new THREE.Vector3().copy(this.sun).normalize().multiplyScalar(-1)
 
 		this.renderer.toneMappingExposure = this.effectController.exposure
-		if (this.isOwnRenderer) this.renderer.render(this.scene, this.camera)
-		this.labelRenderer.render(this.scene, this.camera)
+		if (this.isOwnRenderer3d) this.renderer.render(this.scene, this.camera)
+		if (this.isOwnRenderer2d) this.labelRenderer.render(this.scene, this.camera)
 	}
 
 	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
@@ -738,8 +750,8 @@ export class WorldClient extends WorldBase {
 		if (this.settings.Debug_Physics) this.cannonDebugRenderer.update()
 
 		if (this.settings.PostProcess) this.composer.render()
-		else if (this.isOwnRenderer) this.renderer.render(this.scene, this.camera)
-		this.labelRenderer.render(this.scene, this.camera)
+		else if (this.isOwnRenderer3d) this.renderer.render(this.scene, this.camera)
+		if (this.isOwnRenderer2d) this.labelRenderer.render(this.scene, this.camera)
 	}
 }
 

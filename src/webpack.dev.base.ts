@@ -18,7 +18,4 @@ export const config_dev: Configuration = {
 		warnings: true,
 		errorDetails: true,
 	},
-	cache: {
-		type: 'memory'
-	}
 }

@@ -27,7 +27,6 @@ export const config_worldserver_common = {
 		"socket.io": 'commonjs2 socket.io',
 		"socket.io-msgpack-parser": 'commonjs2 socket.io-msgpack-parser',
 		"@socket.io/admin-ui": 'commonjs2 @socket.io/admin-ui',
-		// "@geckos.io/server": 'import @geckos.io/server',
 		'@World': 'this @World',
 	},
 }

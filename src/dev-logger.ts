@@ -1,6 +1,6 @@
 import webpack from 'webpack'
 import AllConfigs from './webpack.dev'
-import Logger, { Tab } from '@electron-forge/web-multi-logger'
+import Logger, { Tab } from './web-multi-logger/Logger'
 
 const colors = [
 	'\u001b[0m', // 	RESET
@@ -11,6 +11,9 @@ const colors = [
 	'\u001b[35m', // 	PURPLE
 	'\u001b[36m', // 	CYAN
 ]
+
+// Keep track of running watchers
+const watchers = new Map<string, ReturnType<webpack.Compiler['watch']>>()
 
 async function Start() {
 	const port = 9000
@@ -29,23 +32,35 @@ async function Start() {
 		if (Config.plugins !== undefined) {
 			Config.plugins.shift() // remove webpack Progress plugin
 		}
-		const Tab = logger.createTab(Name)
-		watchBuild(Config, Tab, Name, colorInx)
+
+		const start = () => {
+			startWatch(Config, tab, Name, colorInx)
+			logger.statusUpdate(Name, true)
+		}
+
+		const stop = () => {
+			stopWatch(Name)
+			logger.statusUpdate(Name, false)
+		}
+
+		// initially not started
+		const tab = logger.createTab(Name, start, stop)
+		tab.log('Ready. Click start to begin building.')
 
 		colorInx += 1
 		if (colorInx >= colors.length) colorInx = 1
 	})
 }
 
-function watchBuild(config: webpack.Configuration, tab: Tab, name: string, colorInx: number) {
+function startWatch(config: webpack.Configuration, tab: Tab, name: string, colorInx: number) {
 	const compiler = webpack(config)
 
 	const log = (event: string | null = null, data: string | null = null) => {
 		let colorName = `[${colors[colorInx]}${name}${colors[0]}]`
 		let colorName1 = `[${colors[2]}${name}${colors[0]}]`
 
-		let datas = ""
-		let line = ""
+		let datas = ''
+		let line = ''
 
 		if (event !== null) {
 			datas += `${colorName} ${colors[colorInx]}${event}${colors[0]}`
@@ -64,12 +79,10 @@ function watchBuild(config: webpack.Configuration, tab: Tab, name: string, color
 	}
 
 	// tab.clear();
-	// log(`${colors[colorInx]}Starting watch mode...${colors[0]}`)
 	log(`Starting watch mode...`)
 
-	compiler.watch({}, (err, stats: webpack.Stats | undefined) => {
+	const watching = compiler.watch({}, (err, stats: webpack.Stats | undefined) => {
 		if (err) {
-			// log(`${colors[colorInx]}Fatal error:${colors[0]}\n${err.stack || err.message}`)
 			log(`Fatal error:\n`, `${err.stack || err.message}`)
 			return
 		}
@@ -95,6 +108,18 @@ function watchBuild(config: webpack.Configuration, tab: Tab, name: string, color
 			log(`Build successful:\n`, `${info}`)
 		}
 	})
+
+	watchers.set(name, watching)
+}
+
+function stopWatch(name: string) {
+	const watching = watchers.get(name)
+	if (watching) {
+		watching.close(() => {
+			console.log(`[${name}] stopped watching.`)
+		})
+		watchers.delete(name)
+	}
 }
 
 Start()
