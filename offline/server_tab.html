@@ -13,86 +13,131 @@
 				margin-top: 20px;
 			}
 		</style>
+		<script src="../@World/index.js" defer></script>
+		<script src="../@WorldClient/index.js" defer></script>
 	</head>
 	<body>
-		<h1>Browser Multiplayer Server</h1>
-		<button id="addClient">Add Client</button>
+		<div id="work"></div>
+		<!-- <button id="addClient">Add Client</button> -->
 
-		<div id="clients">
-			<h2>Connected Clients:</h2>
-			<ul id="clientList"></ul>
-		</div>
-		<script src="./@World/index.js" defer></script>
-		<script src="./@WorldClient/index.js" defer></script>
 		<script>
-			;(function () {
-				const isClient = window.location.hash === '#client'
-				const channel = new BroadcastChannel('game_channel')
+			const channel = new BroadcastChannel('game_channel')
 
-				if (isClient) {
-					// ===== CLIENT =====
-					const clientId = Math.floor(Math.random() * 10000)
-					document.body.innerHTML = `
-					<h1>Client</h1>
-					<div id="status">Client ID: ${clientId}</div>
-					<button id="sendMessage">Send Random Message</button>
-					`
+			function serverWork() {
+				const serverJH = [
+					{
+						type: 'h1',
+						children: 'Browser Multiplayer Server',
+					},
+					{
+						type: 'button',
+						props: {
+							id: 'addClient',
+						},
+						children: 'Add Client',
+					},
+					{
+						type: 'div',
+						children: [
+							{
+								type: 'h2',
+								children: 'Connected Clients:',
+							},
+							{
+								type: 'ul',
+								props: {
+									id: 'clientList',
+								},
+							},
+						],
+					},
+				]
 
-					const status = document.getElementById('status')
+				document.getElementById('work').appendChild(globalThis['@World'].Utility.JSONtoHTML(serverJH))
+				const clientList = document.getElementById('clientList')
+				const clients = {}
 
-					// Notify server of join
-					channel.postMessage({ type: 'join', clientId })
+				channel.onmessage = (e) => {
+					const { type, clientId, payload } = e.data
 
-					document.getElementById('sendMessage').addEventListener('click', () => {
-						const msg = 'Hello ' + Math.floor(Math.random() * 1000)
-						channel.postMessage({ type: 'message', clientId, payload: msg })
-					})
-
-					// Notify server when window is closing
-					window.addEventListener('beforeunload', () => {
-						channel.postMessage({ type: 'leave', clientId })
-					})
-
-					// Listen for server broadcasts
-					channel.onmessage = (e) => {
-						const { type, payload } = e.data
-						if (type === 'broadcast') {
-							status.textContent = `Client ${clientId} received: ${payload}`
+					if (type === 'join') {
+						if (!clients[clientId]) {
+							clients[clientId] = true
+							const li = document.createElement('li')
+							li.id = 'client-' + clientId
+							li.textContent = `Client ${clientId} joined`
+							clientList.appendChild(li)
 						}
+					} else if (type === 'leave') {
+						delete clients[clientId]
+						const li = document.getElementById('client-' + clientId)
+						if (li) li.remove()
+						console.log(`Client ${clientId} left`)
+					} else if (type === 'message') {
+						console.log(`Client ${clientId} says:`, payload)
+						// Broadcast to all clients
+						channel.postMessage({ type: 'broadcast', payload: `Server received: ${payload}` })
 					}
-				} else {
-					// ===== SERVER =====
-					const clientList = document.getElementById('clientList')
-					const clients = {}
-
-					channel.onmessage = (e) => {
-						const { type, clientId, payload } = e.data
-
-						if (type === 'join') {
-							if (!clients[clientId]) {
-								clients[clientId] = true
-								const li = document.createElement('li')
-								li.id = 'client-' + clientId
-								li.textContent = `Client ${clientId} joined`
-								clientList.appendChild(li)
-							}
-						} else if (type === 'leave') {
-							delete clients[clientId]
-							const li = document.getElementById('client-' + clientId)
-							if (li) li.remove()
-							console.log(`Client ${clientId} left`)
-						} else if (type === 'message') {
-							console.log(`Client ${clientId} says:`, payload)
-							// Broadcast to all clients
-							channel.postMessage({ type: 'broadcast', payload: `Server received: ${payload}` })
-						}
-					}
-
-					document.getElementById('addClient').addEventListener('click', () => {
-						window.open(location.href + '#client', '_blank', 'width=400,height=400')
-					})
 				}
-			})()
+
+				document.getElementById('addClient').addEventListener('click', () => {
+					window.open(location.href + '#client', '_blank', 'width=400,height=400')
+				})
+			}
+
+			function clientWork() {
+				const clientId = Math.floor(Math.random() * 10000)
+				const clientJH = [
+					{
+						type: 'h1',
+						children: 'Client',
+					},
+					{
+						type: 'div',
+						props: {
+							id: 'status',
+						},
+						children: `Client ID: ${clientId}`,
+					},
+					{
+						type: 'button',
+						props: {
+							id: 'sendMessage',
+						},
+						children: 'Send Random Message',
+					},
+				]
+
+				document.getElementById('work').appendChild(globalThis['@World'].Utility.JSONtoHTML(clientJH))
+
+				const status = document.getElementById('status')
+
+				// Notify server of join
+				channel.postMessage({ type: 'join', clientId })
+
+				document.getElementById('sendMessage').addEventListener('click', () => {
+					const msg = 'Hello ' + Math.floor(Math.random() * 1000)
+					channel.postMessage({ type: 'message', clientId, payload: msg })
+				})
+
+				// Notify server when window is closing
+				window.addEventListener('beforeunload', () => {
+					channel.postMessage({ type: 'leave', clientId })
+				})
+
+				// Listen for server broadcasts
+				channel.onmessage = (e) => {
+					const { type, payload } = e.data
+					if (type === 'broadcast') {
+						status.textContent = `Client ${clientId} received: ${payload}`
+					}
+				}
+			}
+
+			document.body.onload = () => {
+				if (window.location.hash === '#client') clientWork()
+				else serverWork()
+			}
 		</script>
 	</body>
 </html>

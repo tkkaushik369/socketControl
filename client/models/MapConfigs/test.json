@@ -1,8 +1,0 @@
-{
-	"name": "test",
-	"isCallback": true,
-	"mapCaller": "class:TestScene",
-	"isLaunched": true,
-	"characters": [],
-	"vehicles": []
-}
