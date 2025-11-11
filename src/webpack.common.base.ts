@@ -1,15 +1,16 @@
 import path from 'path'
 import Webpack, { Configuration } from 'webpack'
+import SimpleProgressWebpackPlugin from 'simple-progress-webpack-plugin'
 
 export const config_common: Configuration = {
 	output: {
 		library: {
 			// type: 'umd',
 			type: 'global',
-			name: "[name]",
+			name: '[name]',
 			umdNamedDefine: true,
 		},
-		globalObject: "globalThis",
+		globalObject: 'globalThis',
 	},
 	resolve: {
 		alias: {
@@ -34,7 +35,7 @@ export const config_common: Configuration = {
 		],
 	},
 	externalsType: 'this',
-	plugins: [new Webpack.ProgressPlugin()],
+	plugins: [new SimpleProgressWebpackPlugin({ format: 'compact' })],
 	cache: {
 		type: 'filesystem',
 		allowCollectingMemory: true,

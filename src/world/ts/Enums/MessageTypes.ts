@@ -6,4 +6,5 @@ export enum MessageTypes {
 	Water = 'water',
 	Speaker = 'speaker',
 	Shape = 'shape',
+	RaceResults = 'raceresults',
 }

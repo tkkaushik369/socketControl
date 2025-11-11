@@ -10,19 +10,18 @@ import * as THREE from 'three'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
 import type * as WorldBaseType from '@World'
 import { Player, PlayerAttachmentType, ControlsTypes, Utility, MapConfigType, AttachModels } from '@World'
+import type * as AppServerType from '@server/server'
 import type * as WorldServerType from '@WorldServer'
-// import type * as AppServer from '@server/server'
-import * as AppServer from '@server/server'
 // import { AttachModels } from '@WorldClient'
 // import { CannonDebugRenderer } from '../../client/ts/Utils/CannonDebugRenderer'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 
-/* declare global {
+declare global {
 	interface Window {
 		AppServerLoaded: boolean
-		AppServer: typeof AppServer
+		AppServer: typeof AppServerType
 	}
-} */
+}
 
 if (FRAME_VISBLE) document.body.className = 'bodyTransparent'
 
@@ -40,8 +39,8 @@ if (rootElement !== null) {
 		// </React.StrictMode>
 	)
 }
-console.log(AppServer)
-var appServer: AppServer.default | null = null
+
+var appServer: AppServerType.default | null = null
 var renderer: THREE.WebGLRenderer
 var labelRenderer: CSS2DRenderer
 var camera: THREE.PerspectiveCamera
@@ -57,18 +56,18 @@ function ReactLoaded() {
 	SetLightMode()
 	SetDarkMode()
 
-	/* var myInterval: ReturnType<typeof setInterval> | undefined = setInterval(() => {
-		if (window.AppServerLoaded === true) { */
-	fetch('../../../dist/client/models/MapConfig.json')
-		.then((response) => response.json())
-		.then((data) => {
-			launchServer(data.maps)
-		})
-		.catch((error) => console.error('Error fetching JSON:', error))
-	// clearInterval(myInterval)
-	console.info('Server Loaded') /*) */
-	// myInterval = undefined
-	/* }
+	var myInterval: ReturnType<typeof setInterval> | undefined = setInterval(() => {
+		if (window.AppServerLoaded === true) {
+			fetch('../client/models/MapConfig.json')
+				.then((response) => response.json())
+				.then((data) => {
+					launchServer(data.maps)
+				})
+				.catch((error) => console.error('Error fetching JSON:', error))
+			clearInterval(myInterval)
+			console.info('Server Loaded')
+			myInterval = undefined
+		}
 	}, 1000)
 	setTimeout(() => {
 		if (myInterval !== undefined) {
@@ -76,20 +75,19 @@ function ReactLoaded() {
 			console.info('Server Not Loaded')
 			myInterval = undefined
 		}
-	}, 1000 * 10 /* seconds */
+	}, 1000 * 10 /* seconds */)
 }
 
 function launchServer(maps: MapConfigType[]) {
 	const clientListDom = document.getElementById('client-list')
 	const worldListDom = document.getElementById('world-list')
 
-	eval('console.log(JSON.stringify(AppServer))')
-	AppServer.initServer()
-	appServer = new AppServer.default(maps, 3000)
+	window.AppServer.initServer()
+	appServer = new window.AppServer.default(maps, 3000)
 	appServer.Start()
 
 	appServer.addEventListener('connected', (event: Event) => {
-		const evt = event as AppServer.ConnectedEvent
+		const evt = event as AppServerType.ConnectedEvent
 		const arc = document.createElement('li')
 		arc.innerText = evt.detail.id
 		arc.id = evt.detail.id
@@ -97,13 +95,13 @@ function launchServer(maps: MapConfigType[]) {
 	})
 
 	appServer.addEventListener('disconnected', (event: Event) => {
-		const evt = event as AppServer.DisconnectedEvent
+		const evt = event as AppServerType.DisconnectedEvent
 		const ele = document.getElementById(evt.detail.id)
 		if (clientListDom !== null && ele !== null) clientListDom.removeChild(ele)
 	})
 
 	appServer.addEventListener('worldcreated', (event: Event) => {
-		const evt = event as AppServer.WorldCreatedEvent
+		const evt = event as AppServerType.WorldCreatedEvent
 		const arc = document.createElement('ul')
 		arc.innerText = evt.detail.id
 		arc.id = evt.detail.id
@@ -120,7 +118,7 @@ function launchServer(maps: MapConfigType[]) {
 	})
 
 	appServer.addEventListener('worlddestroyed', (event: Event) => {
-		const evt = event as AppServer.WorldDestroyedEvent
+		const evt = event as AppServerType.WorldDestroyedEvent
 		const ele = document.getElementById(evt.detail.id)
 		if (worldListDom !== null && ele !== null) {
 			worldListDom.removeChild(ele)
@@ -129,7 +127,7 @@ function launchServer(maps: MapConfigType[]) {
 	})
 
 	appServer.addEventListener('worldclientadd', (event: Event) => {
-		const evt = event as AppServer.WorldClientAddEvent
+		const evt = event as AppServerType.WorldClientAddEvent
 		const worldDom = document.getElementById(evt.detail.wid)
 		if (worldDom !== null) {
 			const arc = document.createElement('li')
@@ -141,7 +139,7 @@ function launchServer(maps: MapConfigType[]) {
 	})
 
 	appServer.addEventListener('worldclientremove', (event: Event) => {
-		const evt = event as AppServer.WorldClientRemoveEvent
+		const evt = event as AppServerType.WorldClientRemoveEvent
 		const worldDom = document.getElementById(evt.detail.wid)
 		const ele = document.getElementById(evt.detail.wid + '_' + evt.detail.sid)
 		if (worldDom !== null && ele !== null) {
@@ -225,7 +223,7 @@ function EnterWorld(wid: string): void {
 
 	player = new Player(sID, camera, renderer.domElement)
 	player.inputManager.controlsCallBack = OnControls
-	;(player.world as unknown as WorldBaseType.WorldBase) /* WorldServerType.WorldServer */ = world
+	;(player.world as unknown as WorldBaseType.WorldBase /* WorldServerType.WorldServer */) = world
 	player.spawnPoint = null
 	// appServer.allWorlds[wid].users[sID] = appServer.allUsers[sID]
 	player.setUID('Server Debug')

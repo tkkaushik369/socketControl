@@ -102,9 +102,6 @@ export class Scenario {
 	public createLaunchLink(): void {
 		this.world.scenariosCalls[this.name] = () => {
 			this.world.launchScenario(this.name, this.world.isClient)
-			if (this.raceContent !== null) {
-				this.raceContent.launch()
-			}
 		}
 
 		if (this.world.scenarioGUIFolderCallback !== null) {
@@ -115,6 +112,10 @@ export class Scenario {
 	}
 
 	public launch(world: WorldBase): void {
+		if (this.raceContent !== null) {
+			this.raceContent.launch()
+		}
+
 		// Spawn Vehicles
 		const isRace = this.raceContent === null? false : true
 		this.spawnPoints.forEach((sp) => {

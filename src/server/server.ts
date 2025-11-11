@@ -769,6 +769,20 @@ export default class AppServer extends EventTarget {
 					if (shape.uID !== null) alldata[shape.uID] = shape.Out()
 				})
 			}
+
+			// World Race Data
+			{
+				this.allWorlds[worldId].scenarios.forEach((scenario) => {
+					if (scenario.raceContent !== null) {
+						const raceResults = scenario.raceContent.getRaceResults()
+						const uID = worldId + '_' + scenario.name
+						alldata[uID] = {
+							msgType: MessageTypes.RaceResults,
+							results: raceResults,
+						}
+					}
+				})
+			}
 		}
 
 		return alldata

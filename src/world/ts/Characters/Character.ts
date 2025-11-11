@@ -404,7 +404,7 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 				if (this.world !== null) this.world.restartScenario()
 			} /* else if (code === 'KeyV' && pressed === true) {
 				this.setFirstPersonView(!this.firstPerson)
-			}  */else if (code === 'Digit0' && pressed === true) {
+			}  */ else if (code === 'Digit0' && pressed === true) {
 				console.log('unarmed')
 			} else if (code === 'Digit1' && pressed === true) {
 				console.log('knief')
@@ -859,7 +859,6 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 			if (this.occupyingSeat.vehicle.entityType === EntityType.Airplane)
 				this.setState(new VehicleState.ExitingAirplane(this, this.occupyingSeat))
 			else this.setState(new VehicleState.ExitingVehicle(this, this.occupyingSeat))
-			this.occupyingSeat.vehicle.setFirstPersonView(false)
 			this.stopControllingVehicle()
 		}
 	}

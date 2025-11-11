@@ -32,17 +32,17 @@ export class WorldServer extends WorldBase {
 
 	public getGLTF(path: string, callback: Function) {
 		const resPath = super.getGLTF(path, callback)
-		let trackerEntry = this.loadingManager.addLoadingEntry(path);
+		let trackerEntry = this.loadingManager.addLoadingEntry(path)
 		if (this.modelCache[resPath] !== undefined) {
 			const jsonObj = JSON.parse(this.modelCache[resPath])
 			const loader = new THREE.ObjectLoader()
 			const model = loader.parse(jsonObj) as any
 			callback({ scene: model, animations: model.animations })
-			this.loadingManager.doneLoading(trackerEntry);
+			this.loadingManager.doneLoading(trackerEntry)
 			return resPath
 		}
 
-		/* const data: string =  */this.readJSON(/* resPath */)
+		/* const data: string =  */ this.readJSON(/* resPath */)
 		// fs.readFileSync(resPath, 'utf8')
 		fs.readFile(resPath, 'utf8', (err, data) => {
 			const jsonObj = JSON.parse(data)
@@ -50,18 +50,18 @@ export class WorldServer extends WorldBase {
 			const loader = new THREE.ObjectLoader()
 			const model = loader.parse(jsonObj) as any
 			callback({ scene: model, animations: model.animations })
-			this.loadingManager.doneLoading(trackerEntry);
+			this.loadingManager.doneLoading(trackerEntry)
 		})
 		return resPath
 	}
 
 	public getJSON(path: string, callback: Function) {
 		const resPath = super.getJSON(path, callback)
-		let trackerEntry = this.loadingManager.addLoadingEntry(path);
+		let trackerEntry = this.loadingManager.addLoadingEntry(path)
 		/* const data = */ this.readJSON(/* resPath.path */)
 		fs.readFile(resPath.path, 'utf8', (err, data) => {
 			callback(JSON.parse(data))
-			this.loadingManager.doneLoading(trackerEntry);
+			this.loadingManager.doneLoading(trackerEntry)
 		})
 		return resPath
 		// return JSON.parse(data)

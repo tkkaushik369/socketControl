@@ -111,6 +111,9 @@ export default class AppClient {
 	private sID: string
 	private lastUpdate: number
 
+	private timer: number
+	private bandwithUsage: number
+
 	private clock: THREE.Clock
 	private bufferData: { delta: number; data: any }[] = []
 	private isReplay: boolean = false
@@ -160,6 +163,8 @@ export default class AppClient {
 		)
 		this.sID = ''
 		this.lastUpdate = Date.now()
+		this.timer = 0
+		this.bandwithUsage = 0
 
 		this.worldClient.loadingManager.addEventListener('user_interface', (evt: any) => {
 			// console.log('user_interface', evt.detail)
@@ -589,6 +594,10 @@ export default class AppClient {
 					})
 					break
 				}
+				case MessageTypes.RaceResults: {
+					this.worldClient.updateRaceResults(messages[id].results)
+					break
+				}
 				default: {
 					console.log('Unknown Message: ', messages[id])
 					break
@@ -686,10 +695,54 @@ export default class AppClient {
 		}
 	}
 
+	private formatByteSize(bytes: number): string {
+		if (bytes < 1024) return bytes + ' bytes'
+		else if (bytes < 1048576) return (bytes / 1024).toFixed(3) + ' KiB'
+		else if (bytes < 1073741824) return (bytes / 1048576).toFixed(3) + ' MiB'
+		else return (bytes / 1073741824).toFixed(3) + ' GiB'
+	}
+
+	private memorySizeOf(obj: any) {
+		var bytes = 0
+		function sizeOf(obj: any) {
+			if (obj !== null && obj !== undefined) {
+				switch (typeof obj) {
+					case 'number':
+						bytes += 8
+						break
+					case 'string':
+						bytes += obj.length * 2
+						break
+					case 'boolean':
+						bytes += 4
+						break
+					case 'object':
+						var objClass = Object.prototype.toString.call(obj).slice(8, -1)
+						if (objClass === 'Object' || objClass === 'Array') {
+							for (var key in obj) {
+								if (!obj.hasOwnProperty(key)) continue
+								sizeOf(obj[key])
+							}
+						} else bytes += obj.toString().length * 2
+						break
+				}
+			}
+			return bytes
+		}
+		return sizeOf(obj)
+	}
+
 	private OnUpdate(messages: { [id: string]: any }) {
 		let delta = this.clock.getDelta()
 		if (this.isReplay) return
 		this.Set(messages)
+		if (this.timer >= 1.0) {
+			this.worldClient.bandwidthStats.update(Number(this.formatByteSize(this.bandwithUsage).replace(/[^0-9\.]/g, '')), 250)
+			this.timer = 0
+			this.bandwithUsage = 0
+		}
+		this.timer += delta
+		this.bandwithUsage += this.memorySizeOf(messages)
 
 		this.bufferData.push({ delta: delta, data: messages })
 		let time = 0,

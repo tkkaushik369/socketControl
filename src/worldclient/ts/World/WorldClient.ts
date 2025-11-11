@@ -48,6 +48,7 @@ export class WorldClient extends WorldBase {
 
 	public stats: Stats
 	public networkStats: Stats.Panel
+	public bandwidthStats: Stats.Panel
 	private gui: Pane
 	private mapGUIFolder: TabApi
 	public roomCallers: { [id: string]: any } = {}
@@ -76,6 +77,7 @@ export class WorldClient extends WorldBase {
 		this.getJSON = this.getJSON.bind(this)
 		this.loadScene = this.loadScene.bind(this)
 		this.onWindowResize = this.onWindowResize.bind(this)
+		this.updateRaceResults = this.updateRaceResults.bind(this)
 		this.updateControls = this.updateControls.bind(this)
 		this.debugPhysicsEngineFunc = this.debugPhysicsEngineFunc.bind(this)
 		this.debugPhysicsFunc = this.debugPhysicsFunc.bind(this)
@@ -255,6 +257,8 @@ export class WorldClient extends WorldBase {
 		this.stats.dom.id = 'stats'
 		this.networkStats = new Stats.Panel('PING', '#dd0', '#220')
 		this.stats.addPanel(this.networkStats)
+		this.bandwidthStats = new Stats.Panel('Bandwidth', '#ff00d4ff', '#220020')
+		this.stats.addPanel(this.bandwidthStats)
 		this.stats.showPanel(0)
 		this.parentDom.appendChild(this.stats.dom)
 
@@ -464,53 +468,9 @@ export class WorldClient extends WorldBase {
 
 		this.scenarios.forEach((scenario) => {
 			if (scenario.raceContent !== null) {
-				scenario.raceContent.addEventListener('race_update', (evt: any) => {
-					// console.log('race_update', evt.detail)
-					const race = document.getElementById('race')
-					if (race !== null) {
-						const racers: { uID: string; lapCount: number; checkpointIndex: number }[] = []
-						for (let i = 0; i < this.characters.length; i++) {
-							if (this.characters[i].lapCount > -1) {
-								racers.push({
-									uID: this.characters[i].uID || '',
-									lapCount: this.characters[i].lapCount,
-									checkpointIndex: this.characters[i].nextCheckpointIndex,
-								})
-							}
-						}
-						for (let i = 0; i < racers.length - 1; i++) {
-							for (let j = i + 1; j < racers.length; j++) {
-								if (racers[i].lapCount < racers[j].lapCount) {
-									let temp = racers[i]
-									racers[i] = racers[j]
-									racers[j] = temp
-								} else if (racers[i].lapCount === racers[j].lapCount) {
-									if (racers[i].checkpointIndex < racers[j].checkpointIndex) {
-										let temp = racers[i]
-										racers[i] = racers[j]
-										racers[j] = temp
-									}
-								}
-							}
-						}
-						race.innerHTML = ''
-						for (let i = 0; i < racers.length; i++) {
-							const li_ele = document.createElement('a')
-							li_ele.innerText = `[${racers[i].lapCount.toString().padStart(2, '0')}/${racers[
-								i
-							].checkpointIndex
-								.toString()
-								.padStart(2, '0')}]: ${racers[i].uID}`
-							race.appendChild(li_ele)
-							race.appendChild(document.createElement('br'))
-						}
-					}
-				})
-				scenario.raceContent.addEventListener('race_update_lap', (evt: any) => {
-					console.log('race_update_lap', evt.detail)
-				})
-				scenario.raceContent.addEventListener('race_update_illegal', (evt: any) => {
-					console.log('race_update_illegal', evt.detail)
+				const raceContent = scenario.raceContent
+				raceContent.addEventListener('race_update', (evt: any) => {
+					this.updateRaceResults(raceContent.getRaceResults())
 				})
 			}
 		})
@@ -530,6 +490,19 @@ export class WorldClient extends WorldBase {
 
 		this.fxaaPass.uniforms['resolution'].value.set(1 / (width * pixelRatio), 1 / (height * pixelRatio))
 		this.composer.setSize(width, height)
+	}
+
+	public updateRaceResults(raceResults: string[]) {
+		const race = document.getElementById('race')
+		if (race !== null) {
+			race.innerHTML = ''
+			for (let i = 0; i < raceResults.length; i++) {
+				const li_ele = document.createElement('a')
+				li_ele.innerText = raceResults[i]
+				race.appendChild(li_ele)
+				race.appendChild(document.createElement('br'))
+			}
+		}
 	}
 
 	public updateControls(type: UiControlsGroup): void {
@@ -709,6 +682,8 @@ export class WorldClient extends WorldBase {
 	public launchScenario(scenarioID: string | null, isCallback: boolean): void {
 		super.launchScenario(scenarioID, isCallback)
 		if (!isCallback) this.infoStack.addMessage(`Scenario Loaded: ${scenarioID}`)
+		const race = document.getElementById('race')
+		if (race !== null) race.innerHTML = ''
 	}
 
 	private animate() {

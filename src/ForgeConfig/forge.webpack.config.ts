@@ -3,9 +3,33 @@ import { merge } from 'webpack-merge'
 import { MainConfig } from './webpack.main.config'
 import { rendererConfig } from './webpack.renderer.config'
 import { RendererTargetType } from '../PluginWebpack/Config'
-import { SINGLE_PLAYER } from '../LoaderMode'
+import { WEBPACK_USE_BUNDLE, SINGLE_PLAYER } from '../LoaderMode'
 
 const entryPoints: WebpackPluginEntryPoint[] = []
+
+if (!WEBPACK_USE_BUNDLE) {
+	entryPoints.push({
+		name: '@World',
+		html: './src/electronApp/common/index.html',
+		js: './src/world/ts/World.ts',
+		// js: './src/electronApp/test.ts',
+		nodeIntegration: false,
+	})
+	entryPoints.push({
+		name: '@WorldClient',
+		html: './src/electronApp/common/index.html',
+		js: './src/worldclient/ts/World/WorldClient.ts',
+		// js: './src/electronApp/test.ts',
+		nodeIntegration: false,
+	})
+	entryPoints.push({
+		name: '@WorldServer',
+		html: './src/electronApp/common/index.html',
+		js: './src/worldserver/ts/World/WorldServer.ts',
+		// js: './src/electronApp/test.ts',
+		nodeIntegration: false,
+	})
+}
 
 if (SINGLE_PLAYER) {
 	entryPoints.push({
@@ -15,23 +39,43 @@ if (SINGLE_PLAYER) {
 		nodeIntegration: false,
 	})
 } else {
-	entryPoints.push(
-		{
-			name: 'main_window',
-			html: './src/electronApp/common/index.html',
-			js: './src/electronApp/main_window/renderer.tsx',
-			// prefixedEntries: ['./src/electronApp/main_window/serverLoader.ts'],
-		},
-		{
-			name: 'client_window',
-			html: './src/electronApp/common/index.html',
-			js: './src/electronApp/client_window/renderer.tsx',
-			// prefixedEntries: ['./src/electronApp/client_window/clientLoader.ts'],
-			nodeIntegration: false,
-		}
-	)
+	if (WEBPACK_USE_BUNDLE) {
+		entryPoints.push(
+			{
+				name: 'main_window',
+				html: './src/electronApp/common/index.html',
+				js: './src/electronApp/main_window/renderer.tsx',
+				prefixedEntries: ['./src/electronApp/main_window/serverLoader.ts'],
+			},
+			{
+				name: 'client_window',
+				html: './src/electronApp/common/index.html',
+				js: './src/electronApp/client_window/renderer.tsx',
+				prefixedEntries: ['./src/electronApp/client_window/clientLoader.ts'],
+				nodeIntegration: false,
+			}
+		)
+	} else {
+		entryPoints.push(
+			{
+				name: 'server',
+				html: './src/electronApp/common/index.html',
+				// js: './src/server/server.ts',
+				js: './src/electronApp/main_window/renderer.tsx',
+				prefixedEntries: ['./src/electronApp/main_window/serverLoader.ts'],
+			},
+			{
+				name: 'client',
+				// html: './src/client/index.html',
+				html: './src/electronApp/common/index.html',
+				// js: './src/client/client.ts',
+				js: './src/electronApp/client_window/renderer.tsx',
+				prefixedEntries: ['./src/electronApp/client_window/clientLoader.ts'],
+				nodeIntegration: false,
+			}
+		)
+	}
 }
-
 var config: WebpackPluginConfig = {
 	mainConfig: merge(MainConfig, {
 		/**

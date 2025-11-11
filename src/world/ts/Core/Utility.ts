@@ -364,4 +364,8 @@ export class Utility {
 
 		return fragment
 	}
+
+	static distance(x1: number, y1: number, z1: number, x2: number = 0, y2: number = 0, z2: number = 0): number {
+		return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2))
+	}
 }

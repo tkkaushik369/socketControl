@@ -24,6 +24,7 @@ export class RaceContent extends EventTarget implements IUpdatable, IWorldEntity
 		this.launch = this.launch.bind(this)
 		this.findClosestTOnCurve = this.findClosestTOnCurve.bind(this)
 		this.onCheckpointPassed = this.onCheckpointPassed.bind(this)
+		this.getRaceResults = this.getRaceResults.bind(this)
 		this.addToWorld = this.addToWorld.bind(this)
 		this.removeFromWorld = this.removeFromWorld.bind(this)
 		this.update = this.update.bind(this)
@@ -75,6 +76,7 @@ export class RaceContent extends EventTarget implements IUpdatable, IWorldEntity
 			const geometry = new THREE.BufferGeometry().setFromPoints(pts)
 			const mat = new THREE.LineBasicMaterial({ color: 0xffaa00 })
 			const line = new THREE.Line(geometry, mat)
+			line.visible = false
 			this.checkpointGroup.add(line)
 
 			this.checkpoints = points.map((p, i) => new RaceCheckpoint(p, i, this, curve))
@@ -122,6 +124,44 @@ export class RaceContent extends EventTarget implements IUpdatable, IWorldEntity
 			)
 		}
 		this.dispatchEvent(new CustomEvent('race_update', { detail: `Checkpoint passed: ${char.uID} => ${index}` }))
+	}
+
+	public getRaceResults() {
+		const racers: { uID: string; lapCount: number; checkpointIndex: number }[] = []
+		const characters = this.scenario.world.characters
+		for (let i = 0; i < characters.length; i++) {
+			if (characters[i].lapCount > -1) {
+				racers.push({
+					uID: characters[i].uID || '',
+					lapCount: characters[i].lapCount,
+					checkpointIndex: characters[i].nextCheckpointIndex,
+				})
+			}
+		}
+		for (let i = 0; i < racers.length - 1; i++) {
+			for (let j = i + 1; j < racers.length; j++) {
+				if (racers[i].lapCount < racers[j].lapCount) {
+					let temp = racers[i]
+					racers[i] = racers[j]
+					racers[j] = temp
+				} else if (racers[i].lapCount === racers[j].lapCount) {
+					if (racers[i].checkpointIndex < racers[j].checkpointIndex) {
+						let temp = racers[i]
+						racers[i] = racers[j]
+						racers[j] = temp
+					}
+				}
+			}
+		}
+		const raceResults = []
+		for (let i = 0; i < racers.length; i++) {
+			let li_ele = ''
+			li_ele = `[${racers[i].lapCount.toString().padStart(2, '0')}/${racers[i].checkpointIndex
+				.toString()
+				.padStart(2, '0')}]: ${racers[i].uID}`
+			raceResults.push(li_ele)
+		}
+		return raceResults
 	}
 
 	addToWorld(world: WorldBase): void {

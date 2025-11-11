@@ -56,6 +56,7 @@ export class RaceCheckpoint {
 		)
 		bar.position.set(0, 0, 0.01) // slightly offset so visible
 		this.mesh.add(bar)
+		this.mesh.visible = false
 
 		this.passed = false // last-frame flag hint
 		this.raceContent.checkpointGroup.add(this.mesh)
@@ -75,6 +76,7 @@ export class RaceCheckpoint {
 
 		// add a visible normal arrow for debugging
 		const arrow = new THREE.ArrowHelper(this.normal, this.point, 4, 0xffff00)
+		arrow.visible = false
 		this.raceContent.checkpointGroup.add(arrow)
 	}
 
