@@ -18,7 +18,8 @@
 					"type": "car",
 					"subtype": "car_test"
 				}
-			]
+			],
+			"trains": []
 		},
 		{
 			"name": "test3",
@@ -39,9 +40,21 @@
 					"subtype": null
 				},
 				{
+					"objCaller": "class:Example",
+					"type": "car",
+					"subtype": "car_test"
+				},
+				{
 					"objCaller": "heli.glb",
 					"type": "heli",
 					"subtype": null
+				}
+			],
+			"trains": [
+				{
+					"objCaller": "class:Example",
+					"type": "train",
+					"subtype": "train_test"
 				}
 			]
 		},
@@ -88,7 +101,8 @@
 					"type": "airplane",
 					"subtype": "airplane_test"
 				}
-			]
+			],
+			"trains": []
 		},
 		{
 			"name": "sketchbook v0.3",
@@ -118,7 +132,8 @@
 					"type": "airplane",
 					"subtype": null
 				}
-			]
+			],
+			"trains": []
 		},
 		{
 			"name": "sketchbook v0.4",
@@ -148,7 +163,60 @@
 					"type": "airplane",
 					"subtype": null
 				}
-			]
+			],
+			"trains": []
+		},
+		{
+			"name": "Grid City",
+			"isCallback": true,
+			"mapCaller": "class:GridCityScene",
+			"isLaunched": true,
+			"characters": [
+				{
+					"objCaller": "boxman.glb",
+					"type": "character",
+					"subtype": null
+				}
+			],
+			"vehicles": [
+				{
+					"objCaller": "car.glb",
+					"type": "car",
+					"subtype": null
+				},
+				{
+					"objCaller": "class:Example",
+					"type": "car",
+					"subtype": "car_test"
+				}
+			],
+			"trains": []
+		},
+		{
+			"name": "Grid World",
+			"isCallback": true,
+			"mapCaller": "class:GridWorldScene",
+			"isLaunched": true,
+			"characters": [
+				{
+					"objCaller": "boxman.glb",
+					"type": "character",
+					"subtype": null
+				}
+			],
+			"vehicles": [
+				{
+					"objCaller": "car.glb",
+					"type": "car",
+					"subtype": null
+				},
+				{
+					"objCaller": "class:Example",
+					"type": "car",
+					"subtype": "car_test"
+				}
+			],
+			"trains": []
 		},
 		{
 			"name": "test",
@@ -156,7 +224,8 @@
 			"mapCaller": "class:TestScene",
 			"isLaunched": true,
 			"characters": [],
-			"vehicles": []
+			"vehicles": [],
+			"trains": []
 		}
 	]
 }
