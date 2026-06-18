@@ -185,11 +185,9 @@ export default class WebpackPlugin extends PluginBase<WebpackPluginConfig> {
 						new Set(
 							arch
 								.split(',')
-								.reduce<string[]>(
-									(all, pArch) =>
-										pArch === 'universal' ? all.concat(['arm64', 'x64']) : all.concat([pArch]),
-									[]
-								)
+								.reduce<
+									string[]
+								>((all, pArch) => (pArch === 'universal' ? all.concat(['arm64', 'x64']) : all.concat([pArch])), [])
 						)
 					)
 
@@ -396,7 +394,7 @@ export default class WebpackPlugin extends PluginBase<WebpackPluginConfig> {
 											)
 										},
 									},
-							  ]
+								]
 
 					return task.newListr<NativeDepsCtx>(
 						[
@@ -565,7 +563,8 @@ the generated files). Instead, it is ${JSON.stringify(pj.main)}`)
 				return onceResolve(undefined)
 			}
 			if (watch) {
-				this.watchers.push(compiler.watch({}, cb))
+				const watcher = compiler.watch({}, cb)
+				if (watcher !== undefined) this.watchers.push(watcher)
 			} else {
 				compiler.run(cb)
 			}
