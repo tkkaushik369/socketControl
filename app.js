@@ -1,9 +1,9 @@
-// import * as WorldLib from './dist/@World/index.js'
+// import * as WorldLib from './dist/@World/World.js'
 // import * as WorldServerLib from './dist/@WorldServer/index.js'
 // import * as ServerModuleLib from './dist/server/server.js'
 // import * as data from './dist/client/models/MapConfig.json'
 
-const WorldLib = require('./dist/@World/index.js')
+const WorldLib = require('./dist/@World/World.js')
 console.log("World Loaded")
 const WorldServerLib = require('./dist/@WorldServer/index.js')
 console.log("WorldServer Loaded")

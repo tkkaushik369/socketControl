@@ -5,8 +5,18 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
-import { Utility, WorldBase, UiControlsGroup, UiControls, UiControlsType, MapConfigType, AttachModels } from '@World'
+import {
+	Utility,
+	WorldBase,
+	UiControlsGroup,
+	UiControls,
+	UiControlsType,
+	MapConfigType,
+	AttachModels,
+	ControlsTypes,
+} from '@World'
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import { Pane } from 'tweakpane'
 import { TabApi, TabPageApi } from '@tweakpane/core'
@@ -35,9 +45,11 @@ export class WorldClient extends WorldBase {
 	private renderPass: RenderPass
 	private fxaaPass: ShaderPass
 	private outputPass: OutputPass
+	private unrealBloomPass: UnrealBloomPass
 	private outlinePass: OutlinePass
 	private composer: EffectComposer
 
+	private hemiLight: THREE.HemisphereLight
 	private sky: Sky
 	public sun: THREE.Vector3
 	public effectController: { [id: string]: any }
@@ -90,6 +102,10 @@ export class WorldClient extends WorldBase {
 		this.toggleControlsFunc = this.toggleControlsFunc.bind(this)
 		this.toggleConsoleFunc = this.toggleConsoleFunc.bind(this)
 		this.togglePostFXAA = this.togglePostFXAA.bind(this)
+		this.togglePostUnrealBloom = this.togglePostUnrealBloom.bind(this)
+		this.postUnrealBloomThreshold = this.postUnrealBloomThreshold.bind(this)
+		this.postUnrealBloomStrength = this.postUnrealBloomStrength.bind(this)
+		this.postUnrealBloomRadius = this.postUnrealBloomRadius.bind(this)
 		this.togglePostOutline = this.togglePostOutline.bind(this)
 		this.toggleTextures = this.toggleTextures.bind(this)
 		this.toggleShadows = this.toggleShadows.bind(this)
@@ -158,11 +174,11 @@ export class WorldClient extends WorldBase {
 
 		// Ambient Light
 		// this.scene.add(new THREE.AmbientLight(0xaacccc))
-		const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.0)
-		hemiLight.color.setHSL(0.59, 0.4, 0.6)
-		hemiLight.groundColor.setHSL(0.095, 0.2, 0.75)
-		hemiLight.position.set(0, 50, 0)
-		this.scene.add(hemiLight)
+		this.hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.5)
+		this.hemiLight.color.setHSL(0.59, 0.4, 0.6)
+		this.hemiLight.groundColor.setHSL(0.095, 0.2, 0.75)
+		this.hemiLight.position.set(0, 50, 0)
+		this.scene.add(this.hemiLight)
 
 		// Sky
 		this.sun = new THREE.Vector3()
@@ -184,12 +200,12 @@ export class WorldClient extends WorldBase {
 			maxFar: 500,
 			lightIntensity: 2.5,
 			cascades: 3,
-			shadowBias: 0,
-			mode: 'practical',
+			shadowBias: -0.0001,
+			mode: 'uniform',
 			parent: this.scene,
 			lightMargin: 100,
 			lightNear: 1,
-			lightFar: 1000,
+			lightFar: 800,
 			shadowMapSize: 1024 * 4,
 			lightDirection: new THREE.Vector3(-1, -1, -1).normalize(),
 			camera: this.camera,
@@ -220,6 +236,17 @@ export class WorldClient extends WorldBase {
 			this.fxaaPass.material['uniforms'].resolution.value.y = 1 / (window.innerHeight * pixelRatio)
 
 			//
+			this.unrealBloomPass = new UnrealBloomPass(
+				new THREE.Vector2(window.innerWidth, window.innerHeight),
+				1.5,
+				0.4,
+				0.85
+			)
+			this.unrealBloomPass.threshold = this.settings.UnrealBloom_threshold
+			this.unrealBloomPass.strength = this.settings.UnrealBloom_strength
+			this.unrealBloomPass.radius = this.settings.UnrealBloom_radius
+
+			//
 			this.outlinePass = new OutlinePass(
 				new THREE.Vector2(window.innerWidth, window.innerHeight),
 				this.scene,
@@ -247,6 +274,7 @@ export class WorldClient extends WorldBase {
 			this.outputPass = new OutputPass()
 
 			this.composer.addPass(this.renderPass)
+			this.composer.addPass(this.unrealBloomPass)
 			this.composer.addPass(this.outlinePass)
 			this.composer.addPass(this.fxaaPass)
 			this.composer.addPass(this.outputPass)
@@ -270,23 +298,46 @@ export class WorldClient extends WorldBase {
 		let folderSettings = this.gui.addFolder({ title: 'Settings', expanded: false })
 		let cannonSettings = folderSettings.addFolder({ title: 'Cannon Renderer', expanded: false })
 		// cannonSettings.addBinding(this.settings, 'Debug_Physics_Engine').on('change', this.debugPhysicsEngineFunc)
-		cannonSettings.addBinding(this.settings, 'Debug_Physics').on('change', this.debugPhysicsFunc)
+		cannonSettings
+			.addBinding(this.settings, 'Debug_Physics', { label: 'Physics' })
+			.on('change', this.debugPhysicsFunc)
 		// cannonSettings.addBinding(this.settings, 'Debug_Physics_Wireframe').on('change', this.debugPhysicsWireframeFunc)
 		cannonSettings
-			.addBinding(this.settings, 'Debug_Physics_MeshOpacity', { min: 0, max: 1 })
+			.addBinding(this.settings, 'Debug_Physics_MeshOpacity', { min: 0, max: 1, label: 'Mesh-Opacity' })
 			.on('change', this.debugPhysicsOpacityFunc)
-		cannonSettings.addBinding(this.settings, 'Debug_Physics_MeshEdges').on('change', this.debugPhysicsEdgesFunc)
+		cannonSettings
+			.addBinding(this.settings, 'Debug_Physics_MeshEdges', { label: 'Mesh-Edges' })
+			.on('change', this.debugPhysicsEdgesFunc)
 
 		let debugSettings = folderSettings.addFolder({ title: 'Helpers', expanded: false })
-		debugSettings.addBinding(this.settings, 'Debug_FPS').on('change', this.toggleStatsFunc)
-		debugSettings.addBinding(this.settings, 'Debug_Helper').on('change', this.toggleHelpersFunc)
-		debugSettings.addBinding(this.settings, 'Debug_Pings').on('change', this.togglePingsFunc)
-		debugSettings.addBinding(this.settings, 'Debug_Controls').on('change', this.toggleControlsFunc)
-		debugSettings.addBinding(this.settings, 'Debug_Console').on('change', this.toggleConsoleFunc)
+		debugSettings.addBinding(this.settings, 'Debug_FPS', { label: 'FPS' }).on('change', this.toggleStatsFunc)
+		debugSettings
+			.addBinding(this.settings, 'Debug_Helper', { label: 'Helper' })
+			.on('change', this.toggleHelpersFunc)
+		debugSettings.addBinding(this.settings, 'Debug_Pings', { label: 'Pings' }).on('change', this.togglePingsFunc)
+		debugSettings
+			.addBinding(this.settings, 'Debug_Controls', { label: 'Controls' })
+			.on('change', this.toggleControlsFunc)
+		debugSettings
+			.addBinding(this.settings, 'Debug_Console', { label: 'Console' })
+			.on('change', this.toggleConsoleFunc)
 
 		let postProcess = folderSettings.addFolder({ title: 'Post Process', expanded: false })
 		postProcess.addBinding(this.settings, 'PostProcess')
 		postProcess.addBinding(this.settings, 'FXAA').on('change', this.togglePostFXAA)
+
+		let unrealBloom = postProcess.addFolder({ title: 'Unreal Bloom', expanded: true })
+		unrealBloom.addBinding(this.settings, 'UnrealBloom').on('change', this.togglePostUnrealBloom)
+		// unrealBloom
+		// 	.addBinding(this.settings, 'UnrealBloom_threshold', { min: 0, max: 1, label: 'Threshold' })
+		// 	.on('change', this.postUnrealBloomThreshold)
+		// unrealBloom
+		// 	.addBinding(this.settings, 'UnrealBloom_strength', { min: 0, max: 1, label: 'Strength' })
+		// 	.on('change', this.postUnrealBloomStrength)
+		unrealBloom
+			.addBinding(this.settings, 'UnrealBloom_radius', { min: 0, max: 1, label: 'Radius' })
+			.on('change', this.postUnrealBloomRadius)
+
 		postProcess.addBinding(this.settings, 'Outline').on('change', this.togglePostOutline)
 		postProcess.addBinding(this.settings, 'Textures').on('change', this.toggleTextures)
 
@@ -320,10 +371,16 @@ export class WorldClient extends WorldBase {
 			.on('change', this.sunGuiChanged)
 		sunFolder
 			.addBinding(this.effectController, 'elevation', { min: -90, max: 90, step: 0.1 })
-			.on('change', this.sunGuiChanged)
+			.on('change', (en: { value: number }) => {
+				this.sunConf.elevation = en.value
+				this.sunGuiChanged()
+			})
 		sunFolder
 			.addBinding(this.effectController, 'azimuth', { min: -180, max: 180, step: 0.1 })
-			.on('change', this.sunGuiChanged)
+			.on('change', (en: { value: number }) => {
+				this.sunConf.azimuth = en.value
+				this.sunGuiChanged()
+			})
 		sunFolder
 			.addBinding(this.effectController, 'exposure', { min: 0, max: 1, step: 0.0001 })
 			.on('change', this.sunGuiChanged)
@@ -386,10 +443,15 @@ export class WorldClient extends WorldBase {
 			this.toggleControlsFunc({ value: this.settings.Debug_Controls })
 			this.toggleConsoleFunc({ value: this.settings.Debug_Console })
 			this.togglePostFXAA({ value: this.settings.FXAA })
+			this.togglePostUnrealBloom({ value: this.settings.UnrealBloom })
+			this.postUnrealBloomThreshold({ value: this.settings.UnrealBloom_threshold })
+			this.postUnrealBloomStrength({ value: this.settings.UnrealBloom_strength })
+			this.postUnrealBloomRadius({ value: this.settings.UnrealBloom_radius })
 			this.togglePostOutline({ value: this.settings.Outline })
 			this.pointLockFunc({ value: this.settings.Pointer_Lock })
 			this.mouseSensitivityFunc({ value: this.settings.Mouse_Sensitivity })
 			this.timeScaleFunc({ value: this.settings.Time_Scale })
+			this.settings.SyncSun = false
 			this.sunGuiChanged()
 		}
 
@@ -533,6 +595,10 @@ export class WorldClient extends WorldBase {
 				controls = UiControls.Airplane
 				break
 			}
+			case UiControlsGroup.Train: {
+				controls = UiControls.Train
+				break
+			}
 			default: {
 				controls = []
 				break
@@ -542,18 +608,75 @@ export class WorldClient extends WorldBase {
 		let html = ''
 		html += '<h2 class="controls-title">Controls:</h2>'
 
+		const ctrlAct = 'ctrl-act'
+		const mapAct: { id: string; keys: string[] }[] = []
 		controls.forEach((row) => {
 			html += '<div class="ctrl-row">'
+
+			const isCombo = row.keys.includes('+')
+			if (isCombo) {
+				const cid = ctrlAct + '-' + row.keys.join(':')
+				html += '<div class="ctrl-combo" id="' + cid + '">'
+				mapAct.push({ id: cid, keys: row.keys })
+			}
+
 			row.keys.forEach((key) => {
 				if (key === '+' || key === 'and' || key === 'or' || key === '&') html += '&nbsp' + key + '&nbsp'
-				else html += '<span class="ctrl-key">' + key + '</span>'
+				else {
+					const cid = ctrlAct + '-' + key
+					html += '<span class="ctrl-key" '
+					if (!isCombo) html += 'id="' + cid + '"'
+					html += '>' + key + '</span>'
+					mapAct.push({ id: cid, keys: [key] })
+				}
 			})
+
+			if (isCombo) html += '</div>'
 
 			html += '<span class="ctrl-desc">' + row.desc + '</span></div>'
 		})
 
 		this.controlsDom.innerHTML = html
 		this.uiControls = type
+
+		mapAct.forEach((ma) => {
+			const ele = document.getElementById(ma.id)
+			if (ele == null) return
+			const self = this
+			const ctlCall = (pressed: boolean) => {
+				let newArray = ma.keys
+				const isCombo = newArray.includes('+') ? true : false
+				let csKey = ''
+				if (isCombo) {
+					newArray = newArray.filter((item) => item !== '+')
+					newArray = newArray.filter((item) => item !== 'Shift')
+					csKey = newArray[0]
+				}
+				if (this.player === null) return
+				let actKey = isCombo ? csKey : newArray[0]
+				if (actKey == 'Space') {
+				} else if (actKey == 'Shift') {
+					actKey = 'ShiftLeft'
+				} else {
+					actKey = 'Key' + actKey
+				}
+				this.player.inputManager.setControls({
+					sID: 'offline_player',
+					type: ControlsTypes.Keyboard,
+					data: {
+						code: actKey,
+						isShift: isCombo,
+						pressed: pressed,
+					},
+				} as any)
+			}
+			ele.addEventListener('touchstart', () => {
+				ctlCall(true)
+			})
+			ele.addEventListener('touchend', () => {
+				ctlCall(false)
+			})
+		})
 	}
 
 	// Gui Functions
@@ -598,6 +721,22 @@ export class WorldClient extends WorldBase {
 				})
 			})
 		})
+		this.trains.forEach((train) => {
+			// train.seats.forEach((seat) => {
+			// 	seat.entryPoints.forEach((ep) => {
+			// 		ep.traverse((obj) => {
+			// 			/* if(obj.hasOwnProperty('userData')) {
+			// 				if(obj.userData.hasOwnProperty('name')) {
+			// 					if(obj.userData.name === "pointHelper") {
+			// 						obj.visible = enabled
+			// 					}
+			// 				}
+			// 			} */
+			// 			ep.visible = en.value
+			// 		})
+			// 	})
+			// })
+		})
 		this.paths.forEach((path) => {
 			path.rootNode.visible = en.value
 		})
@@ -617,6 +756,22 @@ export class WorldClient extends WorldBase {
 
 	private togglePostFXAA(en: { value: boolean }) {
 		this.fxaaPass.enabled = en.value
+	}
+
+	private togglePostUnrealBloom(en: { value: boolean }) {
+		this.unrealBloomPass.enabled = en.value
+	}
+
+	private postUnrealBloomThreshold(en: { value: number }) {
+		this.unrealBloomPass.threshold = en.value
+	}
+
+	private postUnrealBloomStrength(en: { value: number }) {
+		this.unrealBloomPass.strength = en.value
+	}
+
+	private postUnrealBloomRadius(en: { value: number }) {
+		this.unrealBloomPass.radius = en.value
 	}
 
 	private togglePostOutline(en: { value: boolean }) {
@@ -662,6 +817,11 @@ export class WorldClient extends WorldBase {
 		const phi = THREE.MathUtils.degToRad(90 - this.effectController.elevation)
 		const theta = THREE.MathUtils.degToRad(this.effectController.azimuth)
 
+		/* if (!this.settings.SyncSun && this.worldId === null) {
+			this.sunConf.elevation = this.effectController.elevation
+			this.sunConf.azimuth = this.effectController.azimuth
+		} */
+
 		this.sun.setFromSphericalCoords(1, phi, theta)
 
 		uniforms['sunPosition'].value.copy(this.sun)
@@ -689,7 +849,25 @@ export class WorldClient extends WorldBase {
 	private animate() {
 		this.update()
 		// this.gui.refresh()
+		if (this.settings.SyncSun) {
+			if (this.worldId === null) {
+				this.effectController.elevation = this.sunConf.elevation
+				this.effectController.azimuth = this.sunConf.azimuth
+			}
+			this.sunGuiChanged()
+		}
+		if (this.settings.PostProcess) {
+			this.postUnrealBloomThreshold({ value: this.settings.UnrealBloom_threshold })
+			this.postUnrealBloomStrength({ value: this.settings.UnrealBloom_strength })
+			// this.postUnrealBloomRadius({ value: this.settings.unrealBloomRadius })
+		}
 		this.csm.update()
+		if (this.settings.SyncSun) {
+			let intensity = 0
+			if (this.sunConf.elevation > 0) intensity = Math.abs(this.sunConf.elevation) / 90.0 + 0.2
+			if (this.sunConf.elevation < 0) intensity = 0.2
+			this.hemiLight.intensity = intensity > 0.9 ? 0.9 : intensity
+		}
 		/* this.oceans.forEach((ocean) => {
 			ocean.update((this.timeScaleTarget * 1.0) / 60.0)
 		}) */

@@ -8,6 +8,7 @@ export const ExampleConfig: MapConfigType = {
 	isLaunched: true,
 	characters: [],
 	vehicles: [],
+	trains: [],
 }
 
 const character: MapConfigFOType = {

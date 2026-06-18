@@ -28,7 +28,7 @@ const CameraOperator: UiControlsType = [
 
 const Character: UiControlsType = [
 	{
-		keys: ['W', 'A', 'S', 'D'],
+		keys: ['W', 'S', 'A', 'D'],
 		desc: 'Movement',
 	},
 	{
@@ -177,6 +177,37 @@ const Airplane: UiControlsType = [
 	},
 ]
 
+const Train: UiControlsType = [
+	{
+		keys: ['W', 'S'],
+		desc: 'Accelerate, Brake / Reverse',
+	},
+	{
+		keys: ['A', 'D'],
+		desc: 'Steering',
+	},
+	{
+		keys: ['Space'],
+		desc: 'Handbrake',
+	},
+	{
+		keys: ['V'],
+		desc: 'View select',
+	},
+	{
+		keys: ['F'],
+		desc: 'Exit vehicle',
+	},
+	{
+		keys: ['Shift', '+', 'R'],
+		desc: 'Respawn',
+	},
+	{
+		keys: ['Shift', '+', 'C'],
+		desc: 'Free camera',
+	},
+]
+
 export class UiControls {
 	static readonly CameraOperator: UiControlsType = CameraOperator
 	static readonly Character: UiControlsType = Character
@@ -186,4 +217,5 @@ export class UiControls {
 	static readonly Car: UiControlsType = Car
 	static readonly Helicopter: UiControlsType = Helicopter
 	static readonly Airplane: UiControlsType = Airplane
+	static readonly Train: UiControlsType = Train
 }

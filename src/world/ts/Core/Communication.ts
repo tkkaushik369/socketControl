@@ -9,5 +9,5 @@ export var Common: {
 	conn: Communication.WebSocket,
 	sender: DataSender.SocketLoop, // only websocket
 	packager: Packager.JSON, // only websocket
-	eachNewWorld: WorldCreation.OneForEach,
+	eachNewWorld: WorldCreation.AtleaseOne,
 }

@@ -22,6 +22,9 @@ export abstract class BaseScene {
 	airplane: THREE.Mesh
 	airplaneAnimations: any[]
 
+	train: THREE.Mesh
+	trainAnimations: any[]
+
 	constructor() {
 		this.scene = new THREE.Scene()
 		this.sceneAnimations = []
@@ -34,6 +37,9 @@ export abstract class BaseScene {
 
 		this.airplane = new THREE.Mesh()
 		this.airplaneAnimations = []
+
+		this.train = new THREE.Mesh()
+		this.trainAnimations = []
 	}
 
 	getScene(): SceneType {
@@ -68,6 +74,14 @@ export abstract class BaseScene {
 						return { scene: this.airplane, animations: this.airplaneAnimations }
 					default:
 						return { scene: this.airplane, animations: this.airplaneAnimations }
+				}
+			}
+			case 'train': {
+				switch (subtype) {
+					case 'train_test':
+						return { scene: this.train, animations: this.trainAnimations }
+					default:
+						return { scene: this.train, animations: this.trainAnimations }
 				}
 			}
 			default:

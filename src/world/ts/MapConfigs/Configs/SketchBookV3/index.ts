@@ -7,6 +7,7 @@ export const SketchBookV3Config: MapConfigType = {
 	isLaunched: true,
 	characters: [],
 	vehicles: [],
+	trains: [],
 }
 
 const character: MapConfigFOType = {

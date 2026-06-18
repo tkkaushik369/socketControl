@@ -18,24 +18,12 @@
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"paths": {
-			"*": [
-				"node_modules/*"
-			],
-			"@server/*": [
-				"./src/server/*"
-			],
-			"@client/*": [
-				"./src/client/*"
-			],
-			"@World": [
-				"./src/world/ts/World.ts"
-			],
-			"@WorldClient": [
-				"./src/worldclient/ts/World/WorldClient.ts"
-			],
-			"@WorldServer": [
-				"./src/worldserver/ts/World/WorldServer.ts"
-			],
+			"*": ["node_modules/*"],
+			"@server/*": ["./src/server/*"],
+			"@client/*": ["./src/client/*"],
+			"@World": ["./src/world/ts/World.ts"],
+			"@WorldClient": ["./src/worldclient/ts/World/WorldClient.ts"],
+			"@WorldServer": ["./src/worldserver/ts/World/WorldServer.ts"]
 		},
 		"typeRoots": [
 			"./src/server/*",
@@ -44,9 +32,7 @@
 			"./src/worldclient/ts/World/WorldClient.ts",
 			"./src/worldserver/ts/World/WorldServer.ts",
 			"./node_modules/@types"
-		],
+		]
 	},
-	"include": [
-		"src/**/*"
-	]
+	"include": ["src/**/*"]
 }

@@ -1,17 +1,23 @@
 import * as THREE from 'three'
+import { SUBTRACTION, Brush, Evaluator } from 'three-bvh-csg'
+import { Reflector } from 'three/examples/jsm/objects/Reflector'
 // import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import { BaseScene } from '../../BaseScene'
 import { Utility } from '../../../Core/Utility'
 
 export class Example extends BaseScene {
+	private version: number = 2
+
 	constructor() {
 		super()
 		// function bind
+		this.makeMirror = this.makeMirror.bind(this)
 		this.makeWheel = this.makeWheel.bind(this)
 		this.makeSeat = this.makeSeat.bind(this)
 		this.makeCar = this.makeCar.bind(this)
 		this.makeHeli = this.makeHeli.bind(this)
 		this.makeAirPlane = this.makeAirPlane.bind(this)
+		this.makeTrain = this.makeTrain.bind(this)
 
 		{
 			// world
@@ -451,16 +457,163 @@ export class Example extends BaseScene {
 			const body = this.makeAirPlane()
 			this.airplane.add(body)
 		}
+
+		{
+			// train
+			const body = this.makeTrain()
+			this.train.add(body)
+		}
+	}
+
+	makeMirror() {
+		const geometry = new THREE.CircleGeometry(0.1, 8)
+		const groupMirror = new THREE.Group()
+		const lodMirror = new THREE.LOD()
+
+		{
+			const debug_off = false
+			const mirror_0 = debug_off
+				? new Reflector(geometry, {
+						clipBias: 0.0,
+						textureWidth: 1600,
+						textureHeight: 900,
+						color: 0xb5b5b5,
+				  })
+				: new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0xff0000 }))
+			lodMirror.addLevel(mirror_0, 0)
+
+			const mirror_1 = debug_off
+				? new Reflector(geometry, {
+						clipBias: 0.0,
+						textureWidth: 1200,
+						textureHeight: 675,
+						color: 0xb5b5b5,
+				  })
+				: new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0x00ff00 }))
+			lodMirror.addLevel(mirror_1, 1)
+
+			const mirror_5 = debug_off
+				? new Reflector(geometry, {
+						clipBias: 0.0,
+						textureWidth: 800,
+						textureHeight: 450,
+						color: 0xb5b5b5,
+				  })
+				: new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0x0000ff }))
+			lodMirror.addLevel(mirror_5, 5)
+
+			const mirror_10 = debug_off
+				? new Reflector(geometry, {
+						clipBias: 0.0,
+						textureWidth: 400,
+						textureHeight: 225,
+						color: 0xb5b5b5,
+				  })
+				: new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0x00ffff }))
+			lodMirror.addLevel(mirror_10, 10)
+		}
+		groupMirror.add(lodMirror)
+
+		const mirrorBack = new THREE.Mesh(
+			geometry.clone(),
+			new THREE.MeshLambertMaterial({ color: 0x1a1a1a, side: THREE.DoubleSide })
+		)
+		mirrorBack.rotateY(Math.PI)
+		mirrorBack.position.z = -0.01
+		mirrorBack.scale.set(1.2, 1.2, 1.2)
+		groupMirror.add(mirrorBack)
+
+		return groupMirror
 	}
 
 	makeWheel(radius: number = 0.3, thickness: number = 0.1) {
 		const wheelGrp = new THREE.Group()
-		const wheel = new THREE.Mesh(
-			new THREE.CylinderGeometry(radius, radius, thickness),
-			new THREE.MeshLambertMaterial({ color: 0x333333 })
-		)
+		const material = new THREE.MeshLambertMaterial({ color: 0x333333 })
+
+		switch (this.version) {
+			case 1:
+				{
+					const wheel = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, thickness), material)
 		wheel.rotation.z = Math.PI / 2
 		wheelGrp.add(wheel)
+				}
+				break
+			case 2:
+				{
+					const shape = new THREE.Shape()
+					shape.setFromPoints(generateGearPath())
+
+					function generateGearPath({
+						radius = 10,
+						teeth = 16,
+						toothDepth = 0.5,
+						tipRatio = 0.5,
+						rootRatio = 0.3,
+						stepsPerSegment = 2,
+					} = {}) {
+						const rootR = radius - toothDepth / 2
+						const tipR = radius + toothDepth / 2
+
+						const toothAngle = (2 * Math.PI) / teeth
+						const rootAngle = toothAngle * rootRatio
+						const tipAngle = toothAngle * tipRatio
+						const flankTotal = toothAngle - tipAngle - rootAngle
+						const flankAngle = flankTotal / 2
+
+						const pts: THREE.Vector2[] = []
+
+						for (let i = 0; i < teeth; i++) {
+							const base = i * toothAngle
+
+							// --- Root flat (from base -> base + rootAngle)
+							for (let j = 0; j <= stepsPerSegment; j++) {
+								const a = base + (j / stepsPerSegment) * rootAngle
+								pts.push(new THREE.Vector2(rootR * Math.cos(a), rootR * Math.sin(a)))
+							}
+
+							// --- Flank 1 (root -> tip)
+							for (let j = 0; j <= stepsPerSegment; j++) {
+								const a = base + rootAngle + (j / stepsPerSegment) * flankAngle
+								const rr = rootR + (tipR - rootR) * (j / stepsPerSegment)
+								pts.push(new THREE.Vector2(rr * Math.cos(a), rr * Math.sin(a)))
+							}
+
+							// --- Tip flat
+							for (let j = 0; j <= stepsPerSegment; j++) {
+								const a = base + rootAngle + flankAngle + (j / stepsPerSegment) * tipAngle
+								pts.push(new THREE.Vector2(tipR * Math.cos(a), tipR * Math.sin(a)))
+							}
+
+							// --- Flank 2 (tip -> root)
+							for (let j = 0; j <= stepsPerSegment; j++) {
+								const a = base + rootAngle + flankAngle + tipAngle + (j / stepsPerSegment) * flankAngle
+								const rr = tipR - (tipR - rootR) * (j / stepsPerSegment)
+								pts.push(new THREE.Vector2(rr * Math.cos(a), rr * Math.sin(a)))
+							}
+						}
+
+						// close path
+						if (pts.length) pts.push(pts[0])
+						return pts
+					}
+
+					const geometry = new THREE.ExtrudeGeometry(shape, {
+						steps: 1,
+						depth: 7,
+						bevelThickness: 1,
+						bevelSize: 0.6,
+						bevelSegments: 3,
+						bevelEnabled: true,
+					})
+
+					const wheel = new THREE.Mesh(geometry, material)
+					wheel.rotation.y = Math.PI / 2
+					wheel.position.x = -0.083
+					wheel.scale.set(0.024, 0.024, 0.024)
+					wheelGrp.add(wheel)
+				}
+				break
+		}
 		return wheelGrp
 	}
 
@@ -478,10 +631,38 @@ export class Example extends BaseScene {
 		const body = new THREE.Mesh()
 		{
 			// stearing
-			const steering = new THREE.Mesh(
-				new THREE.BoxGeometry(0.25, 0.25, 0.05),
-				new THREE.MeshLambertMaterial({ color: 0x333333 })
-			)
+			const material = new THREE.MeshLambertMaterial({ color: 0x333333, wireframe: false })
+			let geometry = new THREE.BufferGeometry()
+			switch (this.version) {
+				case 1: {
+					geometry = new THREE.BoxGeometry(0.25, 0.25, 0.05)
+					break
+				}
+				case 2: {
+					class CustomSinCurve extends THREE.Curve<THREE.Vector3> {
+						public scale: number
+
+						constructor(scale = 1) {
+							super()
+							this.scale = scale
+						}
+
+						getPoint(t: number, optionalTarget = new THREE.Vector3()) {
+							const tx = Math.sin(2 * Math.PI * t) - Math.cos(2 * Math.PI * t)
+							const ty = Math.sin(2 * Math.PI * t) + Math.cos(2 * Math.PI * t)
+							const tz = 0
+
+							return optionalTarget.set(tx, ty, tz).multiplyScalar(this.scale)
+						}
+					}
+
+					const path = new CustomSinCurve(10)
+					geometry = new THREE.TubeGeometry(path, 16, 1.5, 8, true)
+					geometry.scale(0.0098, 0.0098, 0.0098)
+					break
+				}
+			}
+			const steering = new THREE.Mesh(geometry, material)
 			steering.position.set(-0.3, 0.3, 0.5)
 			steering.rotation.x = Math.PI / 8
 			steering.userData = {
@@ -492,7 +673,7 @@ export class Example extends BaseScene {
 		{
 			// camera
 			const camera = new THREE.Object3D()
-			camera.position.set(-0.3, 0.6, 0.2)
+			camera.position.set(-0.3, 0.5, 0.1)
 			camera.userData = {
 				data: 'camera',
 			}
@@ -518,22 +699,28 @@ export class Example extends BaseScene {
 		}
 		{
 			// head lights
+			const color = new THREE.Color('#f5f0d4')
+			const color2 = new THREE.Color('#ffffff')
 			{
 				const left = new THREE.Mesh(
 					new THREE.CylinderGeometry(0.1, 0.1, 0.1),
-					new THREE.MeshLambertMaterial({ color: 0xffffff })
+					new THREE.MeshLambertMaterial({ color: color2, emissive: color2, emissiveIntensity: 1 })
 				)
+				left.name = 'leftlight_object'
 				left.position.set(-0.4, 0.08, 1.2)
 				left.rotateX(-Math.PI / 2)
-				const light = new THREE.SpotLight(0xffffff, 2, 15)
+				const light = new THREE.SpotLight(color, 2, 15)
 				light.name = 'leftlight'
 				light.userData = {
 					data: 'light',
+					visual: 'leftlight_object',
 				}
 				light.position.copy(left.position)
 				light.power = 100
-				light.angle = 30 * (Math.PI / 180)
+				light.angle = 20 * (Math.PI / 180)
 				light.castShadow = true
+				light.decay = 1.5
+				light.penumbra = 0.05
 				light.target.position.copy(light.position).add(new THREE.Vector3(0, 0, 1))
 				body.add(light)
 				body.add(light.target)
@@ -542,23 +729,47 @@ export class Example extends BaseScene {
 			{
 				const right = new THREE.Mesh(
 					new THREE.CylinderGeometry(0.1, 0.1, 0.1),
-					new THREE.MeshLambertMaterial({ color: 0xffffff })
+					new THREE.MeshLambertMaterial({ color: color2, emissive: color2, emissiveIntensity: 1 })
 				)
+				right.name = 'rightlight_object'
 				right.position.set(0.4, 0.08, 1.2)
 				right.rotateX(-Math.PI / 2)
-				const light = new THREE.SpotLight(0xffffff, 2, 15)
+				const light = new THREE.SpotLight(color, 2, 15)
 				light.name = 'rightlight'
 				light.userData = {
 					data: 'light',
+					visual: 'rightlight_object',
 				}
 				light.position.copy(right.position)
 				light.power = 100
-				light.angle = 30 * (Math.PI / 180)
+				light.angle = 20 * (Math.PI / 180)
 				light.castShadow = true
+				light.decay = 1.5
+				light.penumbra = 0.05
 				light.target.position.copy(light.position).add(new THREE.Vector3(0, 0, 1))
 				body.add(light)
 				body.add(light.target)
 				body.add(right)
+			}
+		}
+		{
+			// mirrors
+
+			{
+				const groupMirror = this.makeMirror()
+				groupMirror.position.x = -0.7
+				groupMirror.position.y = 0.4
+				groupMirror.position.z = 0.6
+				groupMirror.rotateY(95 * (Math.PI / 180) + Math.PI / 2)
+				body.add(groupMirror)
+			}
+			{
+				const groupMirror = this.makeMirror()
+				groupMirror.position.x = 0.7
+				groupMirror.position.y = 0.4
+				groupMirror.position.z = 0.6
+				groupMirror.rotateY(110 * (Math.PI / 180) + Math.PI / 2)
+				body.add(groupMirror)
 			}
 		}
 		{
@@ -781,6 +992,31 @@ export class Example extends BaseScene {
 					drive: 'rwd',
 				}
 				body.add(wheelObj)
+			}
+			if (false) {
+				{
+					const wheelObj = this.makeWheel(0.26, 0.2)
+					// wheelObj.position.set(-0.5, -0.2, -0.8)
+					wheelObj.position.set(-0.9, -0.2, -0.8)
+					wheelObj.name = 'wheel_fls'
+					wheelObj.userData = {
+						name: 'wheel_fls',
+						data: 'wheel_side',
+						loc: 'fl',
+					}
+					body.add(wheelObj)
+				}
+				{
+					const wheelObj = this.makeWheel(0.26, 0.2)
+					wheelObj.position.set(-0.5, -0.2, -0.8)
+					wheelObj.name = 'wheel_frs'
+					wheelObj.userData = {
+						name: 'wheel_frs',
+						data: 'wheel_side',
+						loc: 'fr',
+					}
+					body.add(wheelObj)
+				}
 			}
 		}
 		{
@@ -1698,6 +1934,239 @@ export class Example extends BaseScene {
 				bodyColl.scale.set(0.1, 0.5, 0.5)
 				bodyColl.scale.multiplyScalar(0.5)
 				bodyColl.position.set(0, 0.8, -1)
+				bodyColl.userData = {
+					data: 'collision',
+					shape: 'box',
+				}
+				body.add(bodyColl)
+			}
+		}
+		return body
+	}
+
+	makeTrain() {
+		const body = new THREE.Mesh()
+		{
+			// stearing
+			const material = new THREE.MeshLambertMaterial({ color: 0x333333, wireframe: false })
+			let geometry = new THREE.BufferGeometry()
+			switch (this.version) {
+				case 1: {
+					geometry = new THREE.BoxGeometry(0.25, 0.25, 0.05)
+					break
+				}
+				case 2: {
+					class CustomSinCurve extends THREE.Curve<THREE.Vector3> {
+						public scale: number
+
+						constructor(scale = 1) {
+							super()
+							this.scale = scale
+						}
+
+						getPoint(t: number, optionalTarget = new THREE.Vector3()) {
+							const tx = Math.sin(2 * Math.PI * t) - Math.cos(2 * Math.PI * t)
+							const ty = Math.sin(2 * Math.PI * t) + Math.cos(2 * Math.PI * t)
+							const tz = 0
+
+							return optionalTarget.set(tx, ty, tz).multiplyScalar(this.scale)
+						}
+					}
+
+					const path = new CustomSinCurve(10)
+					geometry = new THREE.TubeGeometry(path, 16, 1.5, 8, true)
+					geometry.scale(0.0098, 0.0098, 0.0098)
+					break
+				}
+			}
+			const steering = new THREE.Mesh(geometry, material)
+			steering.position.set(-0.3, 0.3, 0.5)
+			steering.rotation.x = Math.PI / 8
+			steering.userData = {
+				data: 'steering_wheel',
+			}
+			body.add(steering)
+		}
+		{
+			// chassy
+			const lower = new THREE.Mesh(
+				new THREE.BoxGeometry(1.4, 0.1, 5.0),
+				new THREE.MeshLambertMaterial({ color: 0x666666, transparent: true, opacity: 0.8 })
+			)
+			body.add(lower)
+		}
+		{
+			// camera
+			const camera = new THREE.Object3D()
+			camera.position.set(-0.35, 0.5, 0.2)
+			camera.userData = {
+				data: 'camera',
+			}
+			body.add(camera)
+		}
+		{
+			// sceats
+			{
+				const seat = this.makeSeat()
+				seat.position.set(-0.3, 0, 0)
+				seat.name = 'seat_1'
+				body.add(seat)
+				seat.userData = {
+					name: 'seat_1',
+					data: 'seat',
+					door_object: 'door_1',
+					seat_type: 'driver',
+					entry_points: 'entrance_1',
+					connected_seats: 'seat_2',
+				}
+
+				const doorObj = new THREE.Object3D()
+				doorObj.position.copy(seat.position)
+				doorObj.position.x -= 0.4
+				doorObj.position.y += 0.1
+				doorObj.position.z += 0.4
+				const door = new THREE.Mesh(
+					new THREE.BoxGeometry(0.05, 0.3, 0.5),
+					new THREE.MeshLambertMaterial({ color: 0xffff00 })
+				)
+				door.position.z -= 0.2
+				doorObj.name = 'door_1'
+				doorObj.userData = {
+					name: 'door_1',
+				}
+				doorObj.add(door)
+				body.add(doorObj)
+
+				const entryPoint = new THREE.AxesHelper()
+				entryPoint.position.copy(doorObj.position)
+				entryPoint.position.x -= 0.4
+				entryPoint.position.y -= 0.5
+				entryPoint.position.z -= 0.4
+				entryPoint.name = 'entrance_1'
+				entryPoint.userData = {
+					name: 'entrance_1',
+				}
+				body.add(entryPoint)
+			}
+			{
+				const seat = this.makeSeat()
+				seat.position.set(0.3, 0, 0.2)
+				seat.name = 'seat_2'
+				body.add(seat)
+				seat.userData = {
+					name: 'seat_2',
+					data: 'seat',
+					door_object: 'door_2',
+					seat_type: 'passenger',
+					entry_points: 'entrance_2',
+					connected_seats: 'seat_1',
+				}
+
+				const doorObj = new THREE.Object3D()
+				doorObj.position.copy(seat.position)
+				doorObj.position.x += 0.3
+				doorObj.position.y += 0.1
+				doorObj.position.z += 0.4
+				const door = new THREE.Mesh(
+					new THREE.BoxGeometry(0.05, 0.3, 0.5),
+					new THREE.MeshLambertMaterial({ color: 0xffff00 })
+				)
+				door.position.z = -0.25
+				doorObj.name = 'door_2'
+				doorObj.userData = {
+					name: 'door_2',
+				}
+				doorObj.add(door)
+				body.add(doorObj)
+
+				const entryPoint = new THREE.AxesHelper()
+				entryPoint.position.copy(doorObj.position)
+				entryPoint.position.x += 0.3
+				entryPoint.position.y -= 0.5
+				entryPoint.position.z -= 0.4
+				entryPoint.name = 'entrance_2'
+				entryPoint.userData = {
+					name: 'entrance_2',
+				}
+				body.add(entryPoint)
+			}
+		}
+		if (true) {
+			// wheels
+			{
+				const wheelOffset = new THREE.Object3D()
+				wheelOffset.position.set(-0.5, -0.2, 0.8)
+				wheelOffset.name = 'wheel_fl'
+				wheelOffset.userData = {
+					name: 'wheel_fl',
+					steering: 'true',
+					data: 'wheel',
+					loc: 'fl',
+					drive: 'fwd',
+				}
+				const wheelObj = this.makeWheel(0.26, 0.2)
+				wheelObj.position.x += 0.2
+				wheelOffset.add(wheelObj)
+				body.add(wheelOffset)
+			}
+			{
+				const wheelOffset = new THREE.Object3D()
+				const wheelObj = this.makeWheel(0.26, 0.2)
+				wheelOffset.position.set(0.5, -0.2, 0.8)
+				wheelOffset.name = 'wheel_fr'
+				wheelOffset.userData = {
+					name: 'wheel_fr',
+					steering: 'true',
+					data: 'wheel',
+					loc: 'fr',
+					drive: 'fwd',
+				}
+				wheelObj.position.x -= 0.2
+				wheelOffset.add(wheelObj)
+				body.add(wheelOffset)
+			}
+			{
+				const wheelOffset = new THREE.Object3D()
+				const wheelObj = this.makeWheel(0.26, 0.2)
+				wheelOffset.position.set(0.5, -0.2, -0.8)
+				wheelOffset.name = 'wheel_bl'
+				wheelOffset.userData = {
+					name: 'wheel_bl',
+					steering: 'false',
+					data: 'wheel',
+					loc: 'bl',
+					drive: 'rwd',
+				}
+				wheelObj.position.x += 0.2
+				wheelOffset.add(wheelObj)
+				body.add(wheelOffset)
+			}
+			{
+				const wheelOffset = new THREE.Object3D()
+				const wheelObj = this.makeWheel(0.26, 0.2)
+				wheelOffset.position.set(-0.5, -0.2, -0.8)
+				wheelOffset.name = 'wheel_br'
+				wheelOffset.userData = {
+					name: 'wheel_br',
+					steering: 'false',
+					data: 'wheel',
+					loc: 'br',
+					drive: 'rwd',
+				}
+				wheelObj.position.x -= 0.2
+				wheelOffset.add(wheelObj)
+				body.add(wheelOffset)
+			}
+		}
+		{
+			// collisions
+			{
+				const bodyColl = new THREE.Mesh(
+					new THREE.BoxGeometry(1, 1, 1),
+					new THREE.MeshLambertMaterial({ color: 0x666666, wireframe: true })
+				)
+				bodyColl.scale.set(1.4, 0.1, 5.0)
+				bodyColl.scale.multiplyScalar(0.5)
 				bodyColl.userData = {
 					data: 'collision',
 					shape: 'box',

@@ -33,9 +33,26 @@ export class TrimeshCollider implements ICollider {
 		mat.friction = options.friction
 		physBox.material = mat
 
-		let bufferGeometry = (mesh as THREE.Mesh).geometry
+		let bufferGeometry = (this.mesh as THREE.Mesh).geometry
 		let indices = []
 		let vertices = []
+
+		const pos = new THREE.Vector3()
+		mesh.getWorldPosition(pos)
+		const quat = new THREE.Quaternion()
+		mesh.getWorldQuaternion(quat)
+		if (
+			this.mesh.userData.hasOwnProperty('force_scale') &&
+			this.mesh.userData.force_scale.hasOwnProperty('times')
+		) {
+			this.mesh.scale.set(
+				this.mesh.userData.force_scale.times,
+				this.mesh.userData.force_scale.times,
+				this.mesh.userData.force_scale.times
+			)
+			// pos.multiplyScalar(1 / this.mesh.userData.force_scale.times)
+		}
+		// console.log(pos)
 
 		let indicesBuffer = bufferGeometry.getIndex()
 		if (indicesBuffer !== null) {
@@ -58,6 +75,13 @@ export class TrimeshCollider implements ICollider {
 		let shape = threeToCannon(this.mesh, { type: ShapeType.MESH })
 		if (shape != null) {
 			physBox.addShape(shape.shape)
+		}
+		if (
+			this.mesh.userData.hasOwnProperty('force_scale') &&
+			this.mesh.userData.force_scale.hasOwnProperty('times')
+		) {
+			physBox.position.set(pos.x, pos.y, pos.z)
+			physBox.quaternion.set(quat.x, quat.y, quat.z, quat.w)
 		}
 		this.body = physBox
 	}

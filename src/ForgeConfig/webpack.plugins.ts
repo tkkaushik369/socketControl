@@ -89,7 +89,7 @@ html_inject.push({
 	tagName: 'script',
 	attributes: {
 		defer: true,
-		src: '../@World/index.js',
+		src: '../@World/World.js',
 		type: 'text/javascript',
 	},
 })

@@ -54,6 +54,11 @@ export function initClient(): DivsType {
 	const isElectronApp = Utility.isElectron()
 	const isAndroid = Utility.deviceState()
 
+	/* sessionStorage.setItem("lastname", "Smith");
+	sessionStorage.removeItem("lastname");
+	let personName = sessionStorage.getItem("lastname");
+	document.getElementById("demo").innerHTML = JSON.stringify(personName); */
+
 	if (isAndroid) {
 		controlsMain.style.display = 'block'
 		console.log('isAndroid', isAndroid)
@@ -328,6 +333,13 @@ export default class AppClient {
 					})
 				})
 			})
+			this.worldClient.trains.forEach((train) => {
+				/* train.seats.forEach((seat) => {
+					seat.entryPoints.forEach((ep) => {
+						ep.add(AttachModels.makePointHighlight(0.2))
+					})
+				}) */
+			})
 		}
 
 		this.worldClient.scene.traverse((obj) => {
@@ -555,7 +567,7 @@ export default class AppClient {
 							this.worldClient.effectController.azimuth = messages[id].data.sun.azimuth
 							this.worldClient.sunConf.elevation = this.worldClient.effectController.elevation
 							this.worldClient.sunConf.azimuth = this.worldClient.effectController.azimuth
-							this.worldClient.sunGuiChanged()
+							// this.worldClient.sunGuiChanged()
 							// console.log(JSON.stringify(messages[id].data.sun))
 						}
 						if (this.worldClient.settings.SyncInputs) this.worldClient.users[id].Set(messages[id])
@@ -574,6 +586,14 @@ export default class AppClient {
 					this.worldClient.vehicles.forEach((vehi) => {
 						if (vehi.uID === messages[id].uID) {
 							vehi.Set(messages[id])
+						}
+					})
+					break
+				}
+				case MessageTypes.Train: {
+					this.worldClient.trains.forEach((train) => {
+						if (train.uID === messages[id].uID) {
+							train.Set(messages[id])
 						}
 					})
 					break

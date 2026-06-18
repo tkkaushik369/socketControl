@@ -21,6 +21,7 @@
 -   **Physics Engine**: Integrates Cannon-es to simulate realistic physics, allowing for dynamic interactions and collisions between objects.
 -   **Interactive Environment**: Players can move, jump, and interact with various objects in the game world.
 -   **Cross-Platform Compatibility**: Play directly in your browser with no need for downloads or installations.
+-	**Procedural City & World Generation**: Discover a world where cities and terrain are generated.
 
 ## Base Source Code
 
@@ -82,6 +83,15 @@ npm run start:server
 -   **Node.js & Express**: Backend server setup.
 
 ### Features
+
+#### 18th June 2026
+- **Grid City** (Procedural Generation) Added to Map List. Prototype at [RiotCity-Alpha](https://github.com/tkkaushik369/RiotCity-Alpha) and [RiotCity](https://github.com/tkkaushik369/RiotCity)
+- **Grid World** (Procedural Generation) Added to Map List in Development. Prototype at [RiotWorld](https://github.com/tkkaushik369/RiotWorld)
+- Chunk based Optimization Added for filtering bodies closer to movable entities, and Instance Mesh for buildings. Check [RiotWorld](https://github.com/tkkaushik369/RiotWorld)
+- Train Vehicle Added. Still in Development. check in **test3** Map
+- Character Follow Bug Fix
+- Server World Creation Changed to AtleaseOne Mode.
+- ThreejsEditor Inport import World file changed from index.js to World.js, due to addition of Worker for Prefab Creation in Procedural Generation of Buildings.
 
 #### 11th November 2025
 -   Vehicles First Person Bug Fix

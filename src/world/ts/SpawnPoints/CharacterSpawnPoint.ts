@@ -58,8 +58,12 @@ export class CharacterSpawnPoint extends SpawnBase {
 				world.paths.forEach((path) => {
 					Object.keys(path.nodes).forEach((nodeName) => {
 						const node = path.nodes[nodeName]
+						let pathRadius = 10
+						if (this.userData.hasOwnProperty("path_radius")) {
+							pathRadius = this.userData.path_radius
+						}
 						if (node.object.name === this.firstAINode) {
-							player.setBehaviour(new FollowPath(player, node, 10))
+							player.setBehaviour(new FollowPath(player, node, pathRadius))
 							nodeFound = true
 						}
 					})

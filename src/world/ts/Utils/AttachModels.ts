@@ -1,4 +1,8 @@
 import * as THREE from 'three'
+import * as GeometryUtils from 'three/examples/jsm/utils/GeometryUtils'
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial'
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry'
+import { Line2 } from 'three/examples/jsm/lines/Line2'
 // import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader'
 // import { Character } from '@World/Characters/Character'
 // import { Idle } from '@World/Characters/CharacterStates/_CharacterStateLibrary'
@@ -63,6 +67,28 @@ export class AttachModels {
 				new THREE.MeshBasicMaterial({ color: 0xcccccc })
 			)
 			group.add(sphereMesh)
+
+			if (false) {
+				const geometry = new LineGeometry()
+				if (edges.parameters.geometry !== null)
+					geometry.setPositions([...(edges.parameters.geometry as THREE.BufferGeometry).attributes.position.array])
+				else geometry.setPositions([...geometry.attributes.position.array])
+
+				let matLine = new LineMaterial({
+					color: 0xffffff,
+					linewidth: 5, // in world units with size attenuation, pixels otherwise
+					vertexColors: false,
+					dashSize: 0.12,
+					gapSize: 0.04,
+					dashed: true,
+					alphaToCoverage: true,
+				})
+
+				let line = new Line2(geometry, matLine)
+				line.computeLineDistances()
+				line.scale.set(1, 1, 1)
+				group.add(line)
+			}
 		}
 		group.scale.set(scale, scale, scale)
 		group.userData = {

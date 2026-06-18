@@ -3,6 +3,7 @@ export enum EntityType {
 	Airplane = 'airplane',
 	Car = 'car',
 	Helicopter = 'helicopter',
+	Train = 'train',
 	Water = 'water',
 	Grass = 'grass',
 	Ocean = 'ocean',

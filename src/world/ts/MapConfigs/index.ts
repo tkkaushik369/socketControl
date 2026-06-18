@@ -16,6 +16,8 @@ import { BaseScene } from './BaseScene'
 // import { Test3Config } from './Configs/Test3/index'
 
 import { Example } from './Configs/Example/ExampleScene'
+import { GridCityScene } from './Configs/GridCity/GridCityScene'
+import { GridWorldScene } from './Configs/GridWorld/GridWorldScene'
 import { TestScene } from './Configs/Test/TestScene'
 import { Test2Scene } from './Configs/Test2/Test2Scene'
 import { Test3Scene } from './Configs/Test3/Test3Scene'
@@ -33,6 +35,7 @@ export type MapConfigType = {
 	mapCaller: string | BaseScene
 	characters: MapConfigFOType[]
 	vehicles: MapConfigFOType[]
+	trains: MapConfigFOType[]
 }
 
 function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
@@ -43,6 +46,7 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 		mapCaller: '',
 		characters: [],
 		vehicles: [],
+		trains: [],
 	}
 	if (typeof conf.mapCaller === 'string' && conf.mapCaller.includes('class:')) {
 		let mapCaller = conf.mapCaller.replace('class:', '')
@@ -63,12 +67,21 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 				config.mapCaller = new Test3Scene()
 				break
 			}
+			case 'GridCityScene': {
+				config.mapCaller = new GridCityScene()
+				break
+			}
+			case 'GridWorldScene': {
+				config.mapCaller = new GridWorldScene()
+				break
+			}
 			default: {
 				config.mapCaller = new TestScene()
 				break
 			}
 		}
 	} else config.mapCaller = conf.mapCaller
+
 	conf.characters.forEach((character: any) => {
 		let charConf: MapConfigFOType = {
 			objCaller: 'boxman.glb',
@@ -88,6 +101,7 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 		charConf.subtype = character.subtype
 		config.characters.push(charConf)
 	})
+
 	conf.vehicles.forEach((vehicles: any) => {
 		let vehiConf: MapConfigFOType = {
 			objCaller: 'car.glb',
@@ -113,6 +127,14 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 					vehiConf.objCaller = new Test3Scene()
 					break
 				}
+				case 'GridCityScene': {
+					vehiConf.objCaller = new GridCityScene()
+					break
+				}
+				case 'GridWorldScene': {
+					vehiConf.objCaller = new GridWorldScene()
+					break
+				}
 				default: {
 					vehiConf.objCaller = new Example()
 					break
@@ -122,6 +144,50 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 		vehiConf.type = vehicles.type
 		vehiConf.subtype = vehicles.subtype
 		config.vehicles.push(vehiConf)
+	})
+
+	conf.trains.forEach((trains: any) => {
+		let trainConf: MapConfigFOType = {
+			objCaller: 'class:Example',
+			type: 'train',
+			subtype: 'train_test',
+		}
+		if (typeof trains.objCaller === 'string' && trains.objCaller.includes('class:')) {
+			let objCaller = trains.objCaller.replace('class:', '')
+			switch (objCaller) {
+				case 'Example': {
+					trainConf.objCaller = new Example()
+					break
+				}
+				case 'TestScene': {
+					trainConf.objCaller = new TestScene()
+					break
+				}
+				case 'Test2Scene': {
+					trainConf.objCaller = new Test2Scene()
+					break
+				}
+				case 'Test3Scene': {
+					trainConf.objCaller = new Test3Scene()
+					break
+				}
+				case 'GridCityScene': {
+					trainConf.objCaller = new GridCityScene()
+					break
+				}
+				case 'GridWorldScene': {
+					trainConf.objCaller = new GridWorldScene()
+					break
+				}
+				default: {
+					trainConf.objCaller = new Example()
+					break
+				}
+			}
+		} else trainConf.objCaller = trains.objCaller
+		trainConf.type = trains.type
+		trainConf.subtype = trains.subtype
+		config.trains.push(trainConf)
 	})
 	return config
 }

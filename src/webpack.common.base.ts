@@ -15,7 +15,7 @@ export const config_common: Configuration = {
 	resolve: {
 		alias: {
 			three: path.resolve('./node_modules/three'),
-			'@World': path.resolve('./dist/@World/index.js'),
+			'@World': path.resolve('./dist/@World/World.js'),
 			'@WorldClient': path.resolve('./dist/@WorldClient/index.js'),
 			'@WorldServer': path.resolve('./dist/@WorldServer/index.js'),
 		},

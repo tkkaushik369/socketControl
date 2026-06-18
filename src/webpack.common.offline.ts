@@ -63,7 +63,7 @@ export const config_offline_common: Configuration = {
 					tagName: 'script',
 					attributes: {
 						defer: true,
-						src: '../@World/index.js',
+						src: '../@World/World.js',
 						type: 'text/javascript',
 					},
 				},

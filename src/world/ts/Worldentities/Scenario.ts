@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { ISpawnPoint } from '../Interfaces/ISpawnPoint'
+import { HingeVehicleSpawnPoint } from '../SpawnPoints/HingeVehicleSpawnPoint'
 import { VehicleSpawnPoint } from '../SpawnPoints/VehicleSpawnPoint'
 import { CharacterSpawnPoint } from '../SpawnPoints/CharacterSpawnPoint'
 import { ShapeSpawnPoint } from '../SpawnPoints/ShapeSpawnPoint'
@@ -8,6 +9,7 @@ import { WorldBase } from '../WorldBase'
 import { Vehicle } from '../Vehicles/Vehicle'
 import { Utility } from '../Core/Utility'
 import { RaceContent } from './RaceContent'
+import { Train } from '../Vehicles/Train'
 
 export class Scenario {
 	public name: string
@@ -82,7 +84,11 @@ export class Scenario {
 					) {
 						let sp = new VehicleSpawnPoint(child)
 						this.spawnPoints.push(sp)
-					} else if (child.userData.type === 'player') {
+					} else if (child.userData.type === 'train') {
+						let sp = new HingeVehicleSpawnPoint(child)
+						this.spawnPoints.push(sp)
+					}
+					else if (child.userData.type === 'player') {
 						// let sp = new CharacterSpawnPoint(child, child.userData)
 						// this.spawnPoints.push(sp)
 						let pos = new THREE.Vector3().add(root.position).add(child.position)
@@ -125,7 +131,7 @@ export class Scenario {
 
 				Object.keys(world.users).forEach((sID) => {
 					if (world.users[sID] !== undefined) {
-						const vsp: VehicleSpawnPoint = new (sp as any).constructor(sp.object, world)
+						const vsp: VehicleSpawnPoint | HingeVehicleSpawnPoint = new (sp as any).constructor(sp.object, world)
 						// console.log(pos[tot-1])
 						vsp.playerData = {
 							player: world.users[sID],
@@ -138,7 +144,7 @@ export class Scenario {
 					}
 				})
 			} else if (sp.userData.hasOwnProperty('driver') && sp.userData.driver === 'ai') {
-				let ent: Promise<Vehicle | null> = (sp as VehicleSpawnPoint).spawn(world, isRace) // only vehicles and shapes
+				let ent: Promise<Vehicle | Train | null> = (sp as VehicleSpawnPoint | HingeVehicleSpawnPoint).spawn(world, isRace) // only vehicles and shapes
 				if (ent === null) {
 					console.log('Unknown Spawn: ', ent)
 				}

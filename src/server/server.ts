@@ -752,6 +752,15 @@ export default class AppServer extends EventTarget {
 				})
 			}
 
+			// Train Data
+			{
+				this.allWorlds[worldId].trains.forEach((train) => {
+					train.ping = Date.now() - train.timeStamp
+					train.timeStamp = Date.now()
+					if (train.uID !== null) alldata[train.uID] = train.Out()
+				})
+			}
+
 			// World Water Data
 			{
 				this.allWorlds[worldId].waters.forEach((water) => {

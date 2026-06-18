@@ -20,6 +20,7 @@ export class CannonDebugRenderer {
 	private _sphereMaterial: THREE.MeshBasicMaterial
 	private _boxMaterial: THREE.MeshBasicMaterial
 	private _triMaterial: THREE.MeshBasicMaterial
+	private _heightfieldMaterial: THREE.MeshBasicMaterial
 	private _particleMaterial: THREE.PointsMaterial
 	private _allMeshMaterials: THREE.MeshBasicMaterial[] = []
 	private _sphereGeometry: THREE.SphereGeometry
@@ -57,6 +58,13 @@ export class CannonDebugRenderer {
 
 		this._triMaterial = new THREE.MeshBasicMaterial({
 			color: 0xff00ff,
+			wireframe: true,
+			transparent: true,
+		})
+		this._allMeshMaterials.push(this._triMaterial)
+
+		this._heightfieldMaterial = new THREE.MeshBasicMaterial({
+			color: 0xffff00,
 			wireframe: true,
 			transparent: true,
 		})
@@ -128,7 +136,7 @@ export class CannonDebugRenderer {
 		meshes.length = meshIndex
 	}
 
-	private _updateMesh(index: number, body: CANNON.Body, shape: CANNON.Shape) {
+	private _updateMesh(index: number, _body: CANNON.Body, shape: CANNON.Shape) {
 		let mesh = this._meshes[index]
 		if (!this._typeMatch(mesh, shape)) {
 			if (mesh) {
@@ -179,7 +187,7 @@ export class CannonDebugRenderer {
 					(shape as CANNON.Cylinder).height,
 					(shape as CANNON.Cylinder).numSegments
 				)
-				mesh = new THREE.Mesh(geometry, this._sphereMaterial)
+				mesh = new THREE.Mesh(this._cylinderGeometry, this._sphereMaterial)
 				break
 
 			case CANNON.Shape.types.PLANE:
@@ -261,7 +269,7 @@ export class CannonDebugRenderer {
 					}
 				}
 				geometry.setFromPoints(points)
-				mesh = new THREE.Mesh(geometry, this._triMaterial)
+				mesh = new THREE.Mesh(geometry, this._heightfieldMaterial)
 				shape.id = geometry.id
 				break
 			default:

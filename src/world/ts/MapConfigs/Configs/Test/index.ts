@@ -9,6 +9,7 @@ export const TestConfig: MapConfigType = {
 	isLaunched: true,
 	characters: [],
 	vehicles: [],
+	trains: [],
 }
 
 /* const character: MapConfigFOType = {

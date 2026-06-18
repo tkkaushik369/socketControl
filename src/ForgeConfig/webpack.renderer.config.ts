@@ -34,8 +34,8 @@ export const rendererConfig: Configuration = {
 			'@World': path.resolve(
 				__dirname,
 				WEBPACK_USE_BUNDLE
-					? '../../dist/@World/index.js'
-					: '../../.webpack/renderer/@World/index.js'
+					? '../../dist/@World/World.js'
+					: '../../.webpack/renderer/@World/World.js'
 			),
 			'@WorldClient': path.resolve(
 				__dirname,

@@ -20,6 +20,7 @@ export class VehicleSpawnPoint extends SpawnBase {
 	public driver: string | null // ai | player
 	public playerData: { player: Player; position: THREE.Vector3 } | null
 	public firstAINode: string | null
+	public maxGears: number // Only used for cars
 
 	// public object: THREE.Object3D
 	// public userData: { [id: string]: any }
@@ -33,6 +34,7 @@ export class VehicleSpawnPoint extends SpawnBase {
 		this.driver = null
 		this.playerData = null
 		this.firstAINode = null
+		this.maxGears = 5
 
 		if (this.userData.hasOwnProperty('type')) {
 			this.type = this.userData.type
@@ -48,6 +50,10 @@ export class VehicleSpawnPoint extends SpawnBase {
 			if (this.userData.driver === 'ai' && this.userData.hasOwnProperty('first_node')) {
 				this.firstAINode = this.userData.first_node
 			}
+		}
+
+		if (this.userData.hasOwnProperty('max_gears')) {
+			this.maxGears = this.userData.max_gears
 		}
 	}
 
@@ -85,8 +91,12 @@ export class VehicleSpawnPoint extends SpawnBase {
 					world.paths.forEach((path) => {
 						Object.keys(path.nodes).forEach((nodeName) => {
 							const node = path.nodes[nodeName]
+							let pathRadius = 10
+							if (this.userData.hasOwnProperty('path_radius')) {
+								pathRadius = this.userData.path_radius
+							}
 							if (node.object.name === this.firstAINode) {
-								character.setBehaviour(new FollowPath(character, node, 10))
+								character.setBehaviour(new FollowPath(character, node, pathRadius))
 								nodeFound = true
 							}
 						})
@@ -109,6 +119,9 @@ export class VehicleSpawnPoint extends SpawnBase {
 			this.object.getWorldQuaternion(worldQuat)
 
 			let vehicle: Vehicle = this.getNewVehicleByType(model)
+			if (vehicle instanceof Car) {
+				vehicle.maxGears = this.maxGears
+			}
 			vehicle.readVehicleData(model, world.isClient)
 			vehicle.uID = this.userData.name
 			if (this.playerData !== null) vehicle.uID += '' + this.playerData.player.uID
@@ -194,6 +207,14 @@ export class VehicleSpawnPoint extends SpawnBase {
 						return new Airplane(model)
 				}
 			}
+			/* case 'train': {
+				switch (this.subtype) {
+					case 'train_test':
+						return new Train(model)
+					default:
+						return new Train(model)
+				}
+			} */
 			default:
 				return new Car(model)
 		}

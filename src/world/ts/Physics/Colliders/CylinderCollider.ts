@@ -10,7 +10,8 @@ export class CylinderCollider implements ICollider {
 		let defaults = {
 			mass: 0,
 			position: new CANNON.Vec3(),
-			radius: 0.3,
+			radius1: 0.3,
+			radius2: 0.3,
 			height: 0.1,
 			segment: 6,
 			friction: 0.3,
@@ -21,7 +22,7 @@ export class CylinderCollider implements ICollider {
 		let mat = new CANNON.Material('cylinderMat')
 		mat.friction = options.friction
 
-		let shape = new CANNON.Cylinder(options.radius, options.radius, options.height, options.segment)
+		let shape = new CANNON.Cylinder(options.radius1, options.radius2, options.height, options.segment)
 
 		// Add phys sphere
 		let physSphere = new CANNON.Body({

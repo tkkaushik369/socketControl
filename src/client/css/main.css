@@ -129,12 +129,17 @@ body {
 	padding: 8px;
 }
 
+#controls .ctrl-combo {
+	display: inline-block;
+}
+
 #controls .ctrl-key {
 	color: #cc6666;
 	padding: 4px 8px;
 	margin: 2px;
 	border: 1px solid #cc6666;
 	border-radius: 4px;
+	background-color: #f5c3c388;
 }
 
 #controls .ctrl-desc {

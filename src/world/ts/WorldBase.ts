@@ -8,18 +8,23 @@ import { BoxCollider } from './Physics/Colliders/BoxCollider'
 import { SphereCollider } from './Physics/Colliders/SphereCollider'
 import { CylinderCollider } from './Physics/Colliders/CylinderCollider'
 import { TrimeshCollider } from './Physics/Colliders/TrimeshCollider'
+import { HeightMapCollider } from './Physics/Colliders/HeightMapCollider'
 import { CollisionGroups } from './Enums/CollisionGroups'
+import { EntityType } from './Enums/EntityType'
 import { Path } from './Worldentities/Path'
 import { Scenario } from './Worldentities/Scenario'
 import { TabPageApi } from 'tweakpane'
 import { IWorldEntity } from './Interfaces/IWorldEntity'
 import { Character } from './Characters/Character'
 import { Vehicle } from './Vehicles/Vehicle'
+import { Train } from './Vehicles/Train'
 import { getMapConfig, MapConfigType } from './MapConfigs'
 import { Water } from './Worldentities/Water'
 import { BaseScene } from './MapConfigs/BaseScene'
 import { ShapeEntityBase } from './Physics/ShapeEntity/ShapeEntityBase'
 import { LoadingManager } from './Core/LoadingManager'
+import { ICollider } from './Interfaces/ICollider'
+import { Terrain } from './Worldentities/GridCity/Terrain'
 
 export abstract class WorldBase {
 	public worldId: string | null = null
@@ -53,9 +58,13 @@ export abstract class WorldBase {
 	public lastMapID: string | null
 	public characters: Character[]
 	public vehicles: Vehicle[]
+	public trains: Train[]
 	public waters: Water[]
 	public shapes: ShapeEntityBase[]
 	protected clientEntity: IWorldEntity[] = []
+
+	private terrain: Terrain
+	private chunks: { collider: ICollider; is_inside: boolean }[]
 
 	public sceneObjects: THREE.Object3D[]
 	public worldObjects: CANNON.Body[]
@@ -84,6 +93,8 @@ export abstract class WorldBase {
 		this.getJSON = this.getJSON.bind(this)
 		this.registerUpdatable = this.registerUpdatable.bind(this)
 		this.unregisterUpdatable = this.unregisterUpdatable.bind(this)
+		this.addTerrainFollower = this.addTerrainFollower.bind(this)
+		this.removeTerrainFollower = this.removeTerrainFollower.bind(this)
 		this.scrollTheTimeScale = this.scrollTheTimeScale.bind(this)
 		this.addSceneObject = this.addSceneObject.bind(this)
 		this.removeSceneObject = this.removeSceneObject.bind(this)
@@ -121,9 +132,13 @@ export abstract class WorldBase {
 		this.lastMapID = null
 		this.characters = []
 		this.vehicles = []
+		this.trains = []
 		this.waters = []
 		this.shapes = []
 		this.clientEntity = []
+
+		this.terrain = new Terrain()
+		this.chunks = []
 
 		this.sceneObjects = []
 		this.worldObjects = []
@@ -175,13 +190,17 @@ export abstract class WorldBase {
 			Shadows: true,
 			FXAA: false,
 			Outline: false,
-			SyncSun: false,
+			UnrealBloom: true,
+			UnrealBloom_threshold: 0.6,
+			UnrealBloom_strength: 0.2,
+			UnrealBloom_radius: 0.3,
+			SyncSun: true,
 			SyncInputs: true,
 		}
 		this.scenariosCalls = {}
 
 		// fog
-		let fog = new THREE.Fog(0x222222, 1000, 2000)
+		let fog = new THREE.Fog(0x222222, 100, 2000)
 
 		// Scene
 		this.scene = new THREE.Scene()
@@ -189,7 +208,7 @@ export abstract class WorldBase {
 
 		// World
 		this.world = new CANNON.World()
-		this.world.gravity.set(0, -10.0, 0)
+		this.world.gravity.set(0, -9.81, 0)
 		this.world.broadphase = new CANNON.SAPBroadphase(this.world)
 
 		const solver = new CANNON.GSSolver()
@@ -216,11 +235,13 @@ export abstract class WorldBase {
 	public add(worldEntity: IWorldEntity): void {
 		worldEntity.addToWorld(this)
 		this.registerUpdatable(worldEntity)
+		this.addTerrainFollower(worldEntity)
 	}
 
 	public remove(worldEntity: IWorldEntity): void {
 		worldEntity.removeFromWorld(this)
 		this.unregisterUpdatable(worldEntity)
+		this.removeTerrainFollower(worldEntity)
 	}
 
 	public registerUpdatable(registree: IUpdatable): void {
@@ -230,6 +251,51 @@ export abstract class WorldBase {
 
 	public unregisterUpdatable(registree: IUpdatable): void {
 		_.pull(this.updatables, registree)
+	}
+
+	private addTerrainFollower(worldEntity: IWorldEntity) {
+		switch (worldEntity.entityType) {
+			case EntityType.Character: {
+				this.terrain.followObject.push(worldEntity as Character)
+				break
+			}
+			case EntityType.Airplane:
+			case EntityType.Car:
+			case EntityType.Helicopter:
+			case EntityType.Train: {
+				this.terrain.followObject.push(worldEntity as Vehicle)
+				break
+			}
+			case EntityType.Shape: {
+				this.terrain.followObject.push((worldEntity as ShapeEntityBase).obj)
+				break
+			}
+			default: {
+				break
+			}
+		}
+	}
+	private removeTerrainFollower(worldEntity: IWorldEntity) {
+		switch (worldEntity.entityType) {
+			case EntityType.Character: {
+				_.pull(this.terrain.followObject, worldEntity as Character)
+				break
+			}
+			case EntityType.Airplane:
+			case EntityType.Car:
+			case EntityType.Helicopter:
+			case EntityType.Train: {
+				_.pull(this.terrain.followObject, worldEntity as Vehicle)
+				break
+			}
+			case EntityType.Shape: {
+				_.pull(this.terrain.followObject, (worldEntity as ShapeEntityBase).obj)
+				break
+			}
+			default: {
+				break
+			}
+		}
 	}
 
 	public scrollTheTimeScale(scrollAmount: number): void {
@@ -315,6 +381,18 @@ export abstract class WorldBase {
 		body.interpolatedQuaternion.copy(newQuat)
 		body.velocity.setZero()
 		body.angularVelocity.setZero()
+	}
+	public outOfBoundsRespawnTrain(train: Train, position?: CANNON.Vec3): void {
+		let newPos = position || new CANNON.Vec3(0, 16, 0)
+		let newQuat = new CANNON.Quaternion(0, 0, 0, 1)
+
+		train.setPosition(newPos.x, newPos.y, newPos.z)
+		train.resetRotation(newQuat)
+
+		train.setMotorSpeed(1, false)
+		setTimeout(() => {
+			train.setMotorSpeed(train.maxMotorSpeed)
+		}, 3000)
 	}
 
 	public zeroBody(body: CANNON.Body) {
@@ -451,6 +529,10 @@ export abstract class WorldBase {
 
 				if (child.userData.hasOwnProperty('data')) {
 					if (child.userData.data === 'physics') {
+						let optimize = null
+						if (child.userData.hasOwnProperty('optimize')) {
+							optimize = child.userData.optimize
+						}
 						if (child.userData.hasOwnProperty('type')) {
 							child.visible = false
 							if (child.userData.type === 'box') {
@@ -472,6 +554,13 @@ export abstract class WorldBase {
 									// shape.collisionFilterGroup = CollisionGroups.Default
 								})
 								this.addWorldObject(phys.body)
+
+								if (optimize !== null && optimize === 'chunk') {
+									this.chunks.push({
+										collider: phys,
+										is_inside: true,
+									})
+								}
 							} else if (child.userData.type === 'sphere') {
 								let mass = 0
 								if (child.userData.hasOwnProperty('mass')) {
@@ -492,6 +581,13 @@ export abstract class WorldBase {
 								})
 
 								this.addWorldObject(phys.body)
+
+								if (optimize !== null && optimize === 'chunk') {
+									this.chunks.push({
+										collider: phys,
+										is_inside: true,
+									})
+								}
 							} else if (child.userData.type === 'cylinder') {
 								let radius = 1
 								let height = 1
@@ -508,7 +604,8 @@ export abstract class WorldBase {
 								}
 
 								let phys = new CylinderCollider({
-									radius: radius,
+									radius1: radius,
+									radius2: radius,
 									height: height,
 									segment: segment,
 								})
@@ -523,6 +620,13 @@ export abstract class WorldBase {
 								})
 
 								this.addWorldObject(phys.body)
+
+								if (optimize !== null && optimize === 'chunk') {
+									this.chunks.push({
+										collider: phys,
+										is_inside: true,
+									})
+								}
 							} else if (child.userData.type === 'trimesh') {
 								let phys = new TrimeshCollider(child, {})
 								phys.body.shapes.forEach((shape) => {
@@ -533,6 +637,122 @@ export abstract class WorldBase {
 									// shape.collisionFilterGroup = CollisionGroups.TrimeshColliders
 								})
 								this.addWorldObject(phys.body)
+
+								if (optimize !== null && optimize === 'chunk') {
+									this.chunks.push({
+										collider: phys,
+										is_inside: true,
+									})
+								}
+							} else if (child.userData.type === 'heightfield') {
+								child.visible = true
+								let scale = 1
+								if (child.userData.hasOwnProperty('scale')) scale = child.userData.scale
+								let phys = new HeightMapCollider(child, { scale: scale })
+								this.addWorldObject(phys.body)
+
+								if (optimize !== null && optimize === 'chunk') {
+									this.chunks.push({
+										collider: phys,
+										is_inside: true,
+									})
+								}
+							}
+						}
+					} else if (child.userData.data === 'physics_instance') {
+						let optimize = null
+						if (child.userData.hasOwnProperty('optimize')) {
+							optimize = child.userData.optimize
+						}
+						if (child.userData.hasOwnProperty('type')) {
+							child.visible = false
+							if (child.userData.type === 'box') {
+								let mass = 0
+								let scale_times = 1
+								if (child.userData.hasOwnProperty('mass')) {
+									mass = child.userData.mass
+								}
+								if (child.userData.hasOwnProperty('force_scale')) {
+									if (child.userData.force_scale.hasOwnProperty('times')) {
+										scale_times = Number(child.userData.force_scale.times)
+									}
+								}
+								const entI = child as THREE.InstancedMesh
+								const pos = new THREE.Vector3()
+								const scale = new THREE.Vector3()
+								const quat = new THREE.Quaternion()
+								const matrix = new THREE.Matrix4()
+								for (let i = 0; i < entI.count; i++) {
+									entI.getMatrixAt(i, matrix)
+									matrix.decompose(pos, quat, scale)
+
+									let phys = new BoxCollider({
+										size: new THREE.Vector3(
+											(child.scale.x * scale_times * scale.x) / 2,
+											(child.scale.y * scale_times * scale.y) / 2,
+											(child.scale.z * scale_times * scale.z) / 2
+										),
+										mass: mass,
+									})
+									// pos.add(child.position)
+									phys.body.position.copy(
+										Utility.cannonVector(pos.add(child.position).multiplyScalar(scale_times))
+									)
+									phys.body.quaternion.copy(Utility.cannonQuat(quat))
+									phys.body.updateAABB()
+
+									phys.body.shapes.forEach((shape) => {
+										shape.collisionFilterMask = ~CollisionGroups.TrimeshColliders
+										// shape.collisionFilterMask = CollisionGroups.Default | CollisionGroups.Characters | CollisionGroups.TrimeshColliders
+										// shape.collisionFilterGroup = CollisionGroups.Default
+									})
+									this.addWorldObject(phys.body)
+
+									if (optimize !== null && optimize === 'chunk') {
+										this.chunks.push({
+											collider: phys,
+											is_inside: true,
+										})
+									}
+								}
+							} else if (child.userData.type === 'trimesh') {
+								let scale_times = 1
+								if (child.userData.hasOwnProperty('force_scale')) {
+									if (child.userData.force_scale.hasOwnProperty('times')) {
+										scale_times = Number(child.userData.force_scale.times)
+									}
+								}
+								const entI = child as THREE.InstancedMesh
+								const pos = new THREE.Vector3()
+								const scale = new THREE.Vector3()
+								const quat = new THREE.Quaternion()
+								const matrix = new THREE.Matrix4()
+								for (let i = 0; i < entI.count; i++) {
+									entI.getMatrixAt(i, matrix)
+									matrix.decompose(pos, quat, scale)
+									let phys = new TrimeshCollider(child, {})
+									// pos.add(child.position)
+									phys.body.position.copy(
+										Utility.cannonVector(pos.add(child.position).multiplyScalar(scale_times))
+									)
+									phys.body.quaternion.copy(Utility.cannonQuat(quat))
+									phys.body.updateAABB()
+									phys.body.shapes.forEach((shape) => {
+										shape.collisionFilterMask =
+											CollisionGroups.Default |
+											CollisionGroups.Characters |
+											CollisionGroups.TrimeshColliders
+										// shape.collisionFilterGroup = CollisionGroups.TrimeshColliders
+									})
+									this.addWorldObject(phys.body)
+
+									if (optimize !== null && optimize === 'chunk') {
+										this.chunks.push({
+											collider: phys,
+											is_inside: true,
+										})
+									}
+								}
 							}
 						}
 					} else if (child.userData.data === 'path') {
@@ -614,6 +834,16 @@ export abstract class WorldBase {
 			i--
 		}
 
+		for (let i = 0; i < this.trains.length; i++) {
+			this.remove(this.trains[i])
+			i--
+		}
+
+		for (let i = 0; i < this.shapes.length; i++) {
+			this.remove(this.shapes[i])
+			i--
+		}
+
 		for (let i = 0; i < this.scenarios.length; i++) {
 			const raceContent = this.scenarios[i].raceContent
 			if (raceContent !== null) {
@@ -642,7 +872,11 @@ export abstract class WorldBase {
 			}
 			this.characters = []
 			this.vehicles = []
+			this.trains = []
+			this.shapes = []
+			this.chunks = []
 			this.clientEntity = []
+			this.waters = []
 			this.scenarios = []
 		}
 	}
@@ -688,9 +922,16 @@ export abstract class WorldBase {
 			})
 
 			// Sun Update
-			this.sunConf.elevation += Math.sign(this.sunConf.azimuth) * this.timeScaleTarget * 0.1
-			if (this.sunConf.elevation >= 90 || this.sunConf.elevation <= -90)
-				this.sunConf.azimuth = -this.sunConf.azimuth
+			if (this.settings.SyncSun) {
+				// if (this.worldId !== null) {
+				this.sunConf.elevation += Math.sign(this.sunConf.azimuth) * this.timeScaleTarget * 0.005
+				if (this.sunConf.elevation >= 90 || this.sunConf.elevation <= -90) {
+					this.sunConf.azimuth = -this.sunConf.azimuth
+				}
+				// }
+				this.settings.UnrealBloom_threshold = this.sunConf.elevation < -5 ? 0.6 : 1.0
+				this.settings.UnrealBloom_strength = this.sunConf.elevation < -5 ? 0.2 : 0.0
+			}
 		} else {
 			this.characters.forEach((char) => {
 				char.charState.update(timeStep)
@@ -698,6 +939,9 @@ export abstract class WorldBase {
 			})
 			this.vehicles.forEach((vehi) => {
 				vehi.update(timeStep)
+			})
+			this.trains.forEach((train) => {
+				train.update(timeStep)
 			})
 			this.shapes.forEach((shape) => {
 				shape.update(timeStep, unscaledTimeStep)
@@ -727,6 +971,30 @@ export abstract class WorldBase {
 	}
 
 	private updatePhysics(timeStep: number, unscaledTimeStep: number) {
+		const chunk_pos = this.terrain.getFollowChunkRad(this.terrain.getFollowChunk(this.terrain.followObject))
+		if (chunk_pos.length > 0) {
+			this.chunks.forEach((chunk) => {
+				if (this.terrain !== null) {
+					const x = Math.round(chunk.collider.body.position.x / this.terrain.CHUNK_SIZE)
+					const y = Math.round(chunk.collider.body.position.z / this.terrain.CHUNK_SIZE)
+					let is_inside = false
+					for (let i = 0; i < chunk_pos.length; i++) {
+						if (x == chunk_pos[i].x && y == chunk_pos[i].y) {
+							is_inside = true
+							break
+						}
+					}
+					if (is_inside && !chunk.is_inside) {
+						chunk.is_inside = true
+						this.addWorldObject(chunk.collider.body)
+					} else if (!is_inside && chunk.is_inside) {
+						chunk.is_inside = false
+						this.removeWorldObject(chunk.collider.body)
+					}
+				}
+			})
+		}
+
 		if (this.doPhysics) {
 			this.world.step(this.physicsFrameTime, timeStep)
 		}
@@ -746,6 +1014,15 @@ export abstract class WorldBase {
 			}
 		})
 
+		this.trains.forEach((train) => {
+			if (this.isOutOfBounds(train.collision.position)) {
+				let worldPos = new THREE.Vector3()
+				if (train.spawnPoint !== null) train.spawnPoint.getWorldPosition(worldPos)
+				worldPos.y += 1
+				this.outOfBoundsRespawnTrain(train, Utility.cannonVector(worldPos))
+			}
+		})
+
 		this.shapes.forEach((shape) => {
 			if (shape.phys !== null) {
 				if (this.isOutOfBounds(shape.phys.body.position)) {
@@ -753,5 +1030,8 @@ export abstract class WorldBase {
 				}
 			}
 		})
+
+		this.terrain.update()
+		// console.log('chunks:', this.chunks.length)
 	}
 }

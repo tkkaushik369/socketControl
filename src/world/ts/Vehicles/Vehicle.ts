@@ -131,12 +131,18 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 	public update(timeStep: number): void {
 		if (this.world === null) return
-		if (this.world.isClient && this.world.worldId !== null) {
+		if (this.world.isClient) {
 			const world = this.world as WorldBase
 			this.lights.forEach((li) => {
 				li.power = world.sunConf.elevation > 3 ? 1 : 200
+				if (li.userData.hasOwnProperty('visual')) {
+					const obj = world.scene.getObjectByName(li.userData.visual)
+					if (obj !== undefined && obj instanceof THREE.Mesh) {
+						obj.material.emissiveIntensity = world.sunConf.elevation > 3 ? 0 : 1
+					}
+				}
 			})
-			return
+			if (this.world.worldId !== null) return
 		}
 
 		this.position.set(
@@ -195,7 +201,7 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	public onInputChange(): void {
 		if (this.controllingCharacter === null || this.controllingCharacter.occupyingSeat === null) return
 		let len = this.controllingCharacter.occupyingSeat.connectedSeats.length
-		if (this.actions.seat_switch.justPressed && len > 0) {
+		if (this.actions.hasOwnProperty('seat_switch') && this.actions.seat_switch.justPressed && len > 0) {
 			this.controllingCharacter.modelContainer.visible = true
 			if (this.controllingCharacter.occupyingSeat !== null) {
 				this.controllingCharacter.setState(

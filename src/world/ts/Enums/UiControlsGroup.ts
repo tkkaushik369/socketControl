@@ -11,4 +11,5 @@ export enum UiControlsGroup {
 	Car = 'car',
 	Helicopter = 'helicopter',
 	Airplane = 'airplane',
+	Train = 'train',
 }

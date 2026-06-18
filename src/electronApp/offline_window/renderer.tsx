@@ -343,6 +343,7 @@ if (rootElement !== null) {
 			</form>
 		</div>-->
 		<div id="console"></div>
+		<div id="race"></div>
 		<div id="all-audios"></div>
 		<div id="gui-menu">
 			<div id="gui-menu-container">

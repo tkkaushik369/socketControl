@@ -32,12 +32,12 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 	}
 
 	public update(timeStep: number): void {
-		if (this.character.controlledObject !== null) {
 			let source = new THREE.Vector3()
 			let target = new THREE.Vector3()
 
 			this.character.getWorldPosition(source)
 			this.target.getWorldPosition(target)
+		if (this.character.controlledObject !== null) {
 
 			let viewVector = new THREE.Vector3().subVectors(target, source)
 
@@ -92,7 +92,7 @@ export class FollowTarget extends CharacterAIBase implements ICharacterAI {
 				}
 			}
 		} else {
-			let viewVector = new THREE.Vector3().subVectors(this.target.position, this.character.position)
+			let viewVector = new THREE.Vector3().subVectors(target, source)
 			this.character.setViewVector(viewVector)
 
 			// Follow character
