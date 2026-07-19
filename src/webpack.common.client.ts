@@ -51,7 +51,7 @@ export const config_client_common: Configuration = {
 					tagName: 'script',
 					attributes: {
 						defer: true,
-						src: '../@WorldClient/index.js',
+						src: '../@WorldClient/WorldClient.js',
 						type: 'text/javascript',
 					},
 				},

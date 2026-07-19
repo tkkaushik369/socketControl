@@ -79,7 +79,7 @@ if (SINGLE_PLAYER) {
 		tagName: 'script',
 		attributes: {
 			defer: true,
-			src: '../@WorldClient/index.js',
+			src: '../@WorldClient/WorldClient.js',
 			type: 'text/javascript',
 		},
 	})

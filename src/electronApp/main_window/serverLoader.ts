@@ -14,7 +14,7 @@ function loadFile() {
 		const sc_import_1 = document.createElement('script')
 		sc_import_1.id = 'sc_import_1'
 		sc_import_1.defer = true
-		sc_import_1.src = '../@WorldServer/index.js'
+		sc_import_1.src = '../@WorldServer/WorldServer.js'
 		document.head.appendChild(sc_import_1)
 
 		const sc_import_2 = document.createElement('script')
@@ -35,7 +35,7 @@ function loadFile() {
 			console.log(file)
 		}) */
 	} else {
-		eval(`import('../../@WorldServer/index.js')`).then(() => {
+		eval(`import('../../@WorldServer/WorldServer.js')`).then(() => {
 			import('../../server/server').then((AppServer) => {
 				;(window as unknown as any)['AppServer'] = AppServer
 				window.AppServerLoaded = true

@@ -4,18 +4,26 @@ import path from 'path'
 
 export const config_worldclient_common = {
 	target: 'web',
-	entry: './src/worldclient/ts/World/WorldClient.ts',
+	entry: {
+		WorldClient: './src/worldclient/ts/World/WorldClient.ts',
+		WorkerClient: './src/worldclient/ts/World/WorkerClient.ts',
+	},
 	output: {
 		library: {
 			// type: 'umd',
 			type: 'global',
-			name: '@WorldClient'
+			name: '@WorldClient',
 		},
-		filename: 'index.js',
+		filename: '[name].js',
 		publicPath: '../@WorldClient',
 		path: path.resolve(__dirname, '../dist/@WorldClient'),
 	},
-	externals: { '@World': 'window @World' }
+	resolve: {
+		alias: {
+			'@WorkerBase': path.resolve(__dirname, 'world/ts/WorkerBase'),
+		},
+	},
+	externals: { '@World': 'window @World' },
 }
 
 export default merge(config_common, config_worldclient_common)

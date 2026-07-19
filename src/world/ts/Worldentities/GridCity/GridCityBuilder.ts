@@ -1,41 +1,42 @@
 import * as THREE from 'three'
+import { WorldBase } from '@World'
+import { LoadingTrackerEntry } from '../../Core/LoadingTrackerEntry'
 import ParkMiller from 'park-miller'
 import { Prefabs, clear_cache, MAX_INSTANCE } from './Prefabs'
 import { Utility } from '../../Core/Utility'
 
-const useWorker = false
+const useWorker = true
 const loaderGeo = new THREE.BufferGeometryLoader()
-var offWork: Worker | null = null
+// var offWork: Worker | null = null
+var offWork: any | null = null
 var cityBuilder: { [id: string]: CityBuilder } = {}
 
-// Worker
-if (useWorker) {
-	offWork = new Worker(new URL('./offscreen.js'/* , import.meta.url */), {
-		type: 'module',
-	})
-}
-
-if (useWorker && offWork !== null) {
-	offWork.onmessage = function (message) {
-		const msg = message.data
-		const builder = cityBuilder[msg.data.cityId]
-		if (builder === undefined) return
-		switch (msg.type) {
-			case 'init': {
-				if (builder.Init_Return !== null) builder.Init_Return(msg.data)
-				break
-			}
-			case 'prefab_geo': {
-				if (builder.Prefab_Geo_Return !== null) builder.Prefab_Geo_Return(msg.data)
-				break
-			}
-			default: {
-				console.log(msg)
-				break
-			}
+function FromWorker(msg: any) {
+	const builder = cityBuilder[msg.data.cityId]
+	if (builder === undefined) return
+	switch (msg.type) {
+		case 'init': {
+			if (builder.Init_Return !== null) builder.Init_Return(msg.data)
+			break
+		}
+		case 'prefab_geo': {
+			if (builder.Prefab_Geo_Return !== null) builder.Prefab_Geo_Return(msg.data)
+			break
+		}
+		default: {
+			console.log(msg)
+			break
 		}
 	}
 }
+
+// Worker
+// if (useWorker) {
+// 	offWork = new Worker(new URL('./offscreen.js' /* , import.meta.url */), {
+// 		type: 'module',
+// 	})
+// 	offWork.onmessage = FromWorker
+// }
 
 function getColor(color: string) {
 	return Number('0x' + new THREE.Color(color).getHexString())
@@ -1341,14 +1342,14 @@ export class AllyBlock {
 									} else {
 										if (prefab_cache_mesh !== null) {
 											if (prefab_cache_mesh.mesh === null) {
-											const prefab = Prefabs.Prefab_Front(
-												self.settings.renderBuildingsRoofs,
-												self.settings.renderBuildingsWindows,
-												building.size,
-												building.floors,
-												building.type,
+												const prefab = Prefabs.Prefab_Front(
+													self.settings.renderBuildingsRoofs,
+													self.settings.renderBuildingsWindows,
+													building.size,
+													building.floors,
+													building.type,
 													prefab_cache_geo.geo
-											)
+												)
 												prefab_cache_mesh = { mesh: prefab.children[0] as THREE.InstancedMesh }
 												prefab_cache_mesh.mesh.count--
 												self.builder.set_cache_mesh(
@@ -1360,24 +1361,24 @@ export class AllyBlock {
 													self.settings.renderBuildingsWindows,
 													prefab_cache_mesh.mesh
 												)
-											self.builder.addObject(prefab)
-										}
-											if (prefab_cache_mesh.mesh !== null) {
-											const dummy = new THREE.Object3D()
-											dummy.position.copy(pos)
-											dummy.position.add(self.offset_position)
-											dummy.rotateY(rot)
-												if (prefab_cache_mesh.mesh.geometry.type === 'BoxGeometry') {
-												dummy.scale.set(
-													building.size,
-													0.5 * (building.floors + 1),
-													building.size
-												)
-													prefab_cache_mesh.mesh.userData.type = 'box'
-												dummy.position.y -=
-													building.size * 0.5 - (building.floors * 0.5 + 1) / 2
+												self.builder.addObject(prefab)
 											}
-											dummy.updateMatrix()
+											if (prefab_cache_mesh.mesh !== null) {
+												const dummy = new THREE.Object3D()
+												dummy.position.copy(pos)
+												dummy.position.add(self.offset_position)
+												dummy.rotateY(rot)
+												if (prefab_cache_mesh.mesh.geometry.type === 'BoxGeometry') {
+													dummy.scale.set(
+														building.size,
+														0.5 * (building.floors + 1),
+														building.size
+													)
+													prefab_cache_mesh.mesh.userData.type = 'box'
+													dummy.position.y -=
+														building.size * 0.5 - (building.floors * 0.5 + 1) / 2
+												}
+												dummy.updateMatrix()
 												prefab_cache_mesh.mesh.count++
 												prefab_cache_mesh.mesh.setMatrixAt(
 													prefab_cache_mesh.mesh.count - 1,
@@ -1385,10 +1386,10 @@ export class AllyBlock {
 												)
 												// prefab_cache_mesh.mesh.setColorAt(
 												// 	prefab_cache_mesh.mesh.count - 1,
-											// 	new THREE.Color(
-											// 		`hsl(${self.random.floatInRange(0, 360)}, 50%, 66%)`
-											// 	)
-											// )
+												// 	new THREE.Color(
+												// 		`hsl(${self.random.floatInRange(0, 360)}, 50%, 66%)`
+												// 	)
+												// )
 												prefab_cache_mesh.mesh.instanceMatrix.needsUpdate = true
 											}
 										}
@@ -1684,17 +1685,17 @@ export class AllyBlock {
 									} else {
 										// if (prefab_cache_mesh !== null) {
 										// if (prefab_cache_mesh.mesh === null) {
-											const prefab = Prefabs.Prefab_Corner(
-												self.settings.renderBuildingsRoofs,
-												self.settings.renderBuildingsWindows,
-												building.size,
-												self.settings.corner_size,
-												building.floors,
+										const prefab = Prefabs.Prefab_Corner(
+											self.settings.renderBuildingsRoofs,
+											self.settings.renderBuildingsWindows,
+											building.size,
+											self.settings.corner_size,
+											building.floors,
 											prefab_cache_geo.geo
-											)
+										)
 										prefab_cache_mesh = { mesh: prefab.children[0] as THREE.InstancedMesh }
 										prefab_cache_mesh.mesh.count--
-											self.builder.addObject(prefab)
+										self.builder.addObject(prefab)
 										// }
 										if (prefab_cache_mesh.mesh !== null) {
 											const dummy = new THREE.Object3D()
@@ -1936,47 +1937,55 @@ export class AllyBlock {
 					light.position.set(this.lights[i].x, 0.25, this.lights[i].z)
 					light.rotateY(Math.PI)
 					light.position.add(self.offset_position)
+					light.position.add(self.builder.offset_position)
 					self.builder.addObject(light)
 				} else if (this.lights[i].o == Orientation.South) {
 					let light = Prefabs.Prefab_Lights()
 					light.position.set(this.lights[i].x, 0.25, this.lights[i].z)
 					light.position.add(self.offset_position)
+					light.position.add(self.builder.offset_position)
 					self.builder.addObject(light)
 				} else if (this.lights[i].o == Orientation.East) {
 					let light = Prefabs.Prefab_Lights()
 					light.position.set(this.lights[i].x, 0.25, this.lights[i].z)
 					light.rotateY(Math.PI / 2)
 					light.position.add(self.offset_position)
+					light.position.add(self.builder.offset_position)
 					self.builder.addObject(light)
 				} else if (this.lights[i].o == Orientation.West) {
 					let light = Prefabs.Prefab_Lights()
 					light.position.set(this.lights[i].x, 0.25, this.lights[i].z)
 					light.rotateY(-Math.PI / 2)
 					light.position.add(self.offset_position)
+					light.position.add(self.builder.offset_position)
 					self.builder.addObject(light)
 				} else if (this.lights[i].o == Orientation.NorthWest) {
 					let light = Prefabs.Prefab_Lights()
 					light.position.set(this.lights[i].x, 0.25, this.lights[i].z)
 					light.rotateY((5 * Math.PI) / 4)
 					light.position.add(self.offset_position)
+					light.position.add(self.builder.offset_position)
 					self.builder.addObject(light)
 				} else if (this.lights[i].o == Orientation.NorthEast) {
 					let light = Prefabs.Prefab_Lights()
 					light.position.set(this.lights[i].x, 0.25, this.lights[i].z)
 					light.rotateY((3 * Math.PI) / 4)
 					light.position.add(self.offset_position)
+					light.position.add(self.builder.offset_position)
 					self.builder.addObject(light)
 				} else if (this.lights[i].o == Orientation.SouthWest) {
 					let light = Prefabs.Prefab_Lights()
 					light.position.set(this.lights[i].x, 0.25, this.lights[i].z)
 					light.rotateY(-Math.PI / 4)
 					light.position.add(self.offset_position)
+					light.position.add(self.builder.offset_position)
 					self.builder.addObject(light)
 				} else if (this.lights[i].o == Orientation.SouthEast) {
 					let light = Prefabs.Prefab_Lights()
 					light.position.set(this.lights[i].x, 0.25, this.lights[i].z)
 					light.rotateY(Math.PI / 4)
 					light.position.add(self.offset_position)
+					light.position.add(self.builder.offset_position)
 					self.builder.addObject(light)
 				}
 			}
@@ -1987,6 +1996,7 @@ export class AllyBlock {
 				let path_node = Prefabs.Prefab_PathNode(this.path_nodes[i].isc)
 				path_node.position.set(this.path_nodes[i].x, 0, this.path_nodes[i].z)
 				path_node.position.add(self.offset_position)
+				path_node.position.add(self.builder.offset_position)
 				self.builder.addObject(path_node)
 			}
 		}
@@ -2088,10 +2098,12 @@ export class CityBuilder extends THREE.Object3D {
 			}
 		}
 	} = {}
+	public Update_Max: ((message: any) => void) | null = null
 	public Init_Return: ((message: any) => void) | null = null
 	public Prefab_Geo_Return: ((message: any) => void) | null = null
 
 	constructor(
+		world: WorldBase | null,
 		cityId: string,
 		settings: Settings,
 		init_done: (() => void) | null = null,
@@ -2121,18 +2133,47 @@ export class CityBuilder extends THREE.Object3D {
 		this.render_running = 0
 		this.render_done = null
 
+		// console.log(`useWorker: ${useWorker}`)
+		if (useWorker && world && offWork === null) {
+			offWork = world.CreateWorker(FromWorker)
+			// console.log(`offWork: ${offWork}`)
+			// offWork = new Worker(new URL('./offscreen.js' /* , import.meta.url */), {
+			// 	type: 'module',
+			// })
+			// offWork.onmessage = FromWorker
+		}
+
 		let init_render = 0
 		let init_max = 0
+		let trackerEntry: LoadingTrackerEntry | null = null
+
+		this.Update_Max = function (addRender: number) {
+			if (world !== null && init_max == 0) trackerEntry = world.loadingManager.addLoadingEntry(this.cityId)
+			init_render += addRender
+			init_max = init_render
+		}
+
 		this.Init_Return = function (_msg) {
-			let progress_val = ((init_max - init_render) / init_max) * 100
-			// console.log(progress_val)
-			// const prefab_geo = loaderGeo.parse(msg.prefab)
+			let progress_val = (init_max - init_render) / init_max
 			init_render--
+			if (trackerEntry !== null) {
+				if (world !== null) {
+					world.loadingManager.dispatchEvent(
+						new CustomEvent('loading_progress', { detail: { progress: progress_val, name: this.cityId } })
+					)
+				}
+				trackerEntry.progress = progress_val
+			}
+			// console.log(this.cityId, progress_val)
+			// const prefab_geo = loaderGeo.parse(msg.prefab)
 			if (init_progress !== null) {
-				init_progress(progress_val)
+				init_progress(progress_val * 100)
 			}
 			if (init_render == 0 && init_done !== null) {
 				init_done()
+				if (world !== null && trackerEntry !== null) {
+					world.loadingManager.doneLoading(trackerEntry)
+				}
 			}
 		}
 
@@ -2152,9 +2193,8 @@ export class CityBuilder extends THREE.Object3D {
 							if (this.settings.preload_buildins > 1) {
 								for (let m = 1; m >= 0; m--) {
 									for (let n = 1; n >= 0; n--) {
-										init_render += 2
-										init_max = init_render
 										if (useWorker && offWork !== null) {
+											this.Update_Max(2)
 											offWork.postMessage({
 												type: 'init_Prefab_Front_Geo',
 												data: {
@@ -2231,9 +2271,8 @@ export class CityBuilder extends THREE.Object3D {
 									}
 								}
 							} else {
-								init_render += 2
-								init_max = init_render
 								if (useWorker && offWork !== null) {
+									this.Update_Max(2)
 									offWork.postMessage({
 										type: 'init_Prefab_Front_Geo',
 										data: {

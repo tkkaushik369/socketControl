@@ -64,7 +64,8 @@ export abstract class WorldBase {
 	protected clientEntity: IWorldEntity[] = []
 
 	private terrain: Terrain
-	private chunks: { collider: ICollider; is_inside: boolean }[]
+	private chunks: { [id1: number]: { [id2: number]: { collider: ICollider; is_inside: boolean }[] } }
+	private last_chunk_pos: THREE.Vector2[]
 
 	public sceneObjects: THREE.Object3D[]
 	public worldObjects: CANNON.Body[]
@@ -75,6 +76,7 @@ export abstract class WorldBase {
 	// server
 	protected updatePhysicsCallback: Function | null
 	public runner: ReturnType<typeof setInterval> | null
+	protected baseRootPath: string
 
 	// client
 	public player: Player | null
@@ -86,11 +88,12 @@ export abstract class WorldBase {
 	public boxSize: THREE.Vector3 = new THREE.Vector3()
 	public listener: THREE.AudioListener | null
 
-	constructor(maps: MapConfigType[], isClient: boolean = false) {
+	constructor(maps: MapConfigType[], baseRootPath: string, isClient: boolean = false) {
 		// bind functions
 		this.getPATH = this.getPATH.bind(this)
 		this.getGLTF = this.getGLTF.bind(this)
 		this.getJSON = this.getJSON.bind(this)
+		this.CreateWorker = this.CreateWorker.bind(this)
 		this.registerUpdatable = this.registerUpdatable.bind(this)
 		this.unregisterUpdatable = this.unregisterUpdatable.bind(this)
 		this.addTerrainFollower = this.addTerrainFollower.bind(this)
@@ -138,7 +141,8 @@ export abstract class WorldBase {
 		this.clientEntity = []
 
 		this.terrain = new Terrain()
-		this.chunks = []
+		this.chunks = {}
+		this.last_chunk_pos = []
 
 		this.sceneObjects = []
 		this.worldObjects = []
@@ -146,6 +150,7 @@ export abstract class WorldBase {
 
 		this.updatePhysicsCallback = null
 		this.runner = null
+		this.baseRootPath = baseRootPath
 
 		this.isClient = isClient
 		this.doPhysics = true
@@ -188,9 +193,9 @@ export abstract class WorldBase {
 			PostProcess: false,
 			Textures: true,
 			Shadows: true,
-			FXAA: false,
-			Outline: false,
-			UnrealBloom: true,
+			FXAA: true,
+			Outline: true,
+			UnrealBloom: false,
 			UnrealBloom_threshold: 0.6,
 			UnrealBloom_strength: 0.2,
 			UnrealBloom_radius: 0.3,
@@ -215,8 +220,8 @@ export abstract class WorldBase {
 		solver.iterations = 50
 		solver.tolerance = 0.0001
 
-		this.world.solver = solver
-		this.world.allowSleep = true
+		this.world.solver = new CANNON.SplitSolver(solver)
+		this.world.allowSleep = false
 	}
 
 	public getPATH(path: string) {
@@ -230,6 +235,10 @@ export abstract class WorldBase {
 
 	public getJSON(path: string, callback: Function) {
 		return { path: this.getPATH('client/models/MapConfigs/' + path) }
+	}
+
+	public CreateWorker(msgFunc: Function): any {
+		return null
 	}
 
 	public add(worldEntity: IWorldEntity): void {
@@ -442,6 +451,7 @@ export abstract class WorldBase {
 		Object.keys(this.scenariosCalls).forEach((key) => {
 			delete this.scenariosCalls[key]
 		})
+		this.last_chunk_pos = []
 	}
 
 	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
@@ -556,7 +566,11 @@ export abstract class WorldBase {
 								this.addWorldObject(phys.body)
 
 								if (optimize !== null && optimize === 'chunk') {
-									this.chunks.push({
+									const x = Math.round(phys.body.position.x / this.terrain.CHUNK_SIZE)
+									const y = Math.round(phys.body.position.z / this.terrain.CHUNK_SIZE)
+									if (this.chunks[x] === undefined) this.chunks[x] = {}
+									if (this.chunks[x][y] === undefined) this.chunks[x][y] = []
+									this.chunks[x][y].push({
 										collider: phys,
 										is_inside: true,
 									})
@@ -583,7 +597,11 @@ export abstract class WorldBase {
 								this.addWorldObject(phys.body)
 
 								if (optimize !== null && optimize === 'chunk') {
-									this.chunks.push({
+									const x = Math.round(phys.body.position.x / this.terrain.CHUNK_SIZE)
+									const y = Math.round(phys.body.position.z / this.terrain.CHUNK_SIZE)
+									if (this.chunks[x] === undefined) this.chunks[x] = {}
+									if (this.chunks[x][y] === undefined) this.chunks[x][y] = []
+									this.chunks[x][y].push({
 										collider: phys,
 										is_inside: true,
 									})
@@ -622,7 +640,11 @@ export abstract class WorldBase {
 								this.addWorldObject(phys.body)
 
 								if (optimize !== null && optimize === 'chunk') {
-									this.chunks.push({
+									const x = Math.round(phys.body.position.x / this.terrain.CHUNK_SIZE)
+									const y = Math.round(phys.body.position.z / this.terrain.CHUNK_SIZE)
+									if (this.chunks[x] === undefined) this.chunks[x] = {}
+									if (this.chunks[x][y] === undefined) this.chunks[x][y] = []
+									this.chunks[x][y].push({
 										collider: phys,
 										is_inside: true,
 									})
@@ -639,20 +661,29 @@ export abstract class WorldBase {
 								this.addWorldObject(phys.body)
 
 								if (optimize !== null && optimize === 'chunk') {
-									this.chunks.push({
+									const x = Math.round(phys.body.position.x / this.terrain.CHUNK_SIZE)
+									const y = Math.round(phys.body.position.z / this.terrain.CHUNK_SIZE)
+									if (this.chunks[x] === undefined) this.chunks[x] = {}
+									if (this.chunks[x][y] === undefined) this.chunks[x][y] = []
+									this.chunks[x][y].push({
 										collider: phys,
 										is_inside: true,
 									})
 								}
 							} else if (child.userData.type === 'heightfield') {
-								child.visible = true
+								// child.visible = true
 								let scale = 1
 								if (child.userData.hasOwnProperty('scale')) scale = child.userData.scale
+								if (child.userData.hasOwnProperty('visible')) child.visible = child.userData.visible
 								let phys = new HeightMapCollider(child, { scale: scale })
 								this.addWorldObject(phys.body)
 
 								if (optimize !== null && optimize === 'chunk') {
-									this.chunks.push({
+									const x = Math.round(phys.body.position.x / this.terrain.CHUNK_SIZE)
+									const y = Math.round(phys.body.position.z / this.terrain.CHUNK_SIZE)
+									if (this.chunks[x] === undefined) this.chunks[x] = {}
+									if (this.chunks[x][y] === undefined) this.chunks[x][y] = []
+									this.chunks[x][y].push({
 										collider: phys,
 										is_inside: true,
 									})
@@ -709,7 +740,11 @@ export abstract class WorldBase {
 									this.addWorldObject(phys.body)
 
 									if (optimize !== null && optimize === 'chunk') {
-										this.chunks.push({
+										const x = Math.round(phys.body.position.x / this.terrain.CHUNK_SIZE)
+										const y = Math.round(phys.body.position.z / this.terrain.CHUNK_SIZE)
+										if (this.chunks[x] === undefined) this.chunks[x] = {}
+										if (this.chunks[x][y] === undefined) this.chunks[x][y] = []
+										this.chunks[x][y].push({
 											collider: phys,
 											is_inside: true,
 										})
@@ -747,7 +782,11 @@ export abstract class WorldBase {
 									this.addWorldObject(phys.body)
 
 									if (optimize !== null && optimize === 'chunk') {
-										this.chunks.push({
+										const x = Math.round(phys.body.position.x / this.terrain.CHUNK_SIZE)
+										const y = Math.round(phys.body.position.z / this.terrain.CHUNK_SIZE)
+										if (this.chunks[x] === undefined) this.chunks[x] = {}
+										if (this.chunks[x][y] === undefined) this.chunks[x][y] = []
+										this.chunks[x][y].push({
 											collider: phys,
 											is_inside: true,
 										})
@@ -806,6 +845,34 @@ export abstract class WorldBase {
 									this.physicsFrameTime * this.settings.Time_Scale,
 									this.physicsFrameTime
 								)
+							}
+						})
+					}
+				}
+			}
+
+			const chunk_pos = this.terrain.getFollowChunkRad(this.terrain.getFollowChunk(this.terrain.followObject))
+			if (chunk_pos.length > 0) {
+				if (this.terrain !== null) {
+					Object.keys(this.chunks).forEach((x) => {
+						Object.keys(this.chunks[Number(x)]).forEach((y) => {
+							this.chunks[Number(x)][Number(y)].forEach((chunk) => {
+								if (chunk.is_inside) {
+									this.removeWorldObject(chunk.collider.body)
+									chunk.is_inside = false
+								}
+							})
+						})
+					})
+
+					for (let i = 0; i < chunk_pos.length; i++) {
+						if (this.chunks[chunk_pos[i].x] === undefined) this.chunks[chunk_pos[i].x] = {}
+						if (this.chunks[chunk_pos[i].x][chunk_pos[i].y] === undefined)
+							this.chunks[chunk_pos[i].x][chunk_pos[i].y] = []
+						this.chunks[chunk_pos[i].x][chunk_pos[i].y].forEach((chunk) => {
+							if (!chunk.is_inside) {
+								chunk.is_inside = true
+								this.addWorldObject(chunk.collider.body)
 							}
 						})
 					}
@@ -972,27 +1039,56 @@ export abstract class WorldBase {
 
 	private updatePhysics(timeStep: number, unscaledTimeStep: number) {
 		const chunk_pos = this.terrain.getFollowChunkRad(this.terrain.getFollowChunk(this.terrain.followObject))
+		// let change_update: THREE.Vector2[] = []
 		if (chunk_pos.length > 0) {
-			this.chunks.forEach((chunk) => {
-				if (this.terrain !== null) {
-					const x = Math.round(chunk.collider.body.position.x / this.terrain.CHUNK_SIZE)
-					const y = Math.round(chunk.collider.body.position.z / this.terrain.CHUNK_SIZE)
-					let is_inside = false
+			if (this.terrain !== null) {
+				/* if (this.terrain !== null) {
+					Object.keys(this.chunks).forEach((x) => {
+						Object.keys(this.chunks[Number(x)]).forEach((y) => {
+							this.chunks[Number(x)][Number(y)].forEach((chunk) => {
+								if (chunk.is_inside) {
+									this.removeWorldObject(chunk.collider.body)
+									chunk.is_inside = false
+								}
+							})
+						})
+					})
+
 					for (let i = 0; i < chunk_pos.length; i++) {
-						if (x == chunk_pos[i].x && y == chunk_pos[i].y) {
-							is_inside = true
-							break
+						if (this.chunks[chunk_pos[i].x] === undefined) this.chunks[chunk_pos[i].x] = {}
+						if (this.chunks[chunk_pos[i].x][chunk_pos[i].y] === undefined)
+							this.chunks[chunk_pos[i].x][chunk_pos[i].y] = []
+						this.chunks[chunk_pos[i].x][chunk_pos[i].y].forEach((chunk) => {
+							if (!chunk.is_inside) {
+								chunk.is_inside = true
+								this.addWorldObject(chunk.collider.body)
+							}
+						})
+					}
+				} */
+
+				const key = (v: THREE.Vector2) => `${v.x},${v.y}`
+
+				const oldSet = new Set(this.last_chunk_pos.map(key))
+				const newSet = new Set(chunk_pos.map(key))
+
+				const added = chunk_pos.filter((p) => !oldSet.has(key(p)))
+				const removed = this.last_chunk_pos.filter((p) => !newSet.has(key(p)))
+
+				const setChunkActive = (pos: THREE.Vector2, active: boolean) => {
+					this.chunks[pos.x]?.[pos.y]?.forEach((chunk) => {
+						if (chunk.is_inside !== active) {
+							chunk.is_inside = active
+
+							if (active) this.addWorldObject(chunk.collider.body)
+							else this.removeWorldObject(chunk.collider.body)
 						}
-					}
-					if (is_inside && !chunk.is_inside) {
-						chunk.is_inside = true
-						this.addWorldObject(chunk.collider.body)
-					} else if (!is_inside && chunk.is_inside) {
-						chunk.is_inside = false
-						this.removeWorldObject(chunk.collider.body)
-					}
+					})
 				}
-			})
+
+				added.forEach((pos) => setChunkActive(pos, true))
+				removed.forEach((pos) => setChunkActive(pos, false))
+			}
 		}
 
 		if (this.doPhysics) {
@@ -1033,5 +1129,7 @@ export abstract class WorldBase {
 
 		this.terrain.update()
 		// console.log('chunks:', this.chunks.length)
+		// this.last_chunk_pos = change_update
+		this.last_chunk_pos = chunk_pos
 	}
 }

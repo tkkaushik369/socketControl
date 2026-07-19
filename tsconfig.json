@@ -13,6 +13,7 @@
 		"strict": true,
 		"allowSyntheticDefaultImports": true,
 		"sourceMap": true,
+		"rootDir": ".",
 		"baseUrl": ".",
 		"outDir": "dist",
 		"moduleResolution": "node",
@@ -22,6 +23,7 @@
 			"@server/*": ["./src/server/*"],
 			"@client/*": ["./src/client/*"],
 			"@World": ["./src/world/ts/World.ts"],
+			"@WorkerBase": ["./src/world/ts/WorkerBase.ts"],
 			"@WorldClient": ["./src/worldclient/ts/World/WorldClient.ts"],
 			"@WorldServer": ["./src/worldserver/ts/World/WorldServer.ts"]
 		},
@@ -29,6 +31,7 @@
 			"./src/server/*",
 			"./src/client/*",
 			"./src/world/ts/World.ts",
+			"./src/world/ts/WorkerBase.ts",
 			"./src/worldclient/ts/World/WorldClient.ts",
 			"./src/worldserver/ts/World/WorldServer.ts",
 			"./node_modules/@types"

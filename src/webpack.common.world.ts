@@ -4,7 +4,10 @@ import path from 'path'
 
 export const config_world_common = {
 	target: 'web',
-	entry: { World: './src/world/ts/World.ts', offscreen: './src/world/ts/Worldentities/GridCity/offscreen.ts' },
+	entry: {
+		World: './src/world/ts/World.ts',
+		// offscreen: './src/world/ts/Worldentities/GridCity/offscreen.ts'
+	},
 	output: {
 		library: {
 			// type: 'umd',

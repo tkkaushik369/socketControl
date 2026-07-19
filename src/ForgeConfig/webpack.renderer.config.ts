@@ -40,14 +40,14 @@ export const rendererConfig: Configuration = {
 			'@WorldClient': path.resolve(
 				__dirname,
 				WEBPACK_USE_BUNDLE
-					? '../../dist/@WorldClient/index.js'
-					: '../../.webpack/renderer/@WorldClient/index.js'
+					? '../../dist/@WorldClient/WorldClient.js'
+					: '../../.webpack/renderer/@WorldClient/WorldClient.js'
 			),
 			'@WorldServer': path.resolve(
 				__dirname,
 				WEBPACK_USE_BUNDLE
-					? '../../dist/@WorldServer/index.js'
-					: '../../.webpack/renderer/@WorldServer/index.js'
+					? '../../dist/@WorldServer/WorldServer.js'
+					: '../../.webpack/renderer/@WorldServer/WorldServer.js'
 			),
 		},
 		extensions: ['.js', '.ts', '.jsx', '.tsx', '.css', '.json', '.wasm'],

@@ -1,12 +1,12 @@
 import * as THREE from 'three'
-import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer'
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
-import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader'
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass'
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
-import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass'
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js'
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js'
 import {
 	Utility,
 	WorldBase,
@@ -22,9 +22,9 @@ import { Pane } from 'tweakpane'
 import { TabApi, TabPageApi } from '@tweakpane/core'
 import { CannonDebugRenderer } from '../Utils/CannonDebugRenderer'
 // import { AttachModels } from '../../../world/ts/Utils/AttachModels'
-import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import { CSM } from 'three/examples/jsm/csm/CSM'
-import { Sky } from 'three/examples/jsm/objects/Sky'
+import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { CSM } from 'three/examples/jsm/csm/CSM.js'
+import { Sky } from 'three/examples/jsm/objects/Sky.js'
 import { Ocean } from './Ocean'
 import { Grass } from './Grass'
 import _ from 'lodash'
@@ -82,12 +82,13 @@ export class WorldClient extends WorldBase {
 		renderer: THREE.WebGLRenderer | null = null,
 		labelRenderer: CSS2DRenderer | null = null
 	) {
-		super(maps, true)
+		super(maps, '/', true)
 
 		// functions bind
 		this.getGLTF = this.getGLTF.bind(this)
 		this.getJSON = this.getJSON.bind(this)
 		this.loadScene = this.loadScene.bind(this)
+		this.CreateWorker = this.CreateWorker.bind(this)
 		this.onWindowResize = this.onWindowResize.bind(this)
 		this.updateRaceResults = this.updateRaceResults.bind(this)
 		this.updateControls = this.updateControls.bind(this)
@@ -473,7 +474,7 @@ export class WorldClient extends WorldBase {
 			(xhr) => {
 				if (xhr.lengthComputable) {
 					this.loadingManager.dispatchEvent(
-						new CustomEvent('loading_progress', { detail: { progress: xhr.loaded / xhr.total } })
+						new CustomEvent('loading_progress', { detail: { progress: xhr.loaded / xhr.total, name: path } })
 					)
 					trackerEntry.progress = xhr.loaded / xhr.total
 				}
@@ -537,6 +538,24 @@ export class WorldClient extends WorldBase {
 			}
 		})
 		// this.add(new SpeakerClient(this, this.renderer, this.camera))
+	}
+
+	public CreateWorker(msgFunc: Function) {
+		// super.sendWorker(msg)
+		const worker = new Worker('@WorldClient/WorkerClient.js', {
+			/*  type: "module", */
+		})
+		worker.onerror = (err) => {
+			console.log(`Worker Error: ${err}`)
+		}
+		worker.onmessage = (msg) => {
+			// console.log(`World: ${msg.data}`)
+			msgFunc(msg.data)
+		}
+		// console.log(`WorldClientSend: ${msg}`)
+		// worker.onmessage = (rmsg) => this.fromWorker(rmsg.data)
+		// worker.postMessage(msg)
+		return worker
 	}
 
 	private onWindowResize() {

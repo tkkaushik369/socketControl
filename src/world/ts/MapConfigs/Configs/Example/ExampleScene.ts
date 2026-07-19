@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { SUBTRACTION, Brush, Evaluator } from 'three-bvh-csg'
-import { Reflector } from 'three/examples/jsm/objects/Reflector'
+import { Reflector } from 'three/examples/jsm/objects/Reflector.js'
 // import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import { BaseScene } from '../../BaseScene'
 import { Utility } from '../../../Core/Utility'
@@ -478,7 +478,8 @@ export class Example extends BaseScene {
 						textureWidth: 1600,
 						textureHeight: 900,
 						color: 0xb5b5b5,
-				  })
+						multisample: 0,
+					})
 				: new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0xff0000 }))
 			lodMirror.addLevel(mirror_0, 0)
 
@@ -488,7 +489,8 @@ export class Example extends BaseScene {
 						textureWidth: 1200,
 						textureHeight: 675,
 						color: 0xb5b5b5,
-				  })
+						multisample: 0,
+					})
 				: new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0x00ff00 }))
 			lodMirror.addLevel(mirror_1, 1)
 
@@ -498,7 +500,8 @@ export class Example extends BaseScene {
 						textureWidth: 800,
 						textureHeight: 450,
 						color: 0xb5b5b5,
-				  })
+						multisample: 0,
+					})
 				: new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0x0000ff }))
 			lodMirror.addLevel(mirror_5, 5)
 
@@ -508,7 +511,8 @@ export class Example extends BaseScene {
 						textureWidth: 400,
 						textureHeight: 225,
 						color: 0xb5b5b5,
-				  })
+						multisample: 0,
+					})
 				: new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: 0x00ffff }))
 			lodMirror.addLevel(mirror_10, 10)
 		}
@@ -534,8 +538,8 @@ export class Example extends BaseScene {
 			case 1:
 				{
 					const wheel = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, thickness), material)
-		wheel.rotation.z = Math.PI / 2
-		wheelGrp.add(wheel)
+					wheel.rotation.z = Math.PI / 2
+					wheelGrp.add(wheel)
 				}
 				break
 			case 2:

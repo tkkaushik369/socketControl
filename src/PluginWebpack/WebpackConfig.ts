@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 
 import debug from 'debug'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
@@ -93,7 +93,7 @@ export default class WebpackConfigGenerator {
 		let rawConfig =
 			typeof config === 'string'
 				? // eslint-disable-next-line @typescript-eslint/no-var-requires
-				  (require(path.resolve(this.projectDir, config)) as MaybeESM<Configuration | ConfigurationFactory>)
+					(require(path.resolve(this.projectDir, config)) as MaybeESM<Configuration | ConfigurationFactory>)
 				: config
 
 		if (rawConfig && typeof rawConfig === 'object' && 'default' in rawConfig) {
@@ -127,10 +127,7 @@ export default class WebpackConfigGenerator {
 		}
 		const protocol = this.pluginConfig.devServer?.server === 'https' ? 'https' : 'http'
 		const baseUrl = `${protocol}://localhost:${this.port}/${entryPoint.name}`
-		if (basename !== 'index.html') {
-			return `'${baseUrl}/${basename}'`
-		}
-		return `'${baseUrl}'`
+		return `'${baseUrl}/${basename}'`
 	}
 
 	toEnvironmentVariable(entryPoint: WebpackPluginEntryPoint, preload = false): string {
@@ -232,13 +229,13 @@ export default class WebpackConfigGenerator {
 
 		for (const entry of rendererOptions.entryPoints) {
 			const target =
-				entry.nodeIntegration ?? rendererOptions.nodeIntegration
+				(entry.nodeIntegration ?? rendererOptions.nodeIntegration)
 					? rendererOptions.nodeIntegration == RendererTargetType.ElectronRendererNode
 						? 'electronRendererNode'
 						: 'web'
 					: 'electronRenderer'
 			const preloadTarget =
-				entry.nodeIntegration ?? rendererOptions.nodeIntegration
+				(entry.nodeIntegration ?? rendererOptions.nodeIntegration)
 					? rendererOptions.nodeIntegration == RendererTargetType.ElectronRendererNode
 						? 'electronPreload'
 						: 'sandboxedPreload'

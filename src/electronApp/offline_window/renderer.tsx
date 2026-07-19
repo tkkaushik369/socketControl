@@ -76,7 +76,7 @@ class AppOffline {
 				const loading_percent_ele = document.getElementById('loading-text-percent')
 				if (loading_percent_ele !== null)
 					loading_percent_ele.innerText =
-						evt.detail.progress !== 1 ? `${Number(evt.detail.progress * 100).toFixed(2)}%` : '100%'
+						evt.detail.progress !== 1 ? ` [${evt.detail.name}]: ${Number(evt.detail.progress * 100).toFixed(2)}%` : '100%'
 			})
 		}
 

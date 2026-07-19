@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 // import * as THREE from 'three/webgpu'
+import { WorldBase } from '@World'
 import ParkMiller from 'park-miller'
 import { CityBuilder } from './GridCityBuilder'
 // import { RoadMaterial } from './textures'
@@ -80,7 +81,8 @@ export type City = {
 }
 
 export class WorldBuilder extends THREE.Object3D {
-	private settings: any
+	public world: WorldBase | null
+	public settings: any
 
 	private LANE_WIDTH = 0.5
 	private ROAD_THICKNESS = 0.22
@@ -104,7 +106,7 @@ export class WorldBuilder extends THREE.Object3D {
 	private _all_city_ids: string[] = []
 	private _callback: (() => void) | null = null
 
-	constructor(settings: any) {
+	constructor(world: WorldBase | null, settings: any) {
 		super()
 
 		// bind functions
@@ -134,6 +136,7 @@ export class WorldBuilder extends THREE.Object3D {
 		this.generateWorldSparseConnected = this.generateWorldSparseConnected.bind(this)
 
 		// init
+		this.world = world
 		this.settings = settings
 		this.random = new ParkMiller(0)
 		this.cities = []
@@ -548,7 +551,7 @@ export class WorldBuilder extends THREE.Object3D {
 		}
 		const settings = JSON.parse(JSON.stringify(this.settings))
 		settings.size = gridSize
-		const cityBuilder = new CityBuilder(cityId, settings, cityDone, cityProgress)
+		const cityBuilder = new CityBuilder(this.world, cityId, settings, cityDone, cityProgress)
 		cityBuilder.generate()
 
 		// Vertical roads

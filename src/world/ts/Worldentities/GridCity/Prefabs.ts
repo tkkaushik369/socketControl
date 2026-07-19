@@ -1781,6 +1781,7 @@ export class Prefabs {
 	static Prefab_Lights() {
 		const group = new THREE.Object3D()
 		if (true) {
+			const lod = new THREE.LOD();
 			const light_pole = new THREE.Mesh(
 				new THREE.CylinderGeometry(0.01, 0.01, 0.5, 32),
 				new THREE.MeshNormalMaterial()
@@ -1788,7 +1789,10 @@ export class Prefabs {
 			const light_hadle = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.01, 0.2), new THREE.MeshNormalMaterial())
 			light_hadle.position.set(0, 0.25, 0.1)
 			light_pole.add(light_hadle)
-			group.add(light_pole)
+
+			lod.addLevel(light_pole, 0);
+			lod.addLevel(new THREE.Object3D(), 50);
+			group.add(lod)
 		}
 		return group
 	}
@@ -1796,13 +1800,16 @@ export class Prefabs {
 	static Prefab_PathNode(isc: boolean) {
 		const group = new THREE.Object3D()
 		if (true) {
+			const lod = new THREE.LOD();
 			const path_node = new THREE.Mesh(
 				new THREE.SphereGeometry(0.06, 4, 4),
 				new THREE.MeshPhongMaterial({
 					color: isc ? 0x0000aa : 0xaa0000,
 				})
 			)
-			group.add(path_node)
+			lod.addLevel(path_node, 0);
+			lod.addLevel(new THREE.Object3D(), 50);
+			group.add(lod)
 		}
 		return group
 	}

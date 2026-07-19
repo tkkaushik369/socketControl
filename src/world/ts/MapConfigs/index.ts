@@ -38,7 +38,7 @@ export type MapConfigType = {
 	trains: MapConfigFOType[]
 }
 
-function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
+function MapConfigurator(world: WorldBase, conf: { [id: string]: any }): MapConfigType {
 	let config: MapConfigType = {
 		name: conf.name,
 		isCallback: Boolean(conf.isCallback),
@@ -68,11 +68,11 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 				break
 			}
 			case 'GridCityScene': {
-				config.mapCaller = new GridCityScene()
+				config.mapCaller = new GridCityScene(world)
 				break
 			}
 			case 'GridWorldScene': {
-				config.mapCaller = new GridWorldScene()
+				config.mapCaller = new GridWorldScene(world)
 				break
 			}
 			default: {
@@ -128,11 +128,11 @@ function MapConfigurator(conf: { [id: string]: any }): MapConfigType {
 					break
 				}
 				case 'GridCityScene': {
-					vehiConf.objCaller = new GridCityScene()
+					vehiConf.objCaller = new GridCityScene(world)
 					break
 				}
 				case 'GridWorldScene': {
-					vehiConf.objCaller = new GridWorldScene()
+					vehiConf.objCaller = new GridWorldScene(world)
 					break
 				}
 				default: {
@@ -236,7 +236,7 @@ export function getMapConfig(world: WorldBase, maps: MapConfigType[]): { [id: st
 	}) */
 
 	for (let i = 0; i < maps.length; i++) {
-		const config = MapConfigurator(maps[i])
+		const config = MapConfigurator(world, maps[i])
 		MapConfig[config.name] = config
 		// MapConfig[key.name] = key
 	}

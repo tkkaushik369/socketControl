@@ -1,9 +1,10 @@
 import * as THREE from 'three'
+import { WorldBase } from '@World'
 import { BaseScene } from '../../BaseScene'
 import { CityBuilder } from '../../../Worldentities/GridCity/GridCityBuilder'
 
 export class GridCityScene extends BaseScene {
-	constructor() {
+	constructor(world: WorldBase | null = null) {
 		super()
 
 		{
@@ -86,7 +87,7 @@ export class GridCityScene extends BaseScene {
 		}
 
 		const settings = {
-			preload_buildins: 0,
+			preload_buildins: 1,
 			renderCity: true,
 			seed: 0,
 			// 10
@@ -100,19 +101,29 @@ export class GridCityScene extends BaseScene {
 			block_types_3: 1,
 			size: 3,
 			corner_size: 0.25,
-			renderHelper: false,
-			renderDebugsWireframe: false,
-			renderDebug: -1,
 			renderBuildings: true,
 			renderBuildingsRoofs: true,
 			renderBuildingsWindows: true,
 			simple_geometry: false,
+			renderHelper: false,
+			renderDebug: -1,
+			renderDebugsWireframe: false,
 			renderDebugsBuildings: false,
 			renderDebugsBuildingsWireframe: true,
 			renderLights: false,
 			renderNodePaths: false,
 		}
-		const cityBuilder = new CityBuilder("Grid_City_1", settings)
+
+		const logs = false
+		const cityId = 'Grid_City_1'
+		function cityDone() {
+			if (logs) console.log(`City Done: ${cityId}`)
+			// if (callback !== null) callback(cityId)
+		}
+		function cityProgress(prog: number) {
+			if (logs) console.log(`City Prpg: ${cityId}|${Number(prog).toFixed(2) + '%'}`)
+		}
+		const cityBuilder = new CityBuilder(world, cityId, settings, cityDone, cityProgress)
 		this.scene.add(cityBuilder)
 
 		/* const scene_data = {

@@ -70,6 +70,7 @@ export type WorldClientRemoveEvent = CustomEvent<{
 export default class AppServer extends EventTarget {
 	private port: number
 	private server: http.Server | null
+	private baseRootPath: string
 	private io: Server | null
 	private wss: WebSocketServer | null
 	private app: express.Express
@@ -121,16 +122,17 @@ export default class AppServer extends EventTarget {
 		this.wss = null
 
 		// const clientPath = path.resolve(__dirname, '../client_window')
-		const basePath = hostPath === '.' ? path.resolve(__dirname, '../@World') : path.resolve(hostPath, '../@World')
+		this.baseRootPath = hostPath === '.' ? path.resolve(__dirname, '..') : path.resolve(hostPath, '..')
+		const baseWorldPath = hostPath === '.' ? path.resolve(__dirname, '../@World') : path.resolve(hostPath, '../@World')
 		const baseClientPath = hostPath === '.' ? path.resolve(__dirname, '../@WorldClient') : path.resolve(hostPath, '../@WorldClient')
 		const clientPath = hostPath === '.' ? path.resolve(__dirname, '../client') : path.resolve(hostPath, '../client')
-		console.log(basePath)
+		console.log(baseWorldPath)
 		console.log(baseClientPath)
 		console.log(clientPath)
 		this.app = express()
 		this.app.use('/', express.static(clientPath))
 		this.app.use('/client', express.static(clientPath))
-		this.app.use('/@World', express.static(basePath))
+		this.app.use('/@World', express.static(baseWorldPath))
 		this.app.use('/@WorldClient', express.static(baseClientPath))
 		this.app.use('/audios', express.static(path.join(clientPath, 'audios')))
 		this.app.use('/images', express.static(path.join(clientPath, 'images')))
@@ -268,7 +270,7 @@ export default class AppServer extends EventTarget {
 
 	private CreateNewWorld(worldId: string) {
 		console.log('World Created: ' + worldId)
-		this.allWorlds[worldId] = new WorldServer(this.maps, this.ForSocketLoop)
+		this.allWorlds[worldId] = new WorldServer(this.maps, this.baseRootPath, this.ForSocketLoop)
 		this.allWorlds[worldId].launchMap(Object.keys(this.allWorlds[worldId].maps)[0], false, true)
 		this.allWorlds[worldId].worldId = worldId
 		this.dispatchEvent(

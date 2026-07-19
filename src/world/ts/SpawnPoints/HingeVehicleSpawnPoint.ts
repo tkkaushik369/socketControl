@@ -15,7 +15,7 @@ export class HingeVehicleSpawnPoint extends SpawnBase {
 	public driver: string | null // ai | player
 	public playerData: { player: Player; position: THREE.Vector3 } | null
 	public firstAINode: string | null
-	public maxGears: number
+	// public maxGears: number
 
 	public motorSpeed: number
 	public motorForce: number
@@ -32,7 +32,7 @@ export class HingeVehicleSpawnPoint extends SpawnBase {
 		this.motorSpeed = 0
 		this.motorForce = 0
 
-		this.maxGears = 5
+		// this.maxGears = -1
 
 		if (this.userData.hasOwnProperty('type')) {
 			this.type = this.userData.type
@@ -50,9 +50,9 @@ export class HingeVehicleSpawnPoint extends SpawnBase {
 			}
 		}
 
-		if (this.userData.hasOwnProperty('max_gears')) {
+		/* if (this.userData.hasOwnProperty('max_gears')) {
 			this.maxGears = this.userData.max_gears
-		}
+		} */
 
 		if (this.userData.hasOwnProperty('motor_speed')) {
 			this.motorSpeed = this.userData.motor_speed
@@ -126,7 +126,7 @@ export class HingeVehicleSpawnPoint extends SpawnBase {
 			this.object.getWorldQuaternion(worldQuat)
 
 			let vehicle: Train = this.getNewVehicleByType(model)
-			vehicle.maxGears = this.maxGears
+			// if (this.maxGears > 0) vehicle.maxGears = this.maxGears
 			if (this.motorSpeed !== 0) vehicle.setMotorSpeed(this.motorSpeed)
 			if (this.motorForce !== 0) vehicle.setMotorForce(this.motorForce)
 

@@ -34,7 +34,7 @@ export class VehicleSpawnPoint extends SpawnBase {
 		this.driver = null
 		this.playerData = null
 		this.firstAINode = null
-		this.maxGears = 5
+		this.maxGears = -1
 
 		if (this.userData.hasOwnProperty('type')) {
 			this.type = this.userData.type
@@ -70,7 +70,7 @@ export class VehicleSpawnPoint extends SpawnBase {
 			// world.getGLTF('boxman.glb', (gltf: any) => {
 			character.setModel(model, world.isClient)
 			character.uID = vehicle.uID + '_driver'
-			if(inRace) {
+			if (inRace) {
 				character.nextCheckpointIndex = 0
 				character.lapCount = 0
 			}
@@ -119,7 +119,7 @@ export class VehicleSpawnPoint extends SpawnBase {
 			this.object.getWorldQuaternion(worldQuat)
 
 			let vehicle: Vehicle = this.getNewVehicleByType(model)
-			if (vehicle instanceof Car) {
+			if (vehicle instanceof Car && this.maxGears > 0) {
 				vehicle.maxGears = this.maxGears
 			}
 			vehicle.readVehicleData(model, world.isClient)

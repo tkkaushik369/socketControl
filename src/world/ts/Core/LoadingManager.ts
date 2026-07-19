@@ -37,7 +37,7 @@ export class LoadingManager extends EventTarget {
 	public doneLoading(trackerEntry: LoadingTrackerEntry): void {
 		trackerEntry.finished = true
 		trackerEntry.progress = 1
-		this.dispatchEvent(new CustomEvent('loading_progress', { detail: { progress: trackerEntry.progress } }))
+		this.dispatchEvent(new CustomEvent('loading_progress', { detail: { progress: trackerEntry.progress, name: trackerEntry.path } }))
 		this.world.timeScaleTarget = 1
 
 		if (this.isLoadingDone()) {
@@ -50,6 +50,7 @@ export class LoadingManager extends EventTarget {
 	}
 
 	private isLoadingDone(): boolean {
+		// console.log("loadingTracker", this.loadingTracker)
 		for (const entry of this.loadingTracker) {
 			if (!entry.finished) return false
 		}

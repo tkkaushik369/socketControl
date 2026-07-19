@@ -1,27 +1,57 @@
 {
-	"$schema": "https://v2-9-18.turborepo.dev/schema.json",
+	"$schema": "https://v2-10-0.turborepo.dev/schema.json",
 	"tasks": {
 		"build:world": {
-			"inputs": ["src/world/**"],
+			"inputs": [
+				"src/world/**",
+				"src/webpack.common.base.ts",
+				"src/webpack.prod.base.ts",
+				"src/webpack.common.world.ts",
+				"src/webpack.prod.world.ts"
+			],
 			"outputs": ["dist/@World/**"]
 		},
 		"build:worldclient": {
-			"inputs": ["src/worldclient/**"],
+			"inputs": [
+				"src/worldclient/**",
+				"src/webpack.common.base.ts",
+				"src/webpack.prod.base.ts",
+				"src/webpack.common.worldclient.ts",
+				"src/webpack.prod.worldclient.ts"
+			],
 			"dependsOn": ["build:world"],
 			"outputs": ["dist/@WorldClient/**"]
 		},
 		"build:worldserver": {
-			"inputs": ["src/worldserver/**"],
+			"inputs": [
+				"src/worldserver/**",
+				"src/webpack.common.base.ts",
+				"src/webpack.prod.base.ts",
+				"src/webpack.common.worldserver.ts",
+				"src/webpack.prod.worldserver.ts"
+			],
 			"dependsOn": ["build:world"],
 			"outputs": ["dist/@WorldServer/**"]
 		},
 		"build:server": {
-			"inputs": ["src/server/**"],
+			"inputs": [
+				"src/server/**",
+				"src/webpack.common.base.ts",
+				"src/webpack.prod.base.ts",
+				"src/webpack.common.server.ts",
+				"src/webpack.prod.server.ts"
+			],
 			"dependsOn": ["build:worldserver"],
 			"outputs": ["dist/server/**"]
 		},
 		"build:client": {
-			"inputs": ["src/client/**"],
+			"inputs": [
+				"src/client/**",
+				"src/webpack.common.base.ts",
+				"src/webpack.prod.base.ts",
+				"src/webpack.common.client.ts",
+				"src/webpack.prod.client.ts"
+			],
 			"dependsOn": ["build:worldclient"],
 			"outputs": ["dist/client/**"]
 		},
@@ -30,7 +60,11 @@
 				"src/electronApp/offline_window/**",
 				"src/electronApp/commmon/**",
 				"src/client/css/**",
-				"src/LoaderMode.ts"
+				"src/LoaderMode.ts",
+				"src/webpack.common.base.ts",
+				"src/webpack.prod.base.ts",
+				"src/webpack.common.offline.ts",
+				"src/webpack.prod.offline.ts"
 			],
 			"dependsOn": ["build:worldclient"],
 			"outputs": ["dist/offline/**"]

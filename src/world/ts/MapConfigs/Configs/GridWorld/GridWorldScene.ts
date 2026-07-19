@@ -1,10 +1,11 @@
 import * as THREE from 'three'
+import { WorldBase } from '@World'
 import { BaseScene } from '../../BaseScene'
 import { WorldBuilder } from '../../../Worldentities/GridCity/WorldBuilder'
 import { Terrain } from '../../../Worldentities/GridCity/Terrain'
 
 export class GridWorldScene extends BaseScene {
-	constructor() {
+	constructor(world: WorldBase | null = null) {
 		super()
 
 		/* {
@@ -88,7 +89,7 @@ export class GridWorldScene extends BaseScene {
 
 		const scaling = 6
 		const settings = {
-			preload_buildins: 0,
+			preload_buildins: 1,
 			renderCity: true,
 			seed: 0,
 			// 10
@@ -116,7 +117,8 @@ export class GridWorldScene extends BaseScene {
 			terrainFov: 1,
 			camera: 'Orthographic',
 		}
-		const worldBuilder = new WorldBuilder(settings)
+		const is_debug = false
+		const worldBuilder = new WorldBuilder(world, settings)
 		this.scene.add(worldBuilder)
 
 		const terrain = new Terrain()
@@ -136,46 +138,119 @@ export class GridWorldScene extends BaseScene {
 				const worldBox = worldBuilder.getBoundingBox(worldBuilder.cities)
 				const size = Math.max(worldBox.maxX, worldBox.maxZ)
 				const extra = 150
-				var pts = 200
-				pts += Math.max(
+				var length_max = 200
+				length_max += Math.max(
 					worldBuilder.getBoundingBox(worldBuilder.cities).maxX,
 					worldBuilder.getBoundingBox(worldBuilder.cities).maxZ
 				)
-				// pts = 30
+				let pts = Math.floor(20 / 6) * 2
+				let length = length_max / pts / 2
 
 				// terrain.CHUNK_SIZE_ORG = 20
 				// terrain.CHUNK_SIZE = 10
 
 				const mat = new THREE.MeshPhongMaterial({
-					// vertexColors: true,
+					vertexColors: true,
 					// side: THREE.DoubleSide,aa
 					// wireframe: true,
-					color: 0x926829,
+					// color: 0x926829,
 					// wireframe: true,
 					// transparent: true,
 					// opacity: 0.2,
 				})
 
 				// pts = size + extra
-				const geo = new THREE.PlaneGeometry(pts, pts, pts, pts)
+				const geo = new THREE.PlaneGeometry(length_max, length_max, length_max, length_max)
 				// const geo = new THREE.PlaneGeometry(terrain.CHUNK_SIZE, terrain.CHUNK_SIZE, terrain.CHUNK_SIZE, terrain.CHUNK_SIZE)
 				const colors = new Float32Array(geo.attributes.position.count * 3)
 				geo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
 				const cmesh2 = new THREE.Mesh(geo, mat)
 				cmesh2.rotation.x = -Math.PI / 2
 				// cmesh2.position.x = 20 * scaling
-				cmesh2.userData = { data: 'physics', type: 'heightfield', scale: scaling }
-				terrain.updateChunk(geo, (cmesh2.position.x / scaling) / terrain.CHUNK_SIZE, (cmesh2.position.z / scaling) / terrain.CHUNK_SIZE)
+				if (!is_debug) cmesh2.userData = { data: 'physics', type: 'heightfield', scale: scaling, visible: true }
+				const city_ranges: {
+					xMin: number
+					zMin: number
+					xMax: number
+					zMax: number
+				}[] = []
+				const extra_gap = 1 / settings.allysize
+				for (let i = 0; i < worldBuilder.cities.length; i++) {
+					city_ranges.push({
+						xMin:
+							(worldBuilder.cities[i].cityBuilder.offset_position.x -
+								(worldBuilder.cities[i].size * settings.allysize) / 2) /
+								terrain.CHUNK_SIZE -
+							extra_gap,
+						zMin:
+							(worldBuilder.cities[i].cityBuilder.offset_position.z -
+								(worldBuilder.cities[i].size * settings.allysize) / 2) /
+								terrain.CHUNK_SIZE -
+							extra_gap,
+						xMax:
+							(worldBuilder.cities[i].cityBuilder.offset_position.x +
+								(worldBuilder.cities[i].size * settings.allysize) / 2) /
+								terrain.CHUNK_SIZE +
+							extra_gap,
+						zMax:
+							(worldBuilder.cities[i].cityBuilder.offset_position.z +
+								(worldBuilder.cities[i].size * settings.allysize) / 2) /
+								terrain.CHUNK_SIZE +
+							extra_gap,
+					})
+				}
+				terrain.updateChunk(
+					geo,
+					cmesh2.position.x / scaling / terrain.CHUNK_SIZE,
+					cmesh2.position.z / scaling / terrain.CHUNK_SIZE,
+					city_ranges
+				)
 				cmesh2.scale.set(scaling, scaling, scaling)
-				// terrain.updateColors(geo)
+				terrain.updateColors(geo)
 				self.scene.add(cmesh2)
+
+				// chunked ground
+				if (is_debug) {
+					for (let i = -length; i <= length; i++) {
+						for (let j = -length; j <= length; j++) {
+							// pts = size + extra
+							const geo = new THREE.PlaneGeometry(pts, pts, pts, pts)
+							// const geo = new THREE.PlaneGeometry(terrain.CHUNK_SIZE, terrain.CHUNK_SIZE, terrain.CHUNK_SIZE, terrain.CHUNK_SIZE)
+							// const colors = new Float32Array(geo.attributes.position.count * 3)
+							// geo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+							const cmesh2 = new THREE.Mesh(geo, mat)
+							cmesh2.rotation.x = -Math.PI / 2
+							cmesh2.position.x = pts * scaling * i
+							// cmesh2.position.y = 10
+							cmesh2.position.z = pts * scaling * j
+							// cmesh2.position.x += 1.5
+							// cmesh2.position.z += 1.5
+							cmesh2.userData = {
+								data: 'physics',
+								type: 'heightfield',
+								scale: scaling,
+								optimize: 'chunk',
+								visible: false,
+							}
+							terrain.updateChunk(
+								geo,
+								cmesh2.position.x / scaling / terrain.CHUNK_SIZE,
+								cmesh2.position.z / scaling / terrain.CHUNK_SIZE
+							)
+							// geo.scale(scaling, scaling, scaling)
+							// cmesh2.scale.set(scaling, scaling, scaling)
+							// terrain.updateColors(geo)
+							self.scene.add(cmesh2)
+						}
+					}
+				}
 			}
 		}
 
 		// terrain.generate()
 		// worldBuilder.generate()
 		if (settings.preload_buildins) {
-			worldBuilder.generate(1, Post_Generate, true)
+			worldBuilder.generate(1, Post_Generate, false)
 		} else {
 			worldBuilder.generate(1)
 			Post_Generate()

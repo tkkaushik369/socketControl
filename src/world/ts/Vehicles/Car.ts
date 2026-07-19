@@ -34,7 +34,7 @@ export class Car extends Vehicle implements IControllable {
 
 	// Engine
 	public engineForce = 500
-	public maxGears = 5
+	public maxGears = 6
 	public gearsMaxSpeeds: { [id: number]: number } = {
 		'-1': -4,
 		'0': 0,
@@ -163,6 +163,12 @@ export class Car extends Vehicle implements IControllable {
 				this.forceCharacterOut()
 			}
 		}
+
+		/* if(this.controllingCharacter !== null && this.world) {
+			if (this.controllingCharacter.player = this.world.player) {
+				console.log(this.gear, this.speed, this.maxGears)
+			}
+		} */
 	}
 
 	public shiftUp(): void {

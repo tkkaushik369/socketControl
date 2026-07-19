@@ -61,8 +61,8 @@ export class Terrain extends THREE.Object3D {
 		//this.GRID_SIZE = this.GRID_RADIUS * 2 + 1
 	}
 
-	public generate() {
-		const all_pos: THREE.Vector2[] = this.getFollowChunkRad(this.getFollowChunk(this.followObject))
+	public generate(scale: number) {
+		const all_pos: THREE.Vector2[] = this.getFollowChunkRad(this.getFollowChunk(this.followObject, scale))
 
 		if (all_pos.length > this.chunks.length) {
 			all_pos.forEach((pos) => {
@@ -186,6 +186,39 @@ export class Terrain extends THREE.Object3D {
 		if (this.worldBuilder === null) return
 		// const worldBox = this.worldBuilder.getBoundingBox(this.worldBuilder.cities)
 		const self = this
+		const is_debug = false
+
+		const city_ranges: {
+			xMin: number
+			zMin: number
+			xMax: number
+			zMax: number
+		}[] = []
+		const extra_gap = 1 / this.worldBuilder.settings.allysize
+		for (let i = 0; i < this.worldBuilder.cities.length; i++) {
+			city_ranges.push({
+				xMin:
+					(this.worldBuilder.cities[i].cityBuilder.offset_position.x -
+						(this.worldBuilder.cities[i].size * this.worldBuilder.settings.allysize) / 2) /
+						this.CHUNK_SIZE -
+					extra_gap,
+				zMin:
+					(this.worldBuilder.cities[i].cityBuilder.offset_position.z -
+						(this.worldBuilder.cities[i].size * this.worldBuilder.settings.allysize) / 2) /
+						this.CHUNK_SIZE -
+					extra_gap,
+				xMax:
+					(this.worldBuilder.cities[i].cityBuilder.offset_position.x +
+						(this.worldBuilder.cities[i].size * this.worldBuilder.settings.allysize) / 2) /
+						this.CHUNK_SIZE +
+					extra_gap,
+				zMax:
+					(this.worldBuilder.cities[i].cityBuilder.offset_position.z +
+						(this.worldBuilder.cities[i].size * this.worldBuilder.settings.allysize) / 2) /
+						this.CHUNK_SIZE +
+					extra_gap,
+			})
+		}
 
 		function preSetupConnect(mesh: THREE.Mesh) {
 			const pos = new THREE.Vector3()
@@ -195,12 +228,20 @@ export class Terrain extends THREE.Object3D {
 			const obj = new THREE.Object3D()
 			obj.quaternion.copy(quat)
 
+			if (is_debug) {
+				if (pos.x > 0) return
+				if (pos.x < -30) return
+				if (pos.z < 75) return
+				if (pos.z > 85) return
+			}
+
 			let cx = pos.x //- worldBox.centX;
 			let cz = pos.z //- worldBox.centZ;
-			cx -= 2 + (pos.x % 2)
-			cz -= 2 + (pos.z % 2)
+			cx -= pos.x % 2
+			cz -= pos.z % 2
 			cx /= self.CHUNK_SIZE_ORG
 			cz /= self.CHUNK_SIZE_ORG
+			if (is_debug) console.log(cx, cz)
 
 			// self.updateChunk(mesh.geometry, cx, cz)
 			// return
@@ -213,15 +254,17 @@ export class Terrain extends THREE.Object3D {
 					self.CHUNK_SIZE,
 					self.perlin.noise(c_x, 0, c_z) * 0x7f7f7f + 0x7f7f7f
 				)
-				self.updateChunk(chunk_mesh.geometry, c_x, c_z)
+				self.updateChunk(chunk_mesh.geometry, c_x, c_z, city_ranges)
 				self.updateColors(chunk_mesh.geometry, 2)
 				chunk_mesh.rotation.x = -Math.PI / 2
-				chunk_mesh.position.set(c_x * self.CHUNK_SIZE, /* 0.1 */0, c_z * self.CHUNK_SIZE)
+				chunk_mesh.position.set(c_x * self.CHUNK_SIZE, /* 0.1 */ 0, c_z * self.CHUNK_SIZE)
 				return chunk_mesh
 			}
-			// console.log(self.CHUNK_SIZE)
-			// console.log(Math.max(params.width, params.height))
-			// console.log(Math.round(obj.rotation.z / (Math.PI / 2)) % 2)
+			if (is_debug) {
+				console.log(self.CHUNK_SIZE)
+				console.log(Math.max(params.width, params.height))
+				console.log(Math.round(obj.rotation.z / (Math.PI / 2)) % 2)
+			}
 			if (
 				Math.max(params.width, params.height) > self.CHUNK_SIZE &&
 				Math.round(obj.rotation.z / (Math.PI / 2)) % 2 != 0
@@ -230,29 +273,35 @@ export class Terrain extends THREE.Object3D {
 				for (let i = -steps; i < steps + 1; i++) {
 					const cm = createPlanerConfig(cx + i, cz)
 					chunk_meshs.push(cm)
-					// const helper = new THREE.AxesHelper(10)
-					// helper.position.set(cm.position.x, 0, cm.position.z)
-					// self.scene.add(helper)
-					// console.log(obj.rotation.z / (Math.PI / 2))
-					// self.scene.add(cm)
+					if (is_debug) {
+						const helper = new THREE.AxesHelper(10)
+						helper.position.set(cm.position.x, 0, cm.position.z)
+						_scene.add(helper)
+						console.log(obj.rotation.z / (Math.PI / 2))
+						_scene.add(cm)
+					}
 				}
 			} else if (Math.max(params.width, params.height) > self.CHUNK_SIZE) {
 				const steps = Math.ceil(Math.max(params.width, params.height) / self.CHUNK_SIZE)
 				for (let i = -steps; i < steps + 1; i++) {
 					const cm = createPlanerConfig(cx, cz + i)
 					chunk_meshs.push(cm)
-					// const helper = new THREE.AxesHelper(10)
-					// helper.position.set(cm.position.x, 0, cm.position.z)
-					// self.scene.add(helper)
-					// self.scene.add(cm)
+					if (is_debug) {
+						const helper = new THREE.AxesHelper(10)
+						helper.position.set(cm.position.x, 0, cm.position.z)
+						_scene.add(helper)
+						_scene.add(cm)
+					}
 				}
 			} else {
 				const cm = createPlanerConfig(cx, cz)
 				chunk_meshs.push(cm)
-				// const helper = new THREE.AxesHelper(10)
-				// helper.position.set(cm.position.x, 0, cm.position.z)
-				// self.scene.add(helper)
-				// self.scene.add(cm)
+				if (is_debug) {
+					const helper = new THREE.AxesHelper(10)
+					helper.position.set(cm.position.x, 0, cm.position.z)
+					_scene.add(helper)
+					_scene.add(cm)
+				}
 			}
 
 			chunk_meshs.forEach((cmesh: THREE.Mesh | THREE.LineSegments) => {
@@ -266,12 +315,12 @@ export class Terrain extends THREE.Object3D {
 		this.worldBuilder.getAllJunctions().forEach((junction: Junction) => junction.mesh.forEach(preSetupConnect))
 	}
 
-	public getFollowChunk(followObject: (THREE.Object3D | CANNON.Body)[]) {
+	public getFollowChunk(followObject: (THREE.Object3D | CANNON.Body)[], scale: number = 1) {
 		const cords: { x: number; z: number }[] = []
 		for (let i = 0; i < followObject.length; i++) {
 			cords.push({
-				x: Math.round(followObject[i].position.x),
-				z: Math.round(followObject[i].position.z),
+				x: Math.round(followObject[i].position.x * scale),
+				z: Math.round(followObject[i].position.z * scale),
 			})
 		}
 		return cords
@@ -294,8 +343,8 @@ export class Terrain extends THREE.Object3D {
 					}
 					if (to_inside) all_pos.push(new THREE.Vector2(cx, cz))
 				}
+			}
 		}
-	}
 
 		return all_pos
 	}
@@ -307,7 +356,7 @@ export class Terrain extends THREE.Object3D {
 		for (let i = 0; i < positions.count; i++) {
 			// const x = positions.getX(i)
 			// const y = positions.getY(i)
-			const z = positions.getZ(i) * 2 / this.NOISE_MULTIPLYER
+			const z = (positions.getZ(i) * 2) / this.NOISE_MULTIPLYER
 
 			// Normalize height to 0..1
 			const t = THREE.MathUtils.clamp((z + 2) / 4, 0, 1)
@@ -332,13 +381,27 @@ export class Terrain extends THREE.Object3D {
 		colors.needsUpdate = true
 	}
 
-	public updateChunk(g: THREE.BufferGeometry, cx: number = 0, cz: number = 0) {
+	public updateChunk(
+		g: THREE.BufferGeometry,
+		cx: number = 0,
+		cz: number = 0,
+		regions?: {
+			xMin: number
+			zMin: number
+			xMax: number
+			zMax: number
+		}[]
+	) {
 		const pos = g.attributes.position as THREE.BufferAttribute
 		const uv = g.attributes.uv as THREE.BufferAttribute
 		// const params = g.parameters
 
 		const vec2 = new THREE.Vector2()
 		const vec3 = new THREE.Vector3()
+
+		/* if (regions !== undefined && regions.length > 0) {
+			console.log(regions)
+		} */
 
 		for (let i = 0; i < pos.count; i++) {
 			vec3.fromBufferAttribute(pos, i)
@@ -357,7 +420,23 @@ export class Terrain extends THREE.Object3D {
 				wz = cz + vec2.y
 			}
 
-			pos.setZ(i, this.perlin.noise(wx, wz, 0) * this.NOISE_MULTIPLYER)
+			// Skip vertices outside all dirty regions
+			let inside = false
+			if (regions !== undefined && regions.length > 0) {
+				for (let i = 0; i < regions.length; i++) {
+					if (
+						wx >= regions[i].xMin &&
+						wx <= regions[i].xMax &&
+						wz >= regions[i].zMin &&
+						wz <= regions[i].zMax
+					) {
+						inside = true
+						break
+					}
+				}
+			}
+			if (inside) pos.setZ(i, 0.3)
+			else pos.setZ(i, this.perlin.noise(wx, wz, 0) * this.NOISE_MULTIPLYER)
 		}
 
 		pos.needsUpdate = true
@@ -424,9 +503,9 @@ export class Terrain extends THREE.Object3D {
 		}
 	}
 
-	private updateInfiniteTerrain() {
+	private updateInfiniteTerrain(scale: number) {
 		if (this.followObject === null) return
-		const camChunks = this.getFollowChunkRad(this.getFollowChunk(this.followObject))
+		const camChunks = this.getFollowChunkRad(this.getFollowChunk(this.followObject, scale))
 		for (let i = 0; i < this.chunks.length; i++) {
 			if (camChunks[i] != undefined) {
 				this.chunks[i]
@@ -446,7 +525,7 @@ export class Terrain extends THREE.Object3D {
 
 				//if (this.chunks[i].mesh.position.x !== newX || this.chunks[i].mesh.position.z !== newZ) {
 				// chunk.clearAll()
-				this.chunks[i].mesh.position.set(newX, /* 0.01 */0, newZ)
+				this.chunks[i].mesh.position.set(newX, /* 0.01 */ 0, newZ)
 				/* ;(this.chunks[i].mesh.material as THREE.LineBasicMaterial | THREE.MeshBasicMaterial).color =
 					new THREE.Color(
 						this.perlin.noise(camChunks[i].x * 0.1, 0, camChunks[i].y * 0.1) * 0x7f7f7f + 0x7f7f7f
@@ -482,9 +561,9 @@ export class Terrain extends THREE.Object3D {
 		this.updateRoads()
 	}
 
-	public update() {
-		this.generate()
-		this.updateInfiniteTerrain()
+	public update(scale: number = 1) {
+		this.generate(scale)
+		this.updateInfiniteTerrain(scale)
 		// console.log("followObject: ", this.followObject.length)
 	}
 }

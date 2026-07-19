@@ -2,20 +2,25 @@ import * as THREE from 'three'
 import { WorldBase, Speaker, MapConfigType } from '@World'
 import { JSDOM } from 'jsdom'
 import fs from 'node:fs'
+import path from 'node:path'
+import { Worker } from 'node:worker_threads'
 // import progress  from 'progress-stream'
 
 export class WorldServer extends WorldBase {
-	modelCache: { [id: string]: any } = {}
+	private modelCache: { [id: string]: any } = {}
 
-	constructor(maps: MapConfigType[], updatePhysicsCallback: Function | null = null) {
-		super(maps)
+	constructor(maps: MapConfigType[], baseRootPath: string, updatePhysicsCallback: Function | null = null) {
+		super(maps, baseRootPath)
+
 		// bind function
 		this.readJSON = this.readJSON.bind(this)
 		this.getGLTF = this.getGLTF.bind(this)
 		this.getJSON = this.getJSON.bind(this)
 		this.loadScene = this.loadScene.bind(this)
+		this.CreateWorker = this.CreateWorker.bind(this)
 
 		// init
+		this.baseRootPath = baseRootPath
 		this.updatePhysicsCallback = updatePhysicsCallback
 	}
 
@@ -70,5 +75,25 @@ export class WorldServer extends WorldBase {
 	public loadScene(gltf: any, isLaunmch: boolean = true): void {
 		super.loadScene(gltf, isLaunmch)
 		// this.add(new Speaker())
+	}
+
+	public CreateWorker(msgFunc: Function) {
+		// super.sendWorker(msg)
+		console.log("baseRootPath", this.baseRootPath)
+		const worker = new Worker(path.join(this.baseRootPath, '@WorldServer/WorkerServer.js'))
+		worker.on('error', (err: any) => {
+			console.log(`Worker Error: ${err}`)
+		})
+		worker.on('exit', (code) => {
+			console.log(`exit code: ${code}`)
+		})
+		worker.on('message', (msg: any) => {
+			// console.log(`World: ${msg}`)
+			msgFunc(msg)
+		})
+		// console.log(`WorldServerSend: ${msg}`)
+		// worker.on('message', (rmsg: any) => this.fromWorker(rmsg))
+		// worker.postMessage(msg)
+		return worker
 	}
 }

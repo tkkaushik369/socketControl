@@ -20,7 +20,7 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 	public entityType: EntityType = EntityType.Train
 
 	public world: WorldBase | null
-	public maxGears: number
+	// public maxGears: number
 	public maxMotorForce: number
 	public maxMotorSpeed: number
 	public spawnPoint: THREE.Object3D | null
@@ -79,7 +79,7 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 		this.ping = 0
 
 		this.world = null
-		this.maxGears = 5
+		// this.maxGears = 5
 		this.spawnPoint = null
 		this.camera = null
 		this.lights = []

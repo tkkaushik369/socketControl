@@ -1,10 +1,11 @@
 import { Prefabs, clear_cache } from './Prefabs'
 import type * as THREE from 'three'
 
-self.onmessage = function (message) {
-	// console.log(message.data)
-	const mtype = message.data.type
-	const msg = message.data.data
+// self.onmessage = function (message) {
+export function processData(message: any, callback: (res: any) => void) {
+	// console.log(message)
+	const mtype = message.type
+	const msg = message.data
 	// if(mtype !== 'clear_cache') console.log(msg.cityId)
 
 	switch (mtype) {
@@ -21,7 +22,8 @@ self.onmessage = function (message) {
 				msg.floors,
 				msg.type
 			)
-			self.postMessage({
+			// self.postMessage({
+			callback({
 				type: 'init',
 				data: {
 					cityId: msg.cityId,
@@ -32,7 +34,7 @@ self.onmessage = function (message) {
 									w: (prefab.geo as THREE.BoxGeometry).parameters.width,
 									h: (prefab.geo as THREE.BoxGeometry).parameters.height,
 									d: (prefab.geo as THREE.BoxGeometry).parameters.depth,
-							  },
+								},
 					mesh_type: prefab.mesh_type,
 					corner: false,
 					size: msg.size,
@@ -53,7 +55,8 @@ self.onmessage = function (message) {
 				msg.corner,
 				msg.floors
 			)
-			self.postMessage({
+			// self.postMessage({
+			callback({
 				type: 'init',
 				data: {
 					cityId: msg.cityId,
@@ -64,7 +67,7 @@ self.onmessage = function (message) {
 									w: (prefab.geo as THREE.BoxGeometry).parameters.width,
 									h: (prefab.geo as THREE.BoxGeometry).parameters.height,
 									d: (prefab.geo as THREE.BoxGeometry).parameters.depth,
-							  },
+								},
 					mesh_type: prefab.mesh_type,
 					corner: true,
 					corner_size: msg.corner,
@@ -80,13 +83,14 @@ self.onmessage = function (message) {
 		case 'Prefab_Front_Geo': {
 			const prefab = Prefabs.Prefab_Front_Geo(
 				msg.simple_geometry,
-					msg.renderBuildingsRoofs,
-					msg.renderBuildingsWindows,
-					msg.size,
-					msg.floors,
-					msg.type
-				)
-			self.postMessage({
+				msg.renderBuildingsRoofs,
+				msg.renderBuildingsWindows,
+				msg.size,
+				msg.floors,
+				msg.type
+			)
+			// self.postMessage({
+			callback({
 				type: 'prefab_geo',
 				data: {
 					cityId: msg.cityId,
@@ -97,7 +101,7 @@ self.onmessage = function (message) {
 									w: (prefab.geo as THREE.BoxGeometry).parameters.width,
 									h: (prefab.geo as THREE.BoxGeometry).parameters.height,
 									d: (prefab.geo as THREE.BoxGeometry).parameters.depth,
-							  },
+								},
 					mesh_type: prefab.mesh_type,
 					corner: false,
 					size: msg.size,
@@ -117,13 +121,14 @@ self.onmessage = function (message) {
 		case 'Prefab_Corner_Geo': {
 			const prefab = Prefabs.Prefab_Corner_Geo(
 				msg.simple_geometry,
-					msg.renderBuildingsRoofs,
-					msg.renderBuildingsWindows,
-					msg.size,
-					msg.corner,
-					msg.floors
-				)
-			self.postMessage({
+				msg.renderBuildingsRoofs,
+				msg.renderBuildingsWindows,
+				msg.size,
+				msg.corner,
+				msg.floors
+			)
+			// self.postMessage({
+			callback({
 				type: 'prefab_geo',
 				data: {
 					cityId: msg.cityId,
@@ -134,7 +139,7 @@ self.onmessage = function (message) {
 									w: (prefab.geo as THREE.BoxGeometry).parameters.width,
 									h: (prefab.geo as THREE.BoxGeometry).parameters.height,
 									d: (prefab.geo as THREE.BoxGeometry).parameters.depth,
-							  },
+								},
 					mesh_type: prefab.mesh_type,
 					corner: true,
 					corner_size: msg.corner,
@@ -154,6 +159,7 @@ self.onmessage = function (message) {
 			break
 		}
 		default: {
+			callback(msg)
 			break
 		}
 	}

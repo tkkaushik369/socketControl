@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"jsx": "react-jsx",
 		"target": "ES6",
+		"rootDir": "../../",
 		"outDir": "../../dist/client",
 		"moduleResolution": "node",
 		"strict": true,
@@ -17,12 +18,16 @@
 			"@World": [
 				"../world/ts/World.ts"
 			],
+			"@WorkerBase": [
+				"../world/ts/WorkerBase.ts"
+			],
 			"@WorldClient": [
 				"../worldclient/ts/World/WorldClient.ts"
 			],
 		},
 		"typeRoots": [
 			"../world/ts/World.ts",
+			"../world/ts/WorkerBase.ts",
 			"../worldclient/ts/World/WorldClient.ts"
 		],
 	},

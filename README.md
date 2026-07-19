@@ -84,6 +84,11 @@ npm run start:server
 
 ### Features
 
+#### 18th July 2026
+- Vechicle Speed caused by gear, Bug Fixed.
+- Workers added to client and server for building generation.
+- Heightmap Chunk loading update (debug only). One Single Heightmap is still faster.
+
 #### 18th June 2026
 - **Grid City** (Procedural Generation) Added to Map List. Prototype at [RiotCity-Alpha](https://github.com/tkkaushik369/RiotCity-Alpha) and [RiotCity](https://github.com/tkkaushik369/RiotCity)
 - **Grid World** (Procedural Generation) Added to Map List in Development. Prototype at [RiotWorld](https://github.com/tkkaushik369/RiotWorld)
@@ -181,11 +186,20 @@ npm run start:server
 -   Audio (Just Implemented as world object at origin for now)
 
 ### Todo
-
+####
+-	[~]Worker for both Client and Server, move Model Generate and Physics to Seperate Worker from Main Thread
+-	Ally Block as single Body Shaped Physics
+-	Infinit World Generation Implementation
+-	[+]Check HeightField Readding issue
+-	Seperate Map Generate from class, load all models from files
+-	Update Debug Logger
+#### Low Priority
 -   Loadout Page
--   Fix Few Syncing issues in client
--   Cannon-es to Rapier.js (Comming soon)
 -   Remove Physics and Debug Related from Client and Show in Server Window
+-	Client Authoritative Multiplayer mode
+-	Editor Feature
+-	SDK Documentation Page
+-	Touchscreen Layout
 
 ## Contributing
 

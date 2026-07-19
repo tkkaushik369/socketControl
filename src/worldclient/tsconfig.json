@@ -4,6 +4,7 @@
 		// "target": "ES2022",
 		"target": "ES6",
 		"module": "commonjs",
+		"rootDir": "../../",
 		"outDir": "../../dist/@WorldClient",
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
@@ -16,12 +17,16 @@
 			"@World": [
 				"../world/ts/World.ts"
 			],
+			"@WorkerBase": [
+				"../world/ts/WorkerBase.ts"
+			],
 			"@WorldClient": [
 				"../worldclient/ts/World/WorldClient.ts"
 			],
 		},
 		"typeRoots": [
 			"../world/ts/World.ts",
+			"../world/ts/WorkerBase.ts",
 			"../worldclient/ts/World/WorldClient.ts"
 		],
 	},
