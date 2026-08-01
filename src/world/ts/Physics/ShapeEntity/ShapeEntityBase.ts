@@ -7,6 +7,7 @@ import { EntityType } from '../../Enums/EntityType'
 import { WorldBase } from '../../WorldBase'
 import { IUpdatable } from '../../Interfaces/IUpdatable'
 import { ICollider } from '../../Interfaces/ICollider'
+import { Portal } from '../../Worldentities/Portal'
 
 export class ShapeEntityBase implements IWorldEntity, INetwork, IUpdatable {
 	public uID: string | null
@@ -18,6 +19,8 @@ export class ShapeEntityBase implements IWorldEntity, INetwork, IUpdatable {
 	public entityType: EntityType = EntityType.Shape
 	public updateOrder: number = 5
 
+	public portal_cooldown: number = 0
+	public portal_previousSides: Map<Portal, number> = new Map<Portal, number>()
 	public hasDependency: boolean
 	public mass: number
 	public obj: THREE.Object3D

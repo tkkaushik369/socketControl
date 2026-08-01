@@ -25,6 +25,7 @@ import { ShapeEntityBase } from './Physics/ShapeEntity/ShapeEntityBase'
 import { LoadingManager } from './Core/LoadingManager'
 import { ICollider } from './Interfaces/ICollider'
 import { Terrain } from './Worldentities/GridCity/Terrain'
+import { Portal } from './Worldentities/Portal'
 
 export abstract class WorldBase {
 	public worldId: string | null = null
@@ -61,6 +62,7 @@ export abstract class WorldBase {
 	public trains: Train[]
 	public waters: Water[]
 	public shapes: ShapeEntityBase[]
+	public portals: Portal[]
 	protected clientEntity: IWorldEntity[] = []
 
 	private terrain: Terrain
@@ -138,6 +140,8 @@ export abstract class WorldBase {
 		this.trains = []
 		this.waters = []
 		this.shapes = []
+
+		this.portals = []
 		this.clientEntity = []
 
 		this.terrain = new Terrain()
@@ -798,10 +802,40 @@ export abstract class WorldBase {
 						this.paths.push(new Path(child))
 					} else if (child.userData.data === 'scenario') {
 						this.scenarios.push(new Scenario(child, this))
+					} else if (child.userData.data === 'portal') {
+						let col: number = ((child as THREE.Mesh).material as THREE.MeshBasicMaterial).color.getHex()
+						child.visible = false
+						const portal = new Portal(col, null)
+						if (child.userData.hasOwnProperty('name')) {
+							portal.name = child.userData.name
+						}
+						if (child.userData.hasOwnProperty('linked_portal')) {
+							portal.link_name = child.userData.linked_portal
+						}
+
+						portal.mesh.position.copy(child.position)
+						portal.mesh.quaternion.copy(child.quaternion)
+						this.addSceneObject(portal.mesh)
+
+						if (this.player !== null) portal.view_camera = this.player.cameraOperator.camera
+						// const helper = new THREE.CameraHelper(portal.camera)
+						// this.addSceneObject(helper)
+						this.portals.push(portal)
 					}
 				}
 			}
 		})
+
+		for (let i = 0; i < this.portals.length; i++) {
+			if (this.portals[i].name === null) continue
+			for (let j = 0; j < this.portals.length; j++) {
+				if (this.portals[j].link_name === null) continue
+				if (this.portals[i].name == this.portals[j].link_name) {
+					// console.log('link', this.portals[i].name, this.portals[j].name)
+					this.portals[i].linkedPortal = this.portals[j]
+				}
+			}
+		}
 
 		this.addSceneObject(gltf.scene)
 		let boundingBox = new THREE.Box3().setFromObject(gltf.scene, true)
@@ -941,6 +975,7 @@ export abstract class WorldBase {
 			this.vehicles = []
 			this.trains = []
 			this.shapes = []
+			this.portals = []
 			this.chunks = []
 			this.clientEntity = []
 			this.waters = []
@@ -972,9 +1007,35 @@ export abstract class WorldBase {
 		let timeStep = unscaledTimeStep * this.settings.Time_Scale
 		timeStep = Math.min(timeStep, 1 / 30)
 
+		{
+			// console.log(this.portals.length)
+			this.portals.forEach((portal) => {
+				// portal.update(timeStep, unscaledTimeStep)
+				portal.updatePortalNormal()
+				this.characters.forEach((char) => {
+					char.portal_cooldown = portal.checkPortal(char.portal_previousSides, char, char.portal_cooldown)
+					if (char.portal_cooldown > 0) char.portal_cooldown -= timeStep
+				})
+				this.vehicles.forEach((vehi) => {
+					vehi.portal_cooldown = portal.checkPortal(vehi.portal_previousSides, vehi, vehi.portal_cooldown)
+					if (vehi.portal_cooldown > 0) vehi.portal_cooldown -= timeStep
+				})
+				this.shapes.forEach((shape) => {
+					if (shape.phys !== null) {
+						shape.portal_cooldown = portal.checkPortal(
+							shape.portal_previousSides,
+							shape,
+							shape.portal_cooldown
+						)
+						if (shape.portal_cooldown > 0) shape.portal_cooldown -= timeStep
+					}
+				})
+				portal.updatePortalCamera(portal.view_camera)
+			})
+		}
+
 		if (this.settings.Debug_Physics_Engine || !this.isClient || (this.isClient && this.worldId === null))
 			this.updatePhysics(timeStep, unscaledTimeStep)
-
 		// Update registred objects
 		if (!this.isClient || (this.isClient && this.worldId == null)) {
 			this.updatables.forEach((entity) => {

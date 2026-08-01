@@ -89,7 +89,7 @@ export class GridWorldScene extends BaseScene {
 
 		const scaling = 6
 		const settings = {
-			preload_buildins: 1,
+			preload_buildins: 0,
 			renderCity: true,
 			seed: 0,
 			// 10

@@ -84,6 +84,9 @@ npm run start:server
 
 ### Features
 
+#### 2th August 2026
+- Portals added. Check Test3 Map.
+
 #### 18th July 2026
 - Vechicle Speed caused by gear, Bug Fixed.
 - Workers added to client and server for building generation.

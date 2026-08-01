@@ -27,6 +27,7 @@ import { ICharacterState } from '../Interfaces/ICharacterState'
 import { ICharacterAI } from '../Interfaces/ICharacterAI'
 import { Player } from '../Core/Player'
 import { UiControlsGroup } from '../Enums/UiControlsGroup'
+import { Portal } from '../Worldentities/Portal'
 
 export class Character extends THREE.Object3D implements IWorldEntity, INetwork, IInputReceiver {
 	public uID: string | null
@@ -37,6 +38,8 @@ export class Character extends THREE.Object3D implements IWorldEntity, INetwork,
 	public updateOrder: number = 1
 	public entityType: EntityType = EntityType.Character
 
+	public portal_cooldown: number = 0
+	public portal_previousSides: Map<Portal, number> = new Map<Portal, number>()
 	public height: number = 0
 	public tiltContainer: THREE.Group
 	public modelContainer: THREE.Group

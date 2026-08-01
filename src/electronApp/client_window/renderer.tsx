@@ -37,7 +37,7 @@ if (rootElement !== null) {
 			<div id="loading-screen">
 				<div id="loading-screen-background"></div>
 				<h1 id="main-title" className="sb-font">
-					Sketchbook 0.4
+					Sketchbook 0.5
 				</h1>
 				<div className="cubeWrap">
 					<div className="cube">

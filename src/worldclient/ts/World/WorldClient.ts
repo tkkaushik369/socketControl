@@ -474,7 +474,9 @@ export class WorldClient extends WorldBase {
 			(xhr) => {
 				if (xhr.lengthComputable) {
 					this.loadingManager.dispatchEvent(
-						new CustomEvent('loading_progress', { detail: { progress: xhr.loaded / xhr.total, name: path } })
+						new CustomEvent('loading_progress', {
+							detail: { progress: xhr.loaded / xhr.total, name: path },
+						})
 					)
 					trackerEntry.progress = xhr.loaded / xhr.total
 				}
@@ -851,6 +853,41 @@ export class WorldClient extends WorldBase {
 		if (this.isOwnRenderer2d) this.labelRenderer.render(this.scene, this.camera)
 	}
 
+	private renderPortals() {
+		for (const portal of this.portals) {
+			if (!portal.linkedPortal) continue
+
+			// Hide portal meshes while rendering the texture
+			const visibleState = this.portals.map((p) => p.mesh.visible)
+
+			this.portals.forEach((p) => {
+				p.mesh.visible = false
+			})
+
+			// Render only if camera sees the front
+			if (portal.isFrontFacing(this.camera)) {
+				this.renderer.setRenderTarget(portal.renderTarget)
+				this.renderer.clear()
+
+				this.renderer.render(this.scene, portal.camera)
+
+				this.renderer.setRenderTarget(null)
+			} else {
+				// blank texture from back side
+				this.renderer.setRenderTarget(portal.renderTarget)
+				this.renderer.clearColor()
+				this.renderer.clear()
+
+				this.renderer.setRenderTarget(null)
+			}
+
+			// restore visibility
+			this.portals.forEach((p, i) => {
+				p.mesh.visible = visibleState[i]
+			})
+		}
+	}
+
 	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
 		super.launchMap(mapID, isCallback, isLaunched)
 		if (!isCallback) this.infoStack.addMessage(`Map Loaded: ${mapID}`)
@@ -921,6 +958,7 @@ export class WorldClient extends WorldBase {
 		this.stats.update()
 		if (this.settings.Debug_Physics) this.cannonDebugRenderer.update()
 
+		this.renderPortals();
 		if (this.settings.PostProcess) this.composer.render()
 		else if (this.isOwnRenderer3d) this.renderer.render(this.scene, this.camera)
 		if (this.isOwnRenderer2d) this.labelRenderer.render(this.scene, this.camera)

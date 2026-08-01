@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { BaseScene } from '../../BaseScene'
 import { Rails } from '../../../Worldentities/FromDungeon/Rails'
 import { City } from '../../../Worldentities/FromDungeon/City'
-import { Utility } from '../../../Core/Utility'
+// import { Utility } from '../../../Core/Utility'
 
 export class Test3Scene extends BaseScene {
 	constructor() {
@@ -370,8 +370,8 @@ export class Test3Scene extends BaseScene {
 
 			// const points3 = [new THREE.Vector3(-14, 0, -36), new THREE.Vector3(-10, 0, -60), new THREE.Vector3(14, 4, -60), new THREE.Vector3(44, 0, -60), new THREE.Vector3(78, 0, -40), new THREE.Vector3(98, 0, 0)];
 
-			points1.forEach((p) => p.multiplyScalar(6/4))
-			points2.forEach((p) => p.multiplyScalar(6/4))
+			points1.forEach((p) => p.multiplyScalar(6 / 4))
+			points2.forEach((p) => p.multiplyScalar(6 / 4))
 
 			// initial build
 			const railWidth: number = 0.16,
@@ -477,6 +477,80 @@ export class Test3Scene extends BaseScene {
 				this.scene.add(grassObj)
 			}
 		}
+		// Portal
+		{
+			const geo = new THREE.PlaneGeometry(2, 2)
+
+			// const portalA = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x00ffff }))
+			// portalA.name = "portalA"
+			// portalA.userData = {
+			// 	"name": "portalA",
+			// 	"data": "portal",
+			// 	"linked_portal": "portalD"
+			// }
+			// portalA.position.set(46, 6, -4)
+			// this.scene.add(portalA)
+
+			// const portalB = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xffff00 }))
+			// portalB.name = "portalB"
+			// portalB.userData = {
+			// 	"name": "portalB",
+			// 	"data": "portal",
+			// 	"linked_portal": "portalC"
+			// }
+			// portalB.position.set(54, 6, -4)
+			// this.scene.add(portalB)
+
+			// const portalC = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xff00ff }))
+			// portalC.name = "portalA"
+			// portalC.userData = {
+			// 	"name": "portalC",
+			// 	"data": "portal",
+			// 	"linked_portal": "portalB"
+			// }
+			// portalC.position.set(54, 6, 4)
+			// portalC.rotateY((-3 * Math.PI) / 4)
+			// this.scene.add(portalC)
+
+			// const portalD = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xccccff }))
+			// portalD.name = "portalD"
+			// portalD.userData = {
+			// 	"name": "portalD",
+			// 	"data": "portal",
+			// 	"linked_portal": "portalA"
+			// }
+			// portalD.position.set(46, 6, 4)
+			// portalD.rotateY((3 * Math.PI) / 4)
+			// this.scene.add(portalD)
+
+			const portal_1 = new THREE.Mesh(
+				new THREE.PlaneGeometry(2, 2),
+				new THREE.MeshBasicMaterial({ color: 0x0000ff })
+			)
+			portal_1.name = 'portal_1'
+			portal_1.userData = {
+				name: 'portal_1',
+				data: 'portal',
+				linked_portal: 'portal_2',
+			}
+			portal_1.position.set(14, 6.1, 10)
+			portal_1.rotateY(Math.PI)
+			this.scene.add(portal_1)
+
+			const portal_2 = new THREE.Mesh(
+				new THREE.PlaneGeometry(2, 2),
+				new THREE.MeshBasicMaterial({ color: 0xff0000 })
+			)
+			portal_2.name = 'portal_2'
+			portal_2.userData = {
+				name: 'portal_2',
+				data: 'portal',
+				linked_portal: 'portal_1',
+			}
+			portal_2.position.set(-38.5, 18.3, -28)
+			// portal_2.rotateY((-3 * Math.PI) / 4)
+			this.scene.add(portal_2)
+		}
 	}
 
 	private MakeScenario() {
@@ -569,20 +643,20 @@ export class Test3Scene extends BaseScene {
 					scenario2.add(spawnVehicle)
 				}
 
-			{
-				let spawnVehicle = new THREE.Object3D()
+				{
+					let spawnVehicle = new THREE.Object3D()
 					spawnVehicle.position.set(2, 6, -6)
-				spawnVehicle.userData = {
-					data: 'spawn',
-					type: 'car',
-					name: 'car_ai',
-					driver: 'ai',
+					spawnVehicle.userData = {
+						data: 'spawn',
+						type: 'car',
+						name: 'car_ai',
+						driver: 'ai',
 						max_gears: 1,
-					first_node: 'node1',
+						first_node: 'node1',
 						path_radius: '3',
+					}
+					scenario2.add(spawnVehicle)
 				}
-				scenario2.add(spawnVehicle)
-			}
 
 				{
 					const force = 1

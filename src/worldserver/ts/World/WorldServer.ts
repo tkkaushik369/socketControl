@@ -20,7 +20,6 @@ export class WorldServer extends WorldBase {
 		this.CreateWorker = this.CreateWorker.bind(this)
 
 		// init
-		this.baseRootPath = baseRootPath
 		this.updatePhysicsCallback = updatePhysicsCallback
 	}
 

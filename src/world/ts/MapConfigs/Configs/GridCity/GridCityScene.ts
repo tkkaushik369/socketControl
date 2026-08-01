@@ -104,7 +104,7 @@ export class GridCityScene extends BaseScene {
 			renderBuildings: true,
 			renderBuildingsRoofs: true,
 			renderBuildingsWindows: true,
-			simple_geometry: false,
+			simple_geometry: true,
 			renderHelper: false,
 			renderDebug: -1,
 			renderDebugsWireframe: false,

@@ -12,7 +12,7 @@ export const config_world_common = {
 		library: {
 			// type: 'umd',
 			type: 'global',
-			name: '@[name]',
+			name: '@World',
 		},
 		filename: '[name].js',
 		path: path.resolve(__dirname, '../dist/@World'),

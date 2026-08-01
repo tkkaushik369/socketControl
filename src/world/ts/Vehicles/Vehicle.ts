@@ -15,6 +15,7 @@ import { IControllable } from '../Interfaces/IControllable'
 import { INetwork } from '../Interfaces/INetwork'
 import { MessageTypes } from '../Enums/MessageTypes'
 import { IInputReceiver } from '../Interfaces/IInputReceiver'
+import { Portal } from '../Worldentities/Portal'
 
 export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, IInputReceiver, IControllable, INetwork {
 	public uID: string | null
@@ -25,6 +26,8 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 	public updateOrder: number = 2
 	public abstract entityType: EntityType
 
+	public portal_cooldown: number = 0
+	public portal_previousSides: Map<Portal, number> = new Map<Portal, number>()
 	private readonly handlingSetup: any = {}
 	public controllingCharacter: Character | null
 	public actions: { [action: string]: KeyBinding } = {}
