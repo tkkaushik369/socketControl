@@ -544,7 +544,7 @@ export class WorldClient extends WorldBase {
 
 	public CreateWorker(msgFunc: Function) {
 		// super.sendWorker(msg)
-		const worker = new Worker('@WorldClient/WorkerClient.js', {
+		const worker = new Worker('../@WorldClient/WorkerClient.js', {
 			/*  type: "module", */
 		})
 		worker.onerror = (err) => {
