@@ -5,9 +5,9 @@ name: Node.js socketControl
 
 on:
   push:
-    branches: ['main-v-0.4']
+    branches: ['main-v-0.5']
   pull_request:
-    branches: ['main-v-0.4']
+    branches: ['main-v-0.5']
 
 jobs:
   build:
