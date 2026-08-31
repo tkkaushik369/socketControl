@@ -400,7 +400,7 @@ export class WorldClient extends WorldBase {
 		// Maps
 		Object.keys(this.maps).forEach((key) => {
 			this.mapGUIFolder.pages[0].addButton({ title: key }).on('click', (ev: any) => {
-				this.maps[key]()
+				this.maps[key].map_func()
 			})
 		})
 
@@ -498,8 +498,8 @@ export class WorldClient extends WorldBase {
 		return resPath
 	}
 
-	public loadScene(gltf: any, isLaunmch: boolean = true) {
-		super.loadScene(gltf, isLaunmch)
+	public loadScene(gltf: any, sub_name: string, /* isLaunmch: boolean = true */) {
+		super.loadScene(gltf, sub_name)
 		gltf.scene.traverse((child: any) => {
 			if (child.hasOwnProperty('userData')) {
 				if (child.type === 'Mesh') {
@@ -522,7 +522,14 @@ export class WorldClient extends WorldBase {
 								instances = child.material.userData.instances
 							}
 						}
-						let grass = new Grass(child, this, instances)
+						const position: THREE.Vector3 = child.position.clone()
+						position.x += gltf.scene.position.x
+						position.y += gltf.scene.position.y
+						position.z += gltf.scene.position.z
+						let grass = new Grass({
+							scale: child.scale.clone(),
+							position: position,
+						}, this, instances)
 						this.add(grass)
 						// this.grasses.push(grass)
 						this.clientEntity.push(grass)
@@ -888,7 +895,7 @@ export class WorldClient extends WorldBase {
 		}
 	}
 
-	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
+	public async launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
 		super.launchMap(mapID, isCallback, isLaunched)
 		if (!isCallback) this.infoStack.addMessage(`Map Loaded: ${mapID}`)
 		// this.oceans = []
@@ -958,7 +965,7 @@ export class WorldClient extends WorldBase {
 		this.stats.update()
 		if (this.settings.Debug_Physics) this.cannonDebugRenderer.update()
 
-		this.renderPortals();
+		this.renderPortals()
 		if (this.settings.PostProcess) this.composer.render()
 		else if (this.isOwnRenderer3d) this.renderer.render(this.scene, this.camera)
 		if (this.isOwnRenderer2d) this.labelRenderer.render(this.scene, this.camera)

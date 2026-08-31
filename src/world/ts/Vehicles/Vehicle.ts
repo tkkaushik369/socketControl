@@ -167,7 +167,8 @@ export abstract class Vehicle extends THREE.Object3D implements IWorldEntity, II
 
 		for (let i = 0; i < this.rayCastVehicle.wheelInfos.length; i++) {
 			this.rayCastVehicle.updateWheelTransform(i)
-			let transform = (this.rayCastVehicle.wheelInfos[i] as CANNON.WheelInfo).worldTransform
+			// let transform_1 = (this.rayCastVehicle.wheelInfos[i] as CANNON.WheelInfo).worldTransform
+			let transform = this.rayCastVehicle.getWheelTransformWorld(i)
 
 			let wheelObject = this.wheels[i].wheelObject
 			wheelObject.position.copy(

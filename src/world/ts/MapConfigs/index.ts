@@ -1,3 +1,5 @@
+import * as THREE from 'three'
+
 // import test from '../../../client/models/MapConfigs/test.json'
 // import test2 from '../../../client/models/MapConfigs/test2.json'
 // import test3 from '../../../client/models/MapConfigs/test3.json'
@@ -28,14 +30,54 @@ export type MapConfigFOType = {
 	subtype: string | null
 }
 
+export type MapInstanceConfig = {
+	isMain: boolean
+	subName: string
+	mapCaller: string | BaseScene
+	position: { x: number; y: number; z: number }
+	rotation: { x: number; y: number; z: number }
+	portal: {
+		color: number
+		name: string
+		link_name: string
+		position: { x: number; y: number; z: number }
+		rotation: { x: number; y: number; z: number }
+	}[]
+}
+
 export type MapConfigType = {
 	name: string
 	isCallback: boolean
 	isLaunched: boolean
-	mapCaller: string | BaseScene
+	subMaps: MapInstanceConfig[]
 	characters: MapConfigFOType[]
 	vehicles: MapConfigFOType[]
 	trains: MapConfigFOType[]
+}
+
+function createMapCaller(world: WorldBase, caller: string): any {
+	switch (caller.replace('class:', '')) {
+		case 'Example':
+			return new Example()
+
+		case 'TestScene':
+			return new TestScene()
+
+		case 'Test2Scene':
+			return new Test2Scene()
+
+		case 'Test3Scene':
+			return new Test3Scene()
+
+		case 'GridCityScene':
+			return new GridCityScene(world)
+
+		case 'GridWorldScene':
+			return new GridWorldScene(world)
+
+		default:
+			return new TestScene()
+	}
 }
 
 function MapConfigurator(world: WorldBase, conf: { [id: string]: any }): MapConfigType {
@@ -43,44 +85,80 @@ function MapConfigurator(world: WorldBase, conf: { [id: string]: any }): MapConf
 		name: conf.name,
 		isCallback: Boolean(conf.isCallback),
 		isLaunched: Boolean(conf.isLaunched),
-		mapCaller: '',
+		subMaps: [],
 		characters: [],
 		vehicles: [],
 		trains: [],
 	}
-	if (typeof conf.mapCaller === 'string' && conf.mapCaller.includes('class:')) {
-		let mapCaller = conf.mapCaller.replace('class:', '')
-		switch (mapCaller) {
-			case 'Example': {
-				config.mapCaller = new Example()
-				break
-			}
-			case 'TestScene': {
-				config.mapCaller = new TestScene()
-				break
-			}
-			case 'Test2Scene': {
-				config.mapCaller = new Test2Scene()
-				break
-			}
-			case 'Test3Scene': {
-				config.mapCaller = new Test3Scene()
-				break
-			}
-			case 'GridCityScene': {
-				config.mapCaller = new GridCityScene(world)
-				break
-			}
-			case 'GridWorldScene': {
-				config.mapCaller = new GridWorldScene(world)
-				break
-			}
-			default: {
-				config.mapCaller = new TestScene()
-				break
+
+	for (let i = 0; i < conf.subMaps.length; i++) {
+		let mapInstConf: MapInstanceConfig = {
+			isMain: Boolean(conf.subMaps[i].isMain),
+			subName: conf.subMaps[i].subName,
+			mapCaller: conf.subMaps[i].mapCaller,
+			position: { x: conf.subMaps[i].position.x, y: conf.subMaps[i].position.y, z: conf.subMaps[i].position.z },
+			rotation: { x: conf.subMaps[i].rotation.x, y: conf.subMaps[i].rotation.y, z: conf.subMaps[i].rotation.z },
+			portal: [],
+		}
+
+		if (typeof mapInstConf.mapCaller === 'string' && mapInstConf.mapCaller.includes('class:')) {
+			let mapCaller = mapInstConf.mapCaller.replace('class:', '')
+			switch (mapCaller) {
+				case 'Example': {
+					mapInstConf.mapCaller = new Example()
+					break
+				}
+				case 'TestScene': {
+					mapInstConf.mapCaller = new TestScene()
+					break
+				}
+				case 'Test2Scene': {
+					mapInstConf.mapCaller = new Test2Scene()
+					break
+				}
+				case 'Test3Scene': {
+					mapInstConf.mapCaller = new Test3Scene()
+					break
+				}
+				case 'GridCityScene': {
+					mapInstConf.mapCaller = new GridCityScene(world)
+					break
+				}
+				case 'GridWorldScene': {
+					mapInstConf.mapCaller = new GridWorldScene(world)
+					break
+				}
+				default: {
+					mapInstConf.mapCaller = new TestScene()
+					break
+				}
 			}
 		}
-	} else config.mapCaller = conf.mapCaller
+
+		mapInstConf.position = { x: mapInstConf.position.x, y: mapInstConf.position.y, z: mapInstConf.position.z }
+		mapInstConf.rotation = { x: mapInstConf.rotation.x, y: mapInstConf.rotation.y, z: mapInstConf.rotation.z }
+
+		conf.subMaps[i].portal.forEach((portal: any) => {
+			const portal_data = {
+				color: portal.color,
+				name: portal.name,
+				link_name: portal.link_name,
+				position: {
+					x: portal.position.x,
+					y: portal.position.y,
+					z: portal.position.z,
+				},
+				rotation: {
+					x: portal.rotation.x,
+					y: portal.rotation.y,
+					z: portal.rotation.z,
+				},
+			}
+			mapInstConf.portal.push(portal_data)
+		})
+
+		config.subMaps.push(mapInstConf)
+	}
 
 	conf.characters.forEach((character: any) => {
 		let charConf: MapConfigFOType = {
@@ -110,7 +188,7 @@ function MapConfigurator(world: WorldBase, conf: { [id: string]: any }): MapConf
 		}
 		if (typeof vehicles.objCaller === 'string' && vehicles.objCaller.includes('class:')) {
 			let objCaller = vehicles.objCaller.replace('class:', '')
-			switch (objCaller) {
+			/* switch (objCaller) {
 				case 'Example': {
 					vehiConf.objCaller = new Example()
 					break
@@ -139,7 +217,8 @@ function MapConfigurator(world: WorldBase, conf: { [id: string]: any }): MapConf
 					vehiConf.objCaller = new Example()
 					break
 				}
-			}
+			} */
+			vehiConf.objCaller = createMapCaller(world, objCaller)
 		} else vehiConf.objCaller = vehicles.objCaller
 		vehiConf.type = vehicles.type
 		vehiConf.subtype = vehicles.subtype
@@ -154,7 +233,7 @@ function MapConfigurator(world: WorldBase, conf: { [id: string]: any }): MapConf
 		}
 		if (typeof trains.objCaller === 'string' && trains.objCaller.includes('class:')) {
 			let objCaller = trains.objCaller.replace('class:', '')
-			switch (objCaller) {
+			/* switch (objCaller) {
 				case 'Example': {
 					trainConf.objCaller = new Example()
 					break
@@ -183,7 +262,8 @@ function MapConfigurator(world: WorldBase, conf: { [id: string]: any }): MapConf
 					trainConf.objCaller = new Example()
 					break
 				}
-			}
+			} */
+			trainConf.objCaller = createMapCaller(world, objCaller)
 		} else trainConf.objCaller = trains.objCaller
 		trainConf.type = trains.type
 		trainConf.subtype = trains.subtype
@@ -192,7 +272,7 @@ function MapConfigurator(world: WorldBase, conf: { [id: string]: any }): MapConf
 	return config
 }
 
-export function getMapConfig(world: WorldBase, maps: MapConfigType[]): { [id: string]: MapConfigType } {
+export function getMapConfig(world: WorldBase, subMaps: MapConfigType[]): { [id: string]: MapConfigType } {
 	var MapConfig: { [id: string]: MapConfigType } = {}
 
 	// const allConfigs = [test2, test3, example, sketchbookv3, sketchbookv4, test]
@@ -235,8 +315,8 @@ export function getMapConfig(world: WorldBase, maps: MapConfigType[]): { [id: st
 		// MapConfig[key.name] = key
 	}) */
 
-	for (let i = 0; i < maps.length; i++) {
-		const config = MapConfigurator(world, maps[i])
+	for (let i = 0; i < subMaps.length; i++) {
+		const config = MapConfigurator(world, subMaps[i])
 		MapConfig[config.name] = config
 		// MapConfig[key.name] = key
 	}

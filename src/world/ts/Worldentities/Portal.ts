@@ -47,16 +47,16 @@ export class Portal /* implements IWorldEntity */ {
 		// this.renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight)
 		this.renderTarget = new THREE.WebGLRenderTarget(512, 512)
 
-		this.camera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 1000)
+		this.camera = new THREE.PerspectiveCamera(75, 1.0, 0.1, 10)
 		this.view_camera = null
 
 		const shader_material = new THREE.ShaderMaterial({
-					uniforms: {
-						map: { value: this.renderTarget.texture },
-						color: { value: new THREE.Color(col) },
-					},
-					side: THREE.DoubleSide,
-					vertexShader: `
+			uniforms: {
+				map: { value: this.renderTarget.texture },
+				color: { value: new THREE.Color(col) },
+			},
+			side: THREE.DoubleSide,
+			vertexShader: `
 						varying vec2 vUv;
 
 						void main() {
@@ -64,7 +64,7 @@ export class Portal /* implements IWorldEntity */ {
 							gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 						}
 					`,
-					fragmentShader: `
+			fragmentShader: `
 						uniform sampler2D map;
 						uniform vec3 color;
 
@@ -78,7 +78,7 @@ export class Portal /* implements IWorldEntity */ {
 							}
 						}
 					`,
-				})
+		})
 
 		if (mesh === null) {
 			this.mesh = new THREE.Mesh(
@@ -240,7 +240,7 @@ export class Portal /* implements IWorldEntity */ {
 		return cooldown
 	}
 
-	private teleport(from: Portal, to: Portal, entity: Character | Vehicle | ShapeEntityBase) {
+	private teleport_v1(from: Portal, to: Portal, entity: Character | Vehicle | ShapeEntityBase) {
 		// console.log(from.name, '->', to.name)
 		from.mesh.updateMatrixWorld(true)
 		to.mesh.updateMatrixWorld(true)
@@ -327,6 +327,371 @@ export class Portal /* implements IWorldEntity */ {
 		bodyQuat.premultiply(rot)
 
 		body.quaternion.set(bodyQuat.x, bodyQuat.y, bodyQuat.z, bodyQuat.w)
+
+		body.wakeUp()
+	}
+
+	private teleport_v2(from: Portal, to: Portal, entity: Character | Vehicle | ShapeEntityBase) {
+		from.mesh.updateMatrixWorld(true)
+		to.mesh.updateMatrixWorld(true)
+
+		let body: CANNON.Body | null = null
+
+		if (entity instanceof Character) {
+			body = entity.characterCapsule.body
+		} else if (entity instanceof Vehicle) {
+			body = entity.collision
+		} else if (entity instanceof ShapeEntityBase && entity.phys !== null) {
+			body = entity.phys.body
+		}
+
+		if (!body) return
+
+		// --------------------------------------------------
+		// Portal normals in WORLD space
+		// --------------------------------------------------
+
+		const fromNormal = from.normal.clone().normalize()
+		const toNormal = to.normal.clone().normalize()
+
+		// --------------------------------------------------
+		// Rotation from entry normal -> exit normal
+		// --------------------------------------------------
+
+		const normalRotation = new THREE.Quaternion().setFromUnitVectors(fromNormal, toNormal)
+
+		// We need to face OUT of the exit portal.
+		// Rotate 180 degrees around the EXIT normal.
+		const flip = new THREE.Quaternion().setFromAxisAngle(toNormal, Math.PI)
+
+		// Final rotation applied to entity
+		const teleportRotation = flip.multiply(normalRotation)
+
+		if (entity instanceof Character && entity.player?.cameraOperator) {
+			// const theta = THREE.MathUtils.degToRad(entity.player.cameraOperator.theta)
+
+			// const forward = new THREE.Vector3(Math.sin(theta), 0, Math.cos(theta))
+			const forward = toNormal.clone()
+
+			forward.applyQuaternion(teleportRotation)
+
+			let newTheta = THREE.MathUtils.radToDeg(Math.atan2(forward.x, forward.z))
+
+			newTheta %= 360
+
+			if (newTheta < 0) {
+				newTheta += 360
+			}
+
+			entity.player.cameraOperator.theta = newTheta
+		}
+
+		// --------------------------------------------------
+		// Position
+		// --------------------------------------------------
+
+		const position = new THREE.Vector3(body.position.x, body.position.y, body.position.z)
+
+		// Position relative to entry portal
+		const fromInverse = new THREE.Matrix4().copy(from.mesh.matrixWorld).invert()
+
+		position.applyMatrix4(fromInverse)
+
+		// Convert relative position to exit portal
+		position.applyMatrix4(to.mesh.matrixWorld)
+
+		// Push entity outside exit portal
+		const radius = 1.0
+
+		position.addScaledVector(toNormal, radius + 0.02)
+
+		body.position.set(position.x, position.y, position.z)
+
+		// --------------------------------------------------
+		// Velocity
+		// --------------------------------------------------
+
+		const velocity = new THREE.Vector3(body.velocity.x, body.velocity.y, body.velocity.z)
+
+		velocity.applyQuaternion(teleportRotation)
+
+		body.velocity.set(velocity.x, velocity.y, velocity.z)
+
+		// --------------------------------------------------
+		// Angular velocity
+		// --------------------------------------------------
+
+		const angularVelocity = new THREE.Vector3(
+			body.angularVelocity.x,
+			body.angularVelocity.y,
+			body.angularVelocity.z
+		)
+
+		angularVelocity.applyQuaternion(teleportRotation)
+
+		body.angularVelocity.set(angularVelocity.x, angularVelocity.y, angularVelocity.z)
+
+		// --------------------------------------------------
+		// Orientation
+		// --------------------------------------------------
+
+		const bodyQuat = new THREE.Quaternion(
+			body.quaternion.x,
+			body.quaternion.y,
+			body.quaternion.z,
+			body.quaternion.w
+		)
+
+		bodyQuat.premultiply(teleportRotation)
+
+		body.quaternion.set(bodyQuat.x, bodyQuat.y, bodyQuat.z, bodyQuat.w)
+
+		body.wakeUp()
+	}
+
+	private teleport_v3(from: Portal, to: Portal, entity: Character | Vehicle | ShapeEntityBase) {
+		from.mesh.updateMatrixWorld(true)
+		to.mesh.updateMatrixWorld(true)
+
+		let body: CANNON.Body | null = null
+
+		if (entity instanceof Character) {
+			body = entity.characterCapsule.body
+		} else if (entity instanceof Vehicle) {
+			body = entity.collision
+		} else if (entity instanceof ShapeEntityBase && entity.phys !== null) {
+			body = entity.phys.body
+		}
+
+		if (!body) return
+
+		// --------------------------------------------------
+		// Portal transform
+		// --------------------------------------------------
+
+		const fromMatrix = from.mesh.matrixWorld
+		const toMatrix = to.mesh.matrixWorld
+
+		const fromInverse = new THREE.Matrix4().copy(fromMatrix).invert()
+
+		// 180° rotation around the portal's local Y axis.
+		//
+		// IMPORTANT:
+		// This assumes the portal's local +Z is its normal.
+		// If your portal normal is local +Y or another axis,
+		// change this axis accordingly.
+		const portalFlip = new THREE.Matrix4().makeRotationY(Math.PI)
+
+		const teleportMatrix = new THREE.Matrix4().multiply(toMatrix).multiply(portalFlip).multiply(fromInverse)
+
+		// --------------------------------------------------
+		// Position
+		// --------------------------------------------------
+
+		const position = new THREE.Vector3(body.position.x, body.position.y, body.position.z)
+
+		position.applyMatrix4(teleportMatrix)
+
+		// Exit normal in world space
+		const toNormal = from.normal.clone().normalize()
+
+		// If `to.normal` is already guaranteed to be WORLD space:
+		toNormal.copy(to.normal).normalize()
+
+		position.addScaledVector(toNormal, 1.02)
+
+		body.position.set(position.x, position.y, position.z)
+
+		// --------------------------------------------------
+		// Rotation
+		// --------------------------------------------------
+
+		const teleportRotation = new THREE.Quaternion().setFromRotationMatrix(teleportMatrix)
+
+		const bodyQuat = new THREE.Quaternion(
+			body.quaternion.x,
+			body.quaternion.y,
+			body.quaternion.z,
+			body.quaternion.w
+		)
+
+		bodyQuat.premultiply(teleportRotation)
+
+		body.quaternion.set(bodyQuat.x, bodyQuat.y, bodyQuat.z, bodyQuat.w)
+
+		// --------------------------------------------------
+		// Velocity
+		// --------------------------------------------------
+
+		const velocity = new THREE.Vector3(body.velocity.x, body.velocity.y, body.velocity.z)
+
+		velocity.applyQuaternion(teleportRotation)
+
+		body.velocity.set(velocity.x, velocity.y, velocity.z)
+
+		// --------------------------------------------------
+		// Angular velocity
+		// --------------------------------------------------
+
+		const angularVelocity = new THREE.Vector3(
+			body.angularVelocity.x,
+			body.angularVelocity.y,
+			body.angularVelocity.z
+		)
+
+		angularVelocity.applyQuaternion(teleportRotation)
+
+		body.angularVelocity.set(angularVelocity.x, angularVelocity.y, angularVelocity.z)
+
+		// --------------------------------------------------
+		// Camera
+		// --------------------------------------------------
+
+		if (entity instanceof Character && entity.player?.cameraOperator) {
+			const forward = new THREE.Vector3(0, 0, -1)
+			forward.applyQuaternion(bodyQuat)
+
+			const theta = THREE.MathUtils.radToDeg(Math.atan2(forward.x, forward.z))
+
+			entity.player.cameraOperator.theta = ((theta % 360) + 360) % 360
+		}
+
+		body.wakeUp()
+	}
+
+	private teleport(from: Portal, to: Portal, entity: Character | Vehicle | ShapeEntityBase) {
+		from.mesh.updateMatrixWorld(true)
+		to.mesh.updateMatrixWorld(true)
+
+		let body: CANNON.Body | null = null
+
+		if (entity instanceof Character) {
+			body = entity.characterCapsule.body
+		} else if (entity instanceof Vehicle) {
+			body = entity.collision
+		} else if (entity instanceof ShapeEntityBase && entity.phys !== null) {
+			body = entity.phys.body
+		}
+
+		if (!body) return
+
+		// --------------------------------------------------
+		// Portal matrices
+		// --------------------------------------------------
+
+		const fromMatrix = from.mesh.matrixWorld
+		const toMatrix = to.mesh.matrixWorld
+
+		const fromInverse = fromMatrix.clone().invert()
+
+		// Portal local space:
+		//
+		// X = right
+		// Y = up
+		// Z = portal normal
+		//
+		// When going through a portal, we want to turn
+		// around 180 degrees inside the portal plane.
+		let flip = new THREE.Matrix4().makeRotationY(Math.PI)
+
+		// Complete portal -> portal transformation
+		const teleportMatrix = new THREE.Matrix4().multiply(toMatrix).multiply(flip).multiply(fromInverse)
+
+		// --------------------------------------------------
+		// Rotation
+		// --------------------------------------------------
+
+		const teleportRotation = new THREE.Quaternion().setFromRotationMatrix(teleportMatrix)
+
+		// --------------------------------------------------
+		// Position
+		// --------------------------------------------------
+
+		const position = new THREE.Vector3(body.position.x, body.position.y, body.position.z)
+
+		position.applyMatrix4(teleportMatrix)
+
+		// Exit portal normal.
+		// Assuming local +Z is the portal normal.
+		const toNormal = new THREE.Vector3(0, 0, 1)
+			.applyQuaternion(new THREE.Quaternion().setFromRotationMatrix(toMatrix))
+			.normalize()
+
+		// Move the body slightly outside the exit portal.
+		position.addScaledVector(toNormal, 1.02)
+
+		body.position.set(position.x, position.y, position.z)
+
+		// --------------------------------------------------
+		// Velocity
+		// --------------------------------------------------
+
+		const velocity = new THREE.Vector3(body.velocity.x, body.velocity.y, body.velocity.z)
+
+		velocity.applyQuaternion(teleportRotation)
+
+		body.velocity.set(velocity.x, velocity.y, velocity.z)
+
+		// --------------------------------------------------
+		// Angular velocity
+		// --------------------------------------------------
+
+		const angularVelocity = new THREE.Vector3(
+			body.angularVelocity.x,
+			body.angularVelocity.y,
+			body.angularVelocity.z
+		)
+
+		angularVelocity.applyQuaternion(teleportRotation)
+
+		body.angularVelocity.set(angularVelocity.x, angularVelocity.y, angularVelocity.z)
+
+		// --------------------------------------------------
+		// Body orientation
+		// --------------------------------------------------
+
+		let bodyQuat = new THREE.Quaternion(body.quaternion.x, body.quaternion.y, body.quaternion.z, body.quaternion.w)
+
+		bodyQuat.premultiply(teleportRotation)
+		body.quaternion.set(bodyQuat.x, bodyQuat.y, bodyQuat.z, bodyQuat.w)
+
+		// --------------------------------------------------
+		// Character orientation
+		// --------------------------------------------------
+
+		const CharacterCameraUpdate = (char: Character, model_update: boolean = true) => {
+			// const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(bodyQuat).setY(0)
+			const forward = toNormal
+
+			if (forward.lengthSq() > 0.000001) {
+				forward.normalize()
+
+				if (model_update) {
+					char.orientation.copy(forward)
+					char.orientationTarget.copy(forward)
+					char.rotationSimulator.init()
+					char.rotateModel()
+				}
+
+				if (char.player && char.player.cameraOperator) {
+					const theta = THREE.MathUtils.radToDeg(Math.atan2(forward.x, forward.z))
+
+					// console.log('theta', theta)
+					// console.log('br', char.player.cameraOperator.theta)
+					char.player.cameraOperator.theta = ((theta % 360) + 360 + 180) % 360
+					// char.player.cameraOperator.theta = ((((forward.y * 180) / Math.PI) % 360) + 360) % 360
+					// console.log('fr', char.player.cameraOperator.theta)
+				}
+			}
+		}
+
+		if (entity instanceof Character) {
+			CharacterCameraUpdate(entity)
+		} else if (entity instanceof Vehicle) {
+			if (entity.controllingCharacter !== null) {
+				CharacterCameraUpdate(entity.controllingCharacter, false)
+			}
+		}
 
 		body.wakeUp()
 	}

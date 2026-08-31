@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
+import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js'
 import { Player, PlayerAttachmentType } from '@World'
 
 export class PlayerClient extends Player {
@@ -17,7 +17,7 @@ export class PlayerClient extends Player {
 
 	public setUID(uID: string) {
 		super.setUID(uID)
-
+		if (this.world === null) return
 		// const lod = new THREE.LOD();
 
 		{

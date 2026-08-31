@@ -350,7 +350,7 @@ export class Test3Scene extends BaseScene {
 			})
 		}
 		// rail track
-		{
+		if (false) {
 			const points1 = [
 				new THREE.Vector3(-14, 0, -56),
 				new THREE.Vector3(-12, 0, 5),
@@ -658,12 +658,12 @@ export class Test3Scene extends BaseScene {
 					scenario2.add(spawnVehicle)
 				}
 
-				{
+				if (false) {
 					const force = 1
 					const speed = 20
 					{
 						let spawnVehicle = new THREE.Object3D()
-						spawnVehicle.position.set(5.6, 7.65, 128)
+						spawnVehicle.position.set(5.6, 5.8, 128)
 						spawnVehicle.userData = {
 							data: 'spawn',
 							type: 'train',

@@ -4,7 +4,16 @@ import { GridWorldScene } from './GridWorldScene'
 
 export const GridWorldConfig: MapConfigType = {
 	name: 'Grid World',
-	mapCaller: new GridWorldScene(),
+	subMaps: [
+		{
+			isMain: true,
+			subName: 'Grid World',
+			mapCaller: new GridWorldScene(),
+			position: { x: 0, y: 0, z: 0 },
+			rotation: { x: 0, y: 0, z: 0 },
+			portal: [],
+		},
+	],
 	isCallback: true,
 	isLaunched: true,
 	characters: [],
@@ -29,7 +38,6 @@ const car_test: MapConfigFOType = {
 	type: 'car',
 	subtype: 'car_test',
 }
-
 
 GridWorldConfig.characters.push(character)
 GridWorldConfig.vehicles.push(car)

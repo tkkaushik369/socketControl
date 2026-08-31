@@ -4,7 +4,16 @@ import { GridCityScene } from './GridCityScene'
 
 export const GridCityConfig: MapConfigType = {
 	name: 'Grid City',
-	mapCaller: new GridCityScene(),
+	subMaps: [
+		{
+			isMain: true,
+			subName: 'Grid City',
+			mapCaller: new GridCityScene(),
+			position: { x: 0, y: 0, z: 0 },
+			rotation: { x: 0, y: 0, z: 0 },
+			portal: [],
+		},
+	],
 	isCallback: true,
 	isLaunched: true,
 	characters: [],
@@ -29,7 +38,6 @@ const car_test: MapConfigFOType = {
 	type: 'car',
 	subtype: 'car_test',
 }
-
 
 GridCityConfig.characters.push(character)
 GridCityConfig.vehicles.push(car)

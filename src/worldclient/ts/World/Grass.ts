@@ -4,6 +4,7 @@ import { WorldClient } from '@WorldClient'
 import { IWorldEntity, EntityType } from '@World'
 import { Noise } from '../Utils/Perlin'
 import { GrassShader } from './GrassShader'
+import { Utility } from '@World'
 
 export class Grass implements IWorldEntity {
 	public updateOrder: number = 10
@@ -15,12 +16,22 @@ export class Grass implements IWorldEntity {
 	private world: WorldClient
 	private meshes: THREE.Object3D[] = []
 
-	constructor(transform: any, world: WorldClient, instances: number = 300000) {
+	public options: any
+
+	constructor(options: any, world: WorldClient, instances: number = 300000) {
 		// bind functions
 		this.multiplyQuaternions = this.multiplyQuaternions.bind(this)
 		this.addToWorld = this.addToWorld.bind(this)
 		this.removeFromWorld = this.removeFromWorld.bind(this)
 		this.update = this.update.bind(this)
+
+		let defaults = {
+			mass: 0,
+			position: new THREE.Vector3(),
+			size: new THREE.Vector3(1, 1, 1),
+			friction: 0.3,
+		}
+		this.options = Utility.setDefaults(options, defaults)
 
 		// init
 		this.world = world
@@ -46,7 +57,7 @@ export class Grass implements IWorldEntity {
 		noise.seed(Math.random())
 
 		// The ground
-		let ground_geometry = new THREE.PlaneGeometry(transform.scale.x * 2, transform.scale.z * 2)
+		let ground_geometry = new THREE.PlaneGeometry(this.options.scale.x * 2, this.options.scale.z * 2)
 		this.groundMaterial = new THREE.MeshBasicMaterial({ color: 0x002300 })
 
 		// Define base geometry that will be instanced. We use a plane for an individual blade of grass
@@ -81,8 +92,8 @@ export class Grass implements IWorldEntity {
 		// For each instance of the grass blade
 		for (let i = 0; i < instances; i++) {
 			// Offset of the roots
-			x = Math.random() * transform.scale.x * 2 - transform.scale.x
-			z = Math.random() * transform.scale.z * 2 - transform.scale.z
+			x = Math.random() * this.options.scale.x * 2 - this.options.scale.x
+			z = Math.random() * this.options.scale.z * 2 - this.options.scale.z
 			y = 0
 			offsets.push(x, y, z)
 
@@ -178,7 +189,7 @@ export class Grass implements IWorldEntity {
 		grassLod.addLevel(grassMesh, 0)
 		grassLod.addLevel(new THREE.Mesh(), 30)
 
-		grassLod.position.copy(transform.position)
+		grassLod.position.copy(this.options.position)
 
 		this.meshes.push(grassLod)
 	}

@@ -54,7 +54,7 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 
 	constructor(
 		gltf: any,
-		mass: number = 50,
+		mass: number = 10,
 		wheelMass = 2,
 		widthOff: number = 0.8,
 		heightOff: number = 0.2,
@@ -123,6 +123,7 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 				// FL
 				const wheelFLShape = new CANNON.Cylinder(radius1, radius2, height1, segments)
 				const wheelFLShape1 = new CANNON.Cylinder(radius3, radius4, height2, segments)
+				// const wheelFLShape2 = new CANNON.Cylinder(radius2, radius1, height1, segments)
 				this.wheelFL = new CANNON.Body({ mass: wheelMass, material: wheelMaterial })
 				this.wheelFL.addShape(
 					wheelFLShape,
@@ -134,6 +135,11 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 					new CANNON.Vec3(-0.2, 0, 0),
 					new CANNON.Quaternion(0, 0, 0, 0).setFromEuler(rot.x, rot.y, rot.z)
 				)
+				// this.wheelFL.addShape(
+				// 	wheelFLShape2,
+				// 	new CANNON.Vec3(-0.4, 0, 0),
+				// 	new CANNON.Quaternion(0, 0, 0, 0).setFromEuler(rot.x, rot.y, rot.z)
+				// )
 
 				this.constraintFL = new CANNON.HingeConstraint(this.collision, this.wheelFL, {
 					pivotA: new CANNON.Vec3(-this.widthOff, -this.heightOff, this.lengthOff),
@@ -146,6 +152,7 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 				// FR
 				const wheelFRShape = new CANNON.Cylinder(radius1, radius2, height1, segments)
 				const wheelFRShape1 = new CANNON.Cylinder(radius3, radius4, height2, segments)
+				// const wheelFRShape2 = new CANNON.Cylinder(radius2, radius1, height1, segments)
 				this.wheelFR = new CANNON.Body({ mass: wheelMass, material: wheelMaterial })
 				this.wheelFR.addShape(
 					wheelFRShape,
@@ -157,6 +164,11 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 					new CANNON.Vec3(-0.2, 0, 0),
 					new CANNON.Quaternion(0, 0, 0, 0).setFromEuler(rot.x, rot.y, rot.z)
 				)
+				// this.wheelFR.addShape(
+				// 	wheelFRShape2,
+				// 	new CANNON.Vec3(-0.4, 0, 0),
+				// 	new CANNON.Quaternion(0, 0, 0, 0).setFromEuler(rot.x, rot.y, rot.z)
+				// )
 
 				this.constraintFR = new CANNON.HingeConstraint(this.collision, this.wheelFR, {
 					pivotA: new CANNON.Vec3(-this.widthOff, -this.heightOff, -this.lengthOff),
@@ -169,6 +181,7 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 				// BL
 				const wheelBLShape = new CANNON.Cylinder(radius2, radius1, height1, segments)
 				const wheelBLShape1 = new CANNON.Cylinder(radius4, radius3, height2, segments)
+				// const wheelBLShape2 = new CANNON.Cylinder(radius1, radius2, height1, segments)
 				this.wheelBL = new CANNON.Body({ mass: wheelMass, material: wheelMaterial })
 				this.wheelBL.addShape(
 					wheelBLShape,
@@ -180,6 +193,11 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 					new CANNON.Vec3(0.2, 0, 0),
 					new CANNON.Quaternion(0, 0, 0, 0).setFromEuler(rot.x, rot.y, rot.z)
 				)
+				// this.wheelBL.addShape(
+				// 	wheelBLShape2,
+				// 	new CANNON.Vec3(0.4, 0, 0),
+				// 	new CANNON.Quaternion(0, 0, 0, 0).setFromEuler(rot.x, rot.y, rot.z)
+				// )
 
 				this.constraintBL = new CANNON.HingeConstraint(this.collision, this.wheelBL, {
 					pivotA: new CANNON.Vec3(this.widthOff, -this.heightOff, this.lengthOff),
@@ -192,6 +210,7 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 				// BR
 				const wheelBRShape = new CANNON.Cylinder(radius2, radius1, height1, segments)
 				const wheelBRShape1 = new CANNON.Cylinder(radius4, radius3, height2, segments)
+				// const wheelBRShape2 = new CANNON.Cylinder(radius1, radius2, height1, segments)
 				this.wheelBR = new CANNON.Body({ mass: wheelMass, material: wheelMaterial })
 				this.wheelBR.addShape(
 					wheelBRShape,
@@ -203,6 +222,11 @@ export class Train extends THREE.Object3D implements IWorldEntity, INetwork {
 					new CANNON.Vec3(0.2, 0, 0),
 					new CANNON.Quaternion(0, 0, 0, 0).setFromEuler(rot.x, rot.y, rot.z)
 				)
+				// this.wheelBR.addShape(
+				// 	wheelBRShape2,
+				// 	new CANNON.Vec3(0.4, 0, 0),
+				// 	new CANNON.Quaternion(0, 0, 0, 0).setFromEuler(rot.x, rot.y, rot.z)
+				// )
 
 				this.constraintBR = new CANNON.HingeConstraint(this.collision, this.wheelBR, {
 					pivotA: new CANNON.Vec3(this.widthOff, -this.heightOff, -this.lengthOff),

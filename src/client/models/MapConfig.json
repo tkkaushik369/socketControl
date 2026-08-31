@@ -3,7 +3,16 @@
 		{
 			"name": "test2",
 			"isCallback": true,
-			"mapCaller": "class:Test2Scene",
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "test_2",
+					"mapCaller": "class:Test2Scene",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
 			"isLaunched": true,
 			"characters": [
 				{
@@ -24,7 +33,56 @@
 		{
 			"name": "test3",
 			"isCallback": true,
-			"mapCaller": "class:Test3Scene",
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "test_3",
+					"mapCaller": "class:Test3Scene",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": [
+						{
+							"color": "0xff0000",
+							"name": "portal.name_1",
+							"link_name": "portal.name_2",
+							"position": {
+								"x": 18,
+								"y": 6.1,
+								"z": 10
+							},
+							"rotation": {
+								"x": 0,
+								"y": 3.141592653589793,
+								"z": 0
+							}
+						}
+					]
+				},
+				{
+					"isMain": false,
+					"subName": "test_2",
+					"mapCaller": "class:Test2Scene",
+					"position": { "x": 18, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": [
+						{
+							"color": "0x0000ff",
+							"name": "portal.name_2",
+							"link_name": "portal.name_1",
+							"position": {
+								"x": 18,
+								"y": 1,
+								"z": 0
+							},
+							"rotation": {
+								"x": 0,
+								"y": 1.5707963267948966,
+								"z": 0
+							}
+						}
+					]
+				}
+			],
 			"isLaunched": true,
 			"characters": [
 				{
@@ -61,7 +119,16 @@
 		{
 			"name": "example",
 			"isCallback": true,
-			"mapCaller": "class:Example",
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "example",
+					"mapCaller": "class:Example",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
 			"isLaunched": true,
 			"characters": [
 				{
@@ -105,9 +172,18 @@
 			"trains": []
 		},
 		{
-			"name": "sketchbook v0.3",
+			"name": "Sketchbook v0.3",
 			"isCallback": true,
-			"mapCaller": "world_v3.1.glb",
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "world_3",
+					"mapCaller": "world_v3.1.glb",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
 			"isLaunched": true,
 			"characters": [
 				{
@@ -136,9 +212,66 @@
 			"trains": []
 		},
 		{
-			"name": "sketchbook v0.4",
+			"name": "Sketchbook v0.4",
 			"isCallback": true,
-			"mapCaller": "world_v4.glb",
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "world_4",
+					"mapCaller": "world_v4.glb",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
+			"isLaunched": true,
+			"characters": [
+				{
+					"objCaller": "boxman.glb",
+					"type": "character",
+					"subtype": null
+				}
+			],
+			"vehicles": [
+				{
+					"objCaller": "car.glb",
+					"type": "car",
+					"subtype": null
+				},
+				{
+					"objCaller": "heli.glb",
+					"type": "heli",
+					"subtype": null
+				},
+				{
+					"objCaller": "airplane.glb",
+					"type": "airplane",
+					"subtype": null
+				}
+			],
+			"trains": []
+		},
+		{
+			"name": "Sketchbook",
+			"isCallback": true,
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "world_4",
+					"mapCaller": "world_v4.glb",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				},
+				{
+					"isMain": false,
+					"subName": "world_3",
+					"mapCaller": "world_v3.1.glb",
+					"position": { "x": 2847, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
 			"isLaunched": true,
 			"characters": [
 				{
@@ -169,7 +302,16 @@
 		{
 			"name": "Grid City",
 			"isCallback": true,
-			"mapCaller": "class:GridCityScene",
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "grid_city",
+					"mapCaller": "class:GridCityScene",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
 			"isLaunched": true,
 			"characters": [
 				{
@@ -195,7 +337,16 @@
 		{
 			"name": "Grid World",
 			"isCallback": true,
-			"mapCaller": "class:GridWorldScene",
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "grid_world",
+					"mapCaller": "class:GridWorldScene",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
 			"isLaunched": true,
 			"characters": [
 				{
@@ -221,7 +372,16 @@
 		{
 			"name": "test",
 			"isCallback": true,
-			"mapCaller": "class:TestScene",
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "test_1",
+					"mapCaller": "class:TestScene",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
 			"isLaunched": true,
 			"characters": [],
 			"vehicles": [],

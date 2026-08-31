@@ -14,8 +14,10 @@ export class HeightMapCollider implements ICollider {
 
 		let defaults = {
 			mass: 0,
-			position: mesh.position,
+			// position: mesh.position,
 			// rotation: mesh.quaternion,
+			position: new CANNON.Vec3(),
+			rotation: new CANNON.Quaternion(),
 			friction: 0.3,
 			scale: 1,
 		}

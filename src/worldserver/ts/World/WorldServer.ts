@@ -71,8 +71,8 @@ export class WorldServer extends WorldBase {
 		// return JSON.parse(data)
 	}
 
-	public loadScene(gltf: any, isLaunmch: boolean = true): void {
-		super.loadScene(gltf, isLaunmch)
+	public loadScene(gltf: any, sub_name: string, /* isLaunmch: boolean = true */): void {
+		super.loadScene(gltf, sub_name)
 		// this.add(new Speaker())
 	}
 

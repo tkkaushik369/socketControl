@@ -2,7 +2,16 @@ import { MapConfigType, MapConfigFOType } from '../../index'
 
 export const SketchBookV3Config: MapConfigType = {
 	name: 'sketchbook v0.3',
-	mapCaller: 'world_v3.1.glb',
+	subMaps: [
+		{
+			isMain: true,
+			subName: 'sketchbook v0.3',
+			mapCaller: 'world_v3.1.glb',
+			position: { x: 0, y: 0, z: 0 },
+			rotation: { x: 0, y: 0, z: 0 },
+			portal: [],
+		},
+	],
 	isCallback: true,
 	isLaunched: true,
 	characters: [],

@@ -3,7 +3,16 @@ import { Example } from './ExampleScene'
 
 export const ExampleConfig: MapConfigType = {
 	name: 'example',
-	mapCaller: new Example(),
+	subMaps: [
+		{
+			isMain: true,
+			subName: "Example",
+			mapCaller: new Example(),
+			position: { x: 0, y: 0, z: 0 },
+			rotation: { x: 0, y: 0, z: 0 },
+			portal: [],
+		},
+	],
 	isCallback: true,
 	isLaunched: true,
 	characters: [],

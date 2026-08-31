@@ -34,6 +34,18 @@ export class RelativeSpringSimulator extends SimulatorBase {
 		}
 	}
 
+	public init() {
+		this.target = 0
+		this.lastLerp = 0
+		this.cache = [] // At least two frames
+		for (let i = 0; i < 2; i++) {
+			this.cache.push({
+				position: this.position,
+				velocity: this.velocity,
+			})
+		}
+	}
+
 	/**
 	 * Advances the simulation by given time step
 	 * @param {number} timeStep

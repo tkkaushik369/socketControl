@@ -84,7 +84,10 @@ npm run start:server
 
 ### Features
 
-#### 2th August 2026
+#### 1th September 2026
+- Sub Maps Added, Combine Multiple maps in single Scene, Global Portals added.
+
+#### 2th August 2026 (V0.5)
 - Portals added. Check Test3 Map.
 
 #### 18th July 2026

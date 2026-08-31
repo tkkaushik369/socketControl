@@ -4,7 +4,16 @@ import { TestScene } from './TestScene'
 export const TestConfig: MapConfigType = {
 	name: 'test',
 	// mapCaller: 'boxman.glb',
-	mapCaller: new TestScene(),
+	subMaps: [
+		{
+			isMain: true,
+			subName: 'test',
+			mapCaller: new TestScene(),
+			position: { x: 0, y: 0, z: 0 },
+			rotation: { x: 0, y: 0, z: 0 },
+			portal: [],
+		},
+	],
 	isCallback: true,
 	isLaunched: true,
 	characters: [],

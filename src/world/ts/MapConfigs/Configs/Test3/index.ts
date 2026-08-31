@@ -3,7 +3,16 @@ import { Test3Scene } from './Test3Scene'
 
 export const Test3Config: MapConfigType = {
 	name: 'test3',
-	mapCaller: new Test3Scene(),
+	subMaps: [
+		{
+			isMain: true,
+			subName: 'test3',
+			mapCaller: new Test3Scene(),
+			position: { x: 0, y: 0, z: 0 },
+			rotation: { x: 0, y: 0, z: 0 },
+			portal: [],
+		},
+	],
 	isCallback: true,
 	isLaunched: true,
 	characters: [],

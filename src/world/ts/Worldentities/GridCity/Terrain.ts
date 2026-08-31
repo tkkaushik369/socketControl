@@ -318,6 +318,9 @@ export class Terrain extends THREE.Object3D {
 	public getFollowChunk(followObject: (THREE.Object3D | CANNON.Body)[], scale: number = 1) {
 		const cords: { x: number; z: number }[] = []
 		for (let i = 0; i < followObject.length; i++) {
+			/* let globalPos = new THREE.Vector3()
+			this.getWorldPosition(globalPos)
+			console.log(globalPos) */
 			cords.push({
 				x: Math.round(followObject[i].position.x * scale),
 				z: Math.round(followObject[i].position.z * scale),

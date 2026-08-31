@@ -78,12 +78,12 @@ export class Player implements INetwork {
 
 		this.attachments = []
 
-		{
-			const camHelper = new THREE.CameraHelper(this.cameraOperator.camera)
-			camHelper.visible = false
+		// {
+		// 	const camHelper = new THREE.CameraHelper(this.cameraOperator.camera)
+		// 	camHelper.visible = false
 
-			this.attachments.push({ obj: camHelper, addTo: PlayerAttachmentType.AddToWorld })
-		}
+		// 	this.attachments.push({ obj: camHelper, addTo: PlayerAttachmentType.AddToWorld })
+		// }
 
 		this.spawnPoint = null
 		this.character = null

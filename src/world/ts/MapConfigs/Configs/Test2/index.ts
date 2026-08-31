@@ -4,7 +4,16 @@ import { Test2Scene } from './Test2Scene'
 
 export const Test2Config: MapConfigType = {
 	name: 'test2',
-	mapCaller: new Test2Scene(),
+	subMaps: [
+		{
+			isMain: true,
+			subName: 'test2',
+			mapCaller: new Test2Scene(),
+			position: { x: 0, y: 0, z: 0 },
+			rotation: { x: 0, y: 0, z: 0 },
+			portal: [],
+		},
+	],
 	isCallback: true,
 	isLaunched: true,
 	characters: [],

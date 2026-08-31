@@ -18,7 +18,7 @@ import { IWorldEntity } from './Interfaces/IWorldEntity'
 import { Character } from './Characters/Character'
 import { Vehicle } from './Vehicles/Vehicle'
 import { Train } from './Vehicles/Train'
-import { getMapConfig, MapConfigType } from './MapConfigs'
+import { getMapConfig, MapConfigType, MapInstanceConfig } from './MapConfigs'
 import { Water } from './Worldentities/Water'
 import { BaseScene } from './MapConfigs/BaseScene'
 import { ShapeEntityBase } from './Physics/ShapeEntity/ShapeEntityBase'
@@ -53,9 +53,19 @@ export abstract class WorldBase {
 	public lastScenarioID: string | null
 	public mapLoadFinishCallBack: Function | null
 	public MapConfig: { [id: string]: MapConfigType }
-	public maps: { [id: string]: any }
-	private mapAnimation: any[]
-	private mapMixer: THREE.AnimationMixer | null
+	public maps: {
+		[id: string]: {
+			map_data: {
+				[sid: string]: {
+					mapAnimation: any[]
+					mapMixer: THREE.AnimationMixer | null
+				}
+			}
+			map_func: () => Promise<void>
+		}
+	}
+	// private mapAnimation: any[]
+	// private mapMixer: THREE.AnimationMixer | null
 	public lastMapID: string | null
 	public characters: Character[]
 	public vehicles: Vehicle[]
@@ -110,6 +120,7 @@ export abstract class WorldBase {
 		this.zeroBody = this.zeroBody.bind(this)
 		this.clearScene = this.clearScene.bind(this)
 		this.loadScene = this.loadScene.bind(this)
+		this.linkPortals = this.linkPortals.bind(this)
 		this.launchScenario = this.launchScenario.bind(this)
 		this.restartScenario = this.restartScenario.bind(this)
 		this.clearEntities = this.clearEntities.bind(this)
@@ -132,8 +143,8 @@ export abstract class WorldBase {
 		this.mapLoadFinishCallBack = null
 		this.maps = {}
 
-		this.mapAnimation = []
-		this.mapMixer = null
+		// this.mapAnimation = []
+		// this.mapMixer = null
 		this.lastMapID = null
 		this.characters = []
 		this.vehicles = []
@@ -167,7 +178,11 @@ export abstract class WorldBase {
 		// Maps
 		this.MapConfig = getMapConfig(this, maps)
 		Object.keys(this.MapConfig).forEach((mn) => {
-			this.maps[this.MapConfig[mn].name] = async () => {
+			this.maps[this.MapConfig[mn].name] = {
+				map_func: async () => {},
+				map_data: {},
+			}
+			this.maps[this.MapConfig[mn].name].map_func = async () => {
 				await this.launchMap(
 					this.MapConfig[mn].name,
 					this.MapConfig[mn].isCallback,
@@ -190,10 +205,10 @@ export abstract class WorldBase {
 			Debug_Physics_MeshOpacity: 1,
 			Debug_Physics_MeshEdges: false,
 			Debug_FPS: true,
-			Debug_Helper: true,
+			Debug_Helper: false,
 			Debug_Pings: true,
 			Debug_Controls: true,
-			Debug_Console: true,
+			Debug_Console: false,
 			PostProcess: false,
 			Textures: true,
 			Shadows: true,
@@ -458,24 +473,101 @@ export abstract class WorldBase {
 		this.last_chunk_pos = []
 	}
 
-	public launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
-		const onSceneCollect = (map: MapConfigType, gltf: any) => {
+	public async launchMap(mapID: string, isCallback: boolean, isLaunched: boolean = true) {
+		this.clearEntities(true)
+		this.clearScene()
+		this.maps[mapID].map_data = {}
+		const boundingBox = new THREE.Box3()
+
+		const onSceneCollect = (map: MapConfigType, instance: MapInstanceConfig, gltf: any) => {
 			this.lastMapID = map.name
-			this.mapAnimation = gltf.animations
-			this.mapMixer = new THREE.AnimationMixer(gltf.scene)
-			if (this.mapAnimation.length > 0) {
-				let clip = THREE.AnimationClip.findByName(this.mapAnimation, 'idle')
-				if (clip === null) clip = THREE.AnimationClip.findByName(this.mapAnimation, this.mapAnimation[0].name)
+			const mapAnimation = gltf.animations
+			const mapMixer = new THREE.AnimationMixer(gltf.scene)
+			if (mapAnimation.length > 0) {
+				let clip = THREE.AnimationClip.findByName(mapAnimation, 'idle')
+				if (clip === null) clip = THREE.AnimationClip.findByName(mapAnimation, mapAnimation[0].name)
 				if (clip !== null) {
-					let action = this.mapMixer.clipAction(clip)
-					this.mapMixer.stopAllAction()
+					let action = mapMixer.clipAction(clip)
+					mapMixer.stopAllAction()
 					action.fadeIn(0.3)
 					action.play()
 				}
 			}
-			this.loadScene(gltf, isLaunched)
+
+			this.maps[mapID].map_data[instance.subName] = {
+				mapAnimation: mapAnimation,
+				mapMixer: mapMixer,
+			}
+
+			gltf.scene.position.x = instance.position.x
+			gltf.scene.position.y = instance.position.y
+			gltf.scene.position.z = instance.position.z
+
+			gltf.scene.rotation.x = instance.rotation.x
+			gltf.scene.rotation.y = instance.rotation.y
+			gltf.scene.rotation.z = instance.rotation.z
+
+			const box = new THREE.Box3().setFromObject(gltf.scene, true)
+			boundingBox.union(box)
+
+			this.loadScene(gltf, instance.subName /* , instance.isMain ? isLaunched : false */)
 			if (this.mapLoadFinishCallBack) this.mapLoadFinishCallBack()
 		}
+
+		const loadGLTF = (path: string): Promise<any> => {
+			return new Promise((resolve) => {
+				this.getGLTF(path, (gltf: any) => {
+					resolve(gltf)
+				})
+			})
+		}
+
+		const loadMapInstance = async (map: MapConfigType, instance: MapInstanceConfig): Promise<void> => {
+			let gltf: any
+
+			if (instance.mapCaller instanceof BaseScene) {
+				gltf = instance.mapCaller.getScene()
+				// onSceneCollect(map, instance, gltf)
+			} else {
+				// console.log(instance.mapCaller)
+				if (typeof instance.mapCaller === 'object' && Object.keys(instance.mapCaller).length == 2) {
+					// onSceneCollect(map, instance, instance.mapCaller)
+					gltf = instance.mapCaller
+				} else {
+					// this.getGLTF(instance.mapCaller, (gltf: any) => {
+					// 	onSceneCollect(map, instance, gltf)
+					// })
+					gltf = await loadGLTF(instance.mapCaller)
+				}
+			}
+			onSceneCollect(map, instance, gltf)
+
+			instance.portal.forEach((inter_portal) => {
+				const portal = new Portal(Number(inter_portal.color), null)
+				portal.name = inter_portal.name
+				portal.link_name = inter_portal.link_name
+
+				const position: THREE.Vector3 = new THREE.Vector3()
+				const rotation: THREE.Euler = new THREE.Euler()
+				position.x = inter_portal.position.x
+				position.y = inter_portal.position.y
+				position.z = inter_portal.position.z
+				rotation.x = inter_portal.rotation.x
+				rotation.y = inter_portal.rotation.y
+				rotation.z = inter_portal.rotation.z
+				const quaternion = new THREE.Quaternion().setFromEuler(rotation)
+
+				portal.mesh.position.copy(position)
+				portal.mesh.quaternion.copy(quaternion)
+				this.addSceneObject(portal.mesh)
+
+				if (this.player !== null) portal.view_camera = this.player.cameraOperator.camera
+				// const helper = new THREE.CameraHelper(portal.camera)
+				// this.addSceneObject(helper)
+				this.portals.push(portal)
+			})
+		}
+
 		if (isCallback) {
 			if (this.launchMapCallback !== null) {
 				this.launchMapCallback(mapID)
@@ -485,11 +577,42 @@ export abstract class WorldBase {
 			const MapConfig = this.MapConfig
 			if (MapConfig[mapID] !== undefined) {
 				const map = MapConfig[mapID]
-				if (map.name == mapID) {
-					if (map.mapCaller instanceof BaseScene) {
+
+				if (map === undefined) {
+					console.warn(`Map not found: ${mapID}`)
+					return
+				}
+
+				// if (map.name == mapID) {
+				const mapInstances = map.subMaps ?? []
+				if (mapInstances.length === 0) {
+					console.warn(`No map instances defined for ${mapID}`)
+					return
+				}
+
+				// console.log(map.name)
+				for (const instance of mapInstances) {
+					await loadMapInstance(map, instance)
+				}
+
+				boundingBox.getSize(this.boxSize)
+
+				this.linkPortals()
+				let defaultScenarioID: string | null = null
+				// console.log(this.scenarios)
+				for (const scenario of this.scenarios) {
+					if (scenario.default) {
+						defaultScenarioID = scenario.name
+						break
+					}
+				}
+				// console.log('defaultScenarioID', defaultScenarioID)
+				if (isLaunched) if (defaultScenarioID !== null) this.launchScenario(defaultScenarioID, false)
+				/* if (map.mapCaller instanceof BaseScene) {
 						const gltf = map.mapCaller.getScene()
 						onSceneCollect(map, gltf)
 					} else {
+						// console.log(map.mapCaller)
 						if (typeof map.mapCaller === 'object' && Object.keys(map.mapCaller).length == 2) {
 							onSceneCollect(map, map.mapCaller)
 						} else {
@@ -497,15 +620,15 @@ export abstract class WorldBase {
 								onSceneCollect(map, gltf)
 							})
 						}
-					}
-				}
+					} */
+				// }
 			}
 		}
 	}
 
-	public loadScene(gltf: any, isLaunmch: boolean = true) {
-		this.clearEntities(true)
-		this.clearScene()
+	public loadScene(gltf: any, sub_name: string /* , isLaunch: boolean = true */) {
+		// this.clearEntities(true)
+		// this.clearScene()
 
 		gltf.scene.traverse((child: any) => {
 			if (child.hasOwnProperty('userData')) {
@@ -558,8 +681,17 @@ export abstract class WorldBase {
 									size: new THREE.Vector3(child.scale.x, child.scale.y, child.scale.z),
 									mass: mass,
 								})
-								phys.body.position.copy(Utility.cannonVector(child.position))
-								phys.body.quaternion.copy(Utility.cannonQuat(child.quaternion))
+								const position: THREE.Vector3 = child.position.clone()
+								const rotation: THREE.Euler = child.rotation.clone()
+								position.x += gltf.scene.position.x
+								position.y += gltf.scene.position.y
+								position.z += gltf.scene.position.z
+								rotation.x += gltf.scene.rotation.x
+								rotation.y += gltf.scene.rotation.y
+								rotation.z += gltf.scene.rotation.z
+								const quaternion = new THREE.Quaternion().setFromEuler(rotation)
+								phys.body.position.copy(Utility.cannonVector(position))
+								phys.body.quaternion.copy(Utility.cannonQuat(quaternion))
 								phys.body.updateAABB()
 
 								phys.body.shapes.forEach((shape) => {
@@ -588,8 +720,17 @@ export abstract class WorldBase {
 									radius: child.radius,
 									mass: child.mass,
 								})
-								phys.body.position.copy(Utility.cannonVector(child.position))
-								phys.body.quaternion.copy(Utility.cannonQuat(child.quaternion))
+								const position: THREE.Vector3 = child.position.clone()
+								const rotation: THREE.Euler = child.rotation.clone()
+								position.x += gltf.scene.position.x
+								position.y += gltf.scene.position.y
+								position.z += gltf.scene.position.z
+								rotation.x += gltf.scene.rotation.x
+								rotation.y += gltf.scene.rotation.y
+								rotation.z += gltf.scene.rotation.z
+								const quaternion = new THREE.Quaternion().setFromEuler(rotation)
+								phys.body.position.copy(Utility.cannonVector(position))
+								phys.body.quaternion.copy(Utility.cannonQuat(quaternion))
 								phys.body.updateAABB()
 
 								phys.body.shapes.forEach((shape) => {
@@ -631,8 +772,17 @@ export abstract class WorldBase {
 									height: height,
 									segment: segment,
 								})
-								phys.body.position.copy(Utility.cannonVector(child.position))
-								phys.body.quaternion.copy(Utility.cannonQuat(child.quaternion))
+								const position: THREE.Vector3 = child.position.clone()
+								const rotation: THREE.Euler = child.rotation.clone()
+								position.x += gltf.scene.position.x
+								position.y += gltf.scene.position.y
+								position.z += gltf.scene.position.z
+								rotation.x += gltf.scene.rotation.x
+								rotation.y += gltf.scene.rotation.y
+								rotation.z += gltf.scene.rotation.z
+								const quaternion = new THREE.Quaternion().setFromEuler(rotation)
+								phys.body.position.copy(Utility.cannonVector(position))
+								phys.body.quaternion.copy(Utility.cannonQuat(quaternion))
 								phys.body.updateAABB()
 
 								phys.body.shapes.forEach((shape) => {
@@ -654,7 +804,19 @@ export abstract class WorldBase {
 									})
 								}
 							} else if (child.userData.type === 'trimesh') {
-								let phys = new TrimeshCollider(child, {})
+								const position: THREE.Vector3 = child.position.clone()
+								const rotation: THREE.Euler = child.rotation.clone()
+								position.x += gltf.scene.position.x
+								position.y += gltf.scene.position.y
+								position.z += gltf.scene.position.z
+								rotation.x += gltf.scene.rotation.x
+								rotation.y += gltf.scene.rotation.y
+								rotation.z += gltf.scene.rotation.z
+								const quaternion = new THREE.Quaternion().setFromEuler(rotation)
+								let phys = new TrimeshCollider(child, {
+									position: Utility.cannonVector(position),
+									quaternion: Utility.cannonQuat(quaternion),
+								})
 								phys.body.shapes.forEach((shape) => {
 									shape.collisionFilterMask =
 										CollisionGroups.Default |
@@ -679,7 +841,20 @@ export abstract class WorldBase {
 								let scale = 1
 								if (child.userData.hasOwnProperty('scale')) scale = child.userData.scale
 								if (child.userData.hasOwnProperty('visible')) child.visible = child.userData.visible
-								let phys = new HeightMapCollider(child, { scale: scale })
+								const position: THREE.Vector3 = child.position.clone()
+								const rotation: THREE.Euler = child.rotation.clone()
+								position.x += gltf.scene.position.x
+								position.y += gltf.scene.position.y
+								position.z += gltf.scene.position.z
+								rotation.x += gltf.scene.rotation.x
+								rotation.y += gltf.scene.rotation.y
+								rotation.z += gltf.scene.rotation.z
+								const quaternion = new THREE.Quaternion().setFromEuler(rotation)
+								let phys = new HeightMapCollider(child, {
+									scale: scale,
+									position: Utility.cannonVector(position),
+									quaternion: Utility.cannonQuat(quaternion),
+								})
 								this.addWorldObject(phys.body)
 
 								if (optimize !== null && optimize === 'chunk') {
@@ -730,10 +905,19 @@ export abstract class WorldBase {
 										mass: mass,
 									})
 									// pos.add(child.position)
+									const position: THREE.Vector3 = child.position.clone()
+									const rotation: THREE.Euler = new THREE.Euler().setFromQuaternion(quat)
+									position.x += gltf.scene.position.x
+									position.y += gltf.scene.position.y
+									position.z += gltf.scene.position.z
+									rotation.x += gltf.scene.rotation.x
+									rotation.y += gltf.scene.rotation.y
+									rotation.z += gltf.scene.rotation.z
+									const quaternion = new THREE.Quaternion().setFromEuler(rotation)
 									phys.body.position.copy(
-										Utility.cannonVector(pos.add(child.position).multiplyScalar(scale_times))
+										Utility.cannonVector(pos.add(position).multiplyScalar(scale_times))
 									)
-									phys.body.quaternion.copy(Utility.cannonQuat(quat))
+									phys.body.quaternion.copy(Utility.cannonQuat(quaternion))
 									phys.body.updateAABB()
 
 									phys.body.shapes.forEach((shape) => {
@@ -771,10 +955,19 @@ export abstract class WorldBase {
 									matrix.decompose(pos, quat, scale)
 									let phys = new TrimeshCollider(child, {})
 									// pos.add(child.position)
+									const position: THREE.Vector3 = child.position.clone()
+									const rotation: THREE.Euler = new THREE.Euler().setFromQuaternion(quat)
+									position.x += gltf.scene.position.x
+									position.y += gltf.scene.position.y
+									position.z += gltf.scene.position.z
+									rotation.x += gltf.scene.rotation.x
+									rotation.y += gltf.scene.rotation.y
+									rotation.z += gltf.scene.rotation.z
+									const quaternion = new THREE.Quaternion().setFromEuler(rotation)
 									phys.body.position.copy(
-										Utility.cannonVector(pos.add(child.position).multiplyScalar(scale_times))
+										Utility.cannonVector(pos.add(position).multiplyScalar(scale_times))
 									)
-									phys.body.quaternion.copy(Utility.cannonQuat(quat))
+									phys.body.quaternion.copy(Utility.cannonQuat(quaternion))
 									phys.body.updateAABB()
 									phys.body.shapes.forEach((shape) => {
 										shape.collisionFilterMask =
@@ -801,7 +994,9 @@ export abstract class WorldBase {
 					} else if (child.userData.data === 'path') {
 						this.paths.push(new Path(child))
 					} else if (child.userData.data === 'scenario') {
-						this.scenarios.push(new Scenario(child, this))
+						this.scenarios.push(
+							new Scenario(sub_name, child, this, gltf.scene.position, gltf.scene.rotation)
+						)
 					} else if (child.userData.data === 'portal') {
 						let col: number = ((child as THREE.Mesh).material as THREE.MeshBasicMaterial).color.getHex()
 						child.visible = false
@@ -813,8 +1008,18 @@ export abstract class WorldBase {
 							portal.link_name = child.userData.linked_portal
 						}
 
-						portal.mesh.position.copy(child.position)
-						portal.mesh.quaternion.copy(child.quaternion)
+						const position: THREE.Vector3 = child.position.clone()
+						const rotation: THREE.Euler = child.rotation.clone()
+						position.x += gltf.scene.position.x
+						position.y += gltf.scene.position.y
+						position.z += gltf.scene.position.z
+						rotation.x += gltf.scene.rotation.x
+						rotation.y += gltf.scene.rotation.y
+						rotation.z += gltf.scene.rotation.z
+						const quaternion = new THREE.Quaternion().setFromEuler(rotation)
+
+						portal.mesh.position.copy(position)
+						portal.mesh.quaternion.copy(quaternion)
 						this.addSceneObject(portal.mesh)
 
 						if (this.player !== null) portal.view_camera = this.player.cameraOperator.camera
@@ -826,6 +1031,23 @@ export abstract class WorldBase {
 			}
 		})
 
+		// this.linkPortals()
+
+		this.addSceneObject(gltf.scene)
+		// let boundingBox = new THREE.Box3().setFromObject(gltf.scene, true)
+		// boundingBox.getSize(this.boxSize)
+
+		// let defaultScenarioID: string | null = null
+		// for (const scenario of this.scenarios) {
+		// 	if (scenario.default) {
+		// 		defaultScenarioID = scenario.name
+		// 		break
+		// 	}
+		// }
+		// if (isLaunch) if (defaultScenarioID !== null) this.launchScenario(defaultScenarioID, false)
+	}
+
+	private linkPortals(): void {
 		for (let i = 0; i < this.portals.length; i++) {
 			if (this.portals[i].name === null) continue
 			for (let j = 0; j < this.portals.length; j++) {
@@ -836,19 +1058,6 @@ export abstract class WorldBase {
 				}
 			}
 		}
-
-		this.addSceneObject(gltf.scene)
-		let boundingBox = new THREE.Box3().setFromObject(gltf.scene, true)
-		boundingBox.getSize(this.boxSize)
-
-		let defaultScenarioID: string | null = null
-		for (const scenario of this.scenarios) {
-			if (scenario.default) {
-				defaultScenarioID = scenario.name
-				break
-			}
-		}
-		if (isLaunmch) if (defaultScenarioID !== null) this.launchScenario(defaultScenarioID, false)
 	}
 
 	public launchScenario(scenarioID: string | null, isCallback: boolean): void {
@@ -861,8 +1070,10 @@ export abstract class WorldBase {
 			this.lastScenarioID = scenarioID
 			this.clearEntities(false)
 
-			// Launch default scenario
+			// Launch default
+			// console.log('scenarioID: ', scenarioID)
 			for (const scenario of this.scenarios) {
+				// console.log('scenario.name: ', scenario.name, scenario.spawnAlways)
 				if (scenario.name === scenarioID || scenario.spawnAlways) {
 					scenario.launch(this)
 
@@ -1082,7 +1293,13 @@ export abstract class WorldBase {
 				entity.update(timeStep, unscaledTimeStep)
 			})
 		}
-		if (this.mapMixer !== null) this.mapMixer.update(timeStep)
+		// if (this.mapMixer !== null) this.mapMixer.update(timeStep)
+		if (this.lastMapID !== null && this.maps[this.lastMapID] !== undefined) {
+			Object.keys(this.maps[this.lastMapID].map_data).forEach((subName) => {
+				const mixer = this.maps[this.lastMapID as string].map_data[subName].mapMixer
+				if (mixer !== null) mixer.update(timeStep)
+			})
+		}
 
 		// Lerp time scale
 		this.settings.Time_Scale = THREE.MathUtils.lerp(this.settings.Time_Scale, this.timeScaleTarget, 0.2)

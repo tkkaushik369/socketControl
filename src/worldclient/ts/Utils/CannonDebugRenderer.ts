@@ -187,7 +187,7 @@ export class CannonDebugRenderer {
 					(shape as CANNON.Cylinder).height,
 					(shape as CANNON.Cylinder).numSegments
 				)
-				mesh = new THREE.Mesh(this._cylinderGeometry, this._sphereMaterial)
+				mesh = new THREE.Mesh(geometry, this._sphereMaterial)
 				break
 
 			case CANNON.Shape.types.PLANE:

@@ -12,12 +12,16 @@ import { RaceContent } from './RaceContent'
 import { Train } from '../Vehicles/Train'
 
 export class Scenario {
+	public pre_name: string
 	public name: string
 	public spawnAlways: boolean = false // Vehicle spwn
 	public default: boolean = false // only one default in one scene
 	public world: WorldBase
 	public descriptionTitle: string
 	public descriptionContent: string
+
+	private off_position: THREE.Vector3
+	private off_rotation: THREE.Euler
 
 	public rootNode: THREE.Object3D
 	public spawnPoints: ISpawnPoint[] = []
@@ -28,7 +32,7 @@ export class Scenario {
 	public isPlayerPositionNearVehicle: boolean
 	public raceContent: RaceContent | null
 
-	constructor(root: THREE.Object3D, world: WorldBase) {
+	constructor(pre_name: string, root: THREE.Object3D, world: WorldBase, position = new THREE.Vector3(), rotation = new THREE.Euler()) {
 		// bind functions
 		this.createLaunchLink = this.createLaunchLink.bind(this)
 		this.launch = this.launch.bind(this)
@@ -36,17 +40,24 @@ export class Scenario {
 		// init
 		this.rootNode = root
 		this.world = world
+		this.pre_name = pre_name
 		this.name = '_name_'
 		this.descriptionTitle = '_descriptionTitle_'
 		this.descriptionContent = '_descriptionContent_'
+
+		this.off_position = position
+		this.off_rotation = rotation
+
 		this.initialCameraAngle = 0
 		this.playerPosition = null
 		this.isPlayerPositionNearVehicle = false
 		this.raceContent = null
 
+		// console.log(root.userData)
+
 		// Scenario
 		if (root.userData.hasOwnProperty('name')) {
-			this.name = root.userData.name
+			this.name = this.pre_name + ':' + root.userData.name
 			let name = root.userData.name
 			if (name.toLowerCase().includes('race')) {
 				this.raceContent = new RaceContent(this)
@@ -87,12 +98,10 @@ export class Scenario {
 					} else if (child.userData.type === 'train') {
 						let sp = new HingeVehicleSpawnPoint(child)
 						this.spawnPoints.push(sp)
-					}
-					else if (child.userData.type === 'player') {
+					} else if (child.userData.type === 'player') {
 						// let sp = new CharacterSpawnPoint(child, child.userData)
 						// this.spawnPoints.push(sp)
-						let pos = new THREE.Vector3().add(root.position).add(child.position)
-						this.playerPosition = new THREE.Vector3().copy(pos)
+						this.playerPosition = new THREE.Vector3().add(root.position).add(child.position).add(this.off_position)
 					} else if (child.userData.type === 'character_ai' || child.userData.type === 'character_follow') {
 						let sp = new CharacterSpawnPoint(child, child.userData)
 						this.spawnPoints.push(sp)
@@ -122,8 +131,11 @@ export class Scenario {
 			this.raceContent.launch()
 		}
 
+		// console.log(this.name, 'Launch')
+		// console.log(this.spawnPoints)
+
 		// Spawn Vehicles
-		const isRace = this.raceContent === null? false : true
+		const isRace = this.raceContent === null ? false : true
 		this.spawnPoints.forEach((sp) => {
 			if (sp.userData.hasOwnProperty('driver') && sp.userData.driver === 'player') {
 				const pos = Utility.GridPosition(world.users, new THREE.Vector3(), 3, 3, 2)
@@ -131,7 +143,10 @@ export class Scenario {
 
 				Object.keys(world.users).forEach((sID) => {
 					if (world.users[sID] !== undefined) {
-						const vsp: VehicleSpawnPoint | HingeVehicleSpawnPoint = new (sp as any).constructor(sp.object, world)
+						const vsp: VehicleSpawnPoint | HingeVehicleSpawnPoint = new (sp as any).constructor(
+							sp.object,
+							world
+						)
 						// console.log(pos[tot-1])
 						vsp.playerData = {
 							player: world.users[sID],
@@ -144,7 +159,10 @@ export class Scenario {
 					}
 				})
 			} else if (sp.userData.hasOwnProperty('driver') && sp.userData.driver === 'ai') {
-				let ent: Promise<Vehicle | Train | null> = (sp as VehicleSpawnPoint | HingeVehicleSpawnPoint).spawn(world, isRace) // only vehicles and shapes
+				let ent: Promise<Vehicle | Train | null> = (sp as VehicleSpawnPoint | HingeVehicleSpawnPoint).spawn(
+					world,
+					isRace
+				) // only vehicles and shapes
 				if (ent === null) {
 					console.log('Unknown Spawn: ', ent)
 				}
