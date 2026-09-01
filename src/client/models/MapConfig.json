@@ -261,7 +261,23 @@
 					"mapCaller": "world_v4.glb",
 					"position": { "x": 0, "y": 0, "z": 0 },
 					"rotation": { "x": 0, "y": 0, "z": 0 },
-					"portal": []
+					"portal": [
+						{
+							"color": "0xff0000",
+							"name": "portal.name_1",
+							"link_name": "portal.name_2",
+							"position": {
+								"x": -4,
+								"y": 16,
+								"z": 5
+							},
+							"rotation": {
+								"x": 0,
+								"y": 2.6179938779914944,
+								"z": 0
+							}
+						}
+					]
 				},
 				{
 					"isMain": false,
@@ -269,7 +285,23 @@
 					"mapCaller": "world_v3.1.glb",
 					"position": { "x": 2847, "y": 0, "z": 0 },
 					"rotation": { "x": 0, "y": 0, "z": 0 },
-					"portal": []
+					"portal": [
+						{
+							"color": "0x0000ff",
+							"name": "portal.name_2",
+							"link_name": "portal.name_1",
+							"position": {
+								"x": 2922,
+								"y": 16,
+								"z": -98
+							},
+							"rotation": {
+								"x": 0,
+								"y": 1.0471975511965979,
+								"z": 0
+							}
+						}
+					]
 				}
 			],
 			"isLaunched": true,

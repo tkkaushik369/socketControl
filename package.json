@@ -74,7 +74,7 @@
 		"@types/jsdom": "^21.1.7",
 		"@types/lodash": "^4.17.10",
 		"@types/node": "^22.9.0",
-		"@types/three": "^0.169.0",
+		"@types/three": "^0.185.1",
 		"@types/webpack-dev-server": "^4.7.1",
 		"@typescript-eslint/eslint-plugin": "^8.14.0",
 		"@typescript-eslint/parser": "^8.14.0",
@@ -128,7 +128,7 @@
 		"socket.io": "^4.8.1",
 		"socket.io-client": "^4.8.1",
 		"socket.io-msgpack-parser": "^3.0.2",
-		"three": "^0.170.0",
+		"three": "^0.185.1",
 		"three-bvh-csg": "^0.0.17",
 		"three-to-cannon": "^5.0.2",
 		"turbo": "^2.10.0",
@@ -145,6 +145,6 @@
 	"allowScripts": {
 		"bufferutil@4.1.0": true,
 		"utf-8-validate@5.0.10": true,
-		"electron-winstaller@5.4.0": true
+		"electron-winstaller@5.4.4": true
 	}
 }
