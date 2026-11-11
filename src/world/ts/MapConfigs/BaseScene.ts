@@ -26,6 +26,11 @@ export abstract class BaseScene {
 	trainAnimations: any[]
 
 	constructor() {
+		// bind function
+		this.updateMatrix = this.updateMatrix.bind(this)
+		this.getScene = this.getScene.bind(this)
+		this.getVehicle = this.getVehicle.bind(this)
+
 		this.scene = new THREE.Scene()
 		this.sceneAnimations = []
 
@@ -42,7 +47,17 @@ export abstract class BaseScene {
 		this.trainAnimations = []
 	}
 
+	updateMatrix(obj: THREE.Object3D) {
+		obj.traverse((child) => {
+			child.updateMatrix()
+			child.updateMatrixWorld()
+		})
+		obj.updateMatrix()
+		obj.updateMatrixWorld()
+	}
+
 	getScene(): SceneType {
+		this.updateMatrix(this.scene)
 		const data = {
 			scene: this.scene,
 			animations: this.sceneAnimations,
@@ -53,6 +68,7 @@ export abstract class BaseScene {
 	getVehicle(type: string, subtype: string | null = null): MeshType {
 		switch (type) {
 			case 'car': {
+				this.updateMatrix(this.car)
 				switch (subtype) {
 					case 'car_test':
 						return { scene: this.car, animations: this.carAnimations }
@@ -61,6 +77,7 @@ export abstract class BaseScene {
 				}
 			}
 			case 'heli': {
+				this.updateMatrix(this.heli)
 				switch (subtype) {
 					case 'heli_test':
 						return { scene: this.heli, animations: this.heliAnimations }
@@ -69,6 +86,7 @@ export abstract class BaseScene {
 				}
 			}
 			case 'airplane': {
+				this.updateMatrix(this.airplane)
 				switch (subtype) {
 					case 'airplane_test':
 						return { scene: this.airplane, animations: this.airplaneAnimations }
@@ -77,6 +95,7 @@ export abstract class BaseScene {
 				}
 			}
 			case 'train': {
+				this.updateMatrix(this.train)
 				switch (subtype) {
 					case 'train_test':
 						return { scene: this.train, animations: this.trainAnimations }
@@ -85,6 +104,7 @@ export abstract class BaseScene {
 				}
 			}
 			default:
+				this.updateMatrix(this.car)
 				return { scene: this.car, animations: this.carAnimations }
 		}
 	}

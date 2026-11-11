@@ -69,8 +69,20 @@
 			"dependsOn": ["build:worldclient"],
 			"outputs": ["dist/offline/**"]
 		},
+		"build:modelexport": {
+			"inputs": [
+				"src/ModelExport/**",
+				"src/webpack.common.base.ts",
+				"src/webpack.prod.base.ts",
+				"src/webpack.common.modelexport.ts",
+				"src/webpack.prod.modelexport.ts",
+				"modelexport_config.json"
+			],
+			"dependsOn": ["build:world", "build:worldserver"],
+			"outputs": ["dist/ModelExport/**"]
+		},
 		"build_struct": {
-			"dependsOn": ["build:server", "build:client", "build:offline"],
+			"dependsOn": ["build:server", "build:client", "build:offline", "build:modelexport"],
 			"outputs": []
 		},
 		"dev": {

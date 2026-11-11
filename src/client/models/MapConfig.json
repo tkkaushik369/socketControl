@@ -7,7 +7,7 @@
 				{
 					"isMain": true,
 					"subName": "test_2",
-					"mapCaller": "class:Test2Scene",
+					"mapCaller": "generated/test2/test_2.glb",
 					"position": { "x": 0, "y": 0, "z": 0 },
 					"rotation": { "x": 0, "y": 0, "z": 0 },
 					"portal": []
@@ -37,7 +37,7 @@
 				{
 					"isMain": true,
 					"subName": "test_3",
-					"mapCaller": "class:Test3Scene",
+					"mapCaller": "generated/test3/test_3.glb",
 					"position": { "x": 0, "y": 0, "z": 0 },
 					"rotation": { "x": 0, "y": 0, "z": 0 },
 					"portal": [
@@ -61,7 +61,7 @@
 				{
 					"isMain": false,
 					"subName": "test_2",
-					"mapCaller": "class:Test2Scene",
+					"mapCaller": "generated/test2/test_2.glb",
 					"position": { "x": 18, "y": 0, "z": 0 },
 					"rotation": { "x": 0, "y": 0, "z": 0 },
 					"portal": [
@@ -123,7 +123,7 @@
 				{
 					"isMain": true,
 					"subName": "example",
-					"mapCaller": "class:Example",
+					"mapCaller": "generated/example/example.glb",
 					"position": { "x": 0, "y": 0, "z": 0 },
 					"rotation": { "x": 0, "y": 0, "z": 0 },
 					"portal": []
@@ -159,12 +159,12 @@
 					"subtype": "car_test"
 				},
 				{
-					"objCaller": "class:Example",
+					"objCaller": "generated/example/example_heli.glb",
 					"type": "heli",
 					"subtype": "heli_test"
 				},
 				{
-					"objCaller": "class:Example",
+					"objCaller": "generated/example/example_airplane.glb",
 					"type": "airplane",
 					"subtype": "airplane_test"
 				}
@@ -338,7 +338,7 @@
 				{
 					"isMain": true,
 					"subName": "grid_city",
-					"mapCaller": "class:GridCityScene",
+					"mapCaller": "generated/Grid City/grid_city.glb",
 					"position": { "x": 0, "y": 0, "z": 0 },
 					"rotation": { "x": 0, "y": 0, "z": 0 },
 					"portal": []
@@ -373,7 +373,7 @@
 				{
 					"isMain": true,
 					"subName": "grid_world",
-					"mapCaller": "class:GridWorldScene",
+					"mapCaller": "generated/Grid World/grid_world.glb",
 					"position": { "x": 0, "y": 0, "z": 0 },
 					"rotation": { "x": 0, "y": 0, "z": 0 },
 					"portal": []

@@ -1,6 +1,8 @@
 // World
 export { WorldBase } from './WorldBase'
-export { MapConfigType } from './MapConfigs/index'
+export { getMapConfig, MapConfigType } from './MapConfigs/index'
+export { BaseScene } from './MapConfigs/BaseScene'
+export { setWorker } from './Worldentities/GridCity/GridCityBuilder'
 
 // Core
 export { Utility } from './Core/Utility'

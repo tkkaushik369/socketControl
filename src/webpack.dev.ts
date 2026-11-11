@@ -7,6 +7,7 @@ import dev_worldserver from './webpack.dev.worldserver'
 import dev_client from './webpack.dev.client'
 import dev_server from './webpack.dev.server'
 import dev_offline from './webpack.dev.offline'
+import dev_modelexport from './webpack.dev.modelexport'
 import electronConfig from './ForgeConfig/webpack.full.electron'
 
 const config: Configuration[] = []
@@ -16,6 +17,7 @@ config.push(dev_worldserver)
 config.push(dev_client)
 config.push(dev_server)
 config.push(dev_offline)
+config.push(dev_modelexport)
 
 for (let i = 0; i < electronConfig.length; i++) {
 	config.push(merge(config_dev, electronConfig[i]))

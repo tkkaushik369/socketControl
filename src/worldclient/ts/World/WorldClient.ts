@@ -23,6 +23,7 @@ import { TabApi, TabPageApi } from '@tweakpane/core'
 import { CannonDebugRenderer } from '../Utils/CannonDebugRenderer'
 // import { AttachModels } from '../../../world/ts/Utils/AttachModels'
 import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 import { CSM } from 'three/examples/jsm/csm/CSM.js'
 import { Sky } from 'three/examples/jsm/objects/Sky.js'
 import { Ocean } from './Ocean'
@@ -464,41 +465,76 @@ export class WorldClient extends WorldBase {
 	public getGLTF(path: string, callback: Function) {
 		let trackerEntry = this.loadingManager.addLoadingEntry(path)
 		const resPath = super.getGLTF(path, callback)
+		const modelCache = sessionStorage.getItem(resPath)
+		const self = this
 		const loader = new GLTFLoader()
-		loader.load(
-			resPath,
-			(gltf: GLTF) => {
-				callback(gltf)
-				this.loadingManager.doneLoading(trackerEntry)
-			},
-			(xhr) => {
-				if (xhr.lengthComputable) {
-					this.loadingManager.dispatchEvent(
-						new CustomEvent('loading_progress', {
-							detail: { progress: xhr.loaded / xhr.total, name: path },
-						})
-					)
-					trackerEntry.progress = xhr.loaded / xhr.total
+		const load_gltf_model = (callback_route: Function) => {
+			loader.load(
+				resPath,
+				(gltf: GLTF) => {
+					callback_route(gltf)
+					this.loadingManager.doneLoading(trackerEntry)
+				},
+				(xhr) => {
+					if (xhr.lengthComputable) {
+						this.loadingManager.dispatchEvent(
+							new CustomEvent('loading_progress', {
+								detail: { progress: xhr.loaded / xhr.total, name: path },
+							})
+						)
+						trackerEntry.progress = xhr.loaded / xhr.total
+					}
+				},
+				(error) => {
+					console.error(error)
 				}
-			},
-			(error) => {
-				console.error(error)
-			}
-		)
+			)
+		}
+
+		if (modelCache == null) {
+			load_gltf_model((gltf: GLTF) => {
+				const exporter = new GLTFExporter()
+				exporter.parse(
+					gltf.scene as any,
+					(gltfBuffer) => {
+						const blob = new Blob([gltfBuffer as any], { type: 'model/gltf-binary' })
+						const reader = new FileReader()
+						reader.readAsDataURL(blob)
+						reader.onloadend = function () {
+							const base64data = reader.result
+							try {
+								sessionStorage.setItem(resPath, base64data as any)
+							} catch (e) {
+								console.error('Storage limit exceeded! Use IndexedDB instead.')
+							}
+						}
+					},
+					(error) => {
+						console.error(error)
+					},
+					{ binary: true, animations: gltf.animations, trs: false }
+				)
+				callback(gltf)
+			})
+		} else {
+			load_gltf_model((gltf: GLTF) => {
+				callback(gltf)
+			})
+		}
 		return resPath
 	}
 
 	public getJSON(path: string, callback: Function) {
 		const resPath = super.getJSON(path, callback)
 		const loader = new THREE.FileLoader()
-		const data = loader.loadAsync(resPath.path)
+		// const data = loader.loadAsync(resPath.path)
 		loader.load(resPath.path, (data: string | ArrayBuffer) => {
 			callback(JSON.parse(String(data)))
 		})
 		return resPath
 	}
 
-	public loadScene(gltf: any, sub_name: string, /* isLaunmch: boolean = true */) {
+	public loadScene(gltf: any, sub_name: string /* isLaunmch: boolean = true */) {
 		super.loadScene(gltf, sub_name)
 		gltf.scene.traverse((child: any) => {
 			if (child.hasOwnProperty('userData')) {
@@ -526,10 +562,14 @@ export class WorldClient extends WorldBase {
 						position.x += gltf.scene.position.x
 						position.y += gltf.scene.position.y
 						position.z += gltf.scene.position.z
-						let grass = new Grass({
-							scale: child.scale.clone(),
-							position: position,
-						}, this, instances)
+						let grass = new Grass(
+							{
+								scale: child.scale.clone(),
+								position: position,
+							},
+							this,
+							instances
+						)
 						this.add(grass)
 						// this.grasses.push(grass)
 						this.clientEntity.push(grass)
@@ -551,9 +591,7 @@ export class WorldClient extends WorldBase {
 
 	public CreateWorker(msgFunc: Function) {
 		// super.sendWorker(msg)
-		const worker = new Worker('../@WorldClient/WorkerClient.js', {
-			/*  type: "module", */
-		})
+		const worker = new Worker('../@WorldClient/WorkerClient.js', {/*  type: "module", */})
 		worker.onerror = (err) => {
 			console.log(`Worker Error: ${err}`)
 		}

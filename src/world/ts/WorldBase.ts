@@ -839,8 +839,12 @@ export abstract class WorldBase {
 							} else if (child.userData.type === 'heightfield') {
 								// child.visible = true
 								let scale = 1
+								let height = 10
+								let width = 10
 								if (child.userData.hasOwnProperty('scale')) scale = child.userData.scale
 								if (child.userData.hasOwnProperty('visible')) child.visible = child.userData.visible
+								if (child.userData.hasOwnProperty('height')) height = child.userData.height
+								if (child.userData.hasOwnProperty('width')) width = child.userData.width
 								const position: THREE.Vector3 = child.position.clone()
 								const rotation: THREE.Euler = child.rotation.clone()
 								position.x += gltf.scene.position.x
@@ -854,6 +858,8 @@ export abstract class WorldBase {
 									scale: scale,
 									position: Utility.cannonVector(position),
 									quaternion: Utility.cannonQuat(quaternion),
+									height: height,
+									width: width,
 								})
 								this.addWorldObject(phys.body)
 

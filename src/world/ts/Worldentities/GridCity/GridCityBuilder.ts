@@ -5,11 +5,15 @@ import ParkMiller from 'park-miller'
 import { Prefabs, clear_cache, MAX_INSTANCE } from './Prefabs'
 import { Utility } from '../../Core/Utility'
 
-const useWorker = true
+var useWorker = true
 const loaderGeo = new THREE.BufferGeometryLoader()
 // var offWork: Worker | null = null
 var offWork: any | null = null
 var cityBuilder: { [id: string]: CityBuilder } = {}
+
+export function setWorker(val: boolean) {
+	useWorker = val
+}
 
 function FromWorker(msg: any) {
 	const builder = cityBuilder[msg.data.cityId]

@@ -131,6 +131,7 @@ stats.json
 .turbo
 
 # Stores VSCode versions used for testing VSCode extensions
+.vscode
 .vscode-test
 
 # yarn v2
@@ -142,6 +143,9 @@ stats.json
 
 # Vite
 .vite/
+
+# Fallow
+.fallow/
 
 # Electron-Forge
 out/

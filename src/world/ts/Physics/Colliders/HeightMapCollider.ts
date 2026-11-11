@@ -18,6 +18,8 @@ export class HeightMapCollider implements ICollider {
 			// rotation: mesh.quaternion,
 			position: new CANNON.Vec3(),
 			rotation: new CANNON.Quaternion(),
+			width: 10,
+			height: 10,
 			friction: 0.3,
 			scale: 1,
 		}
@@ -37,8 +39,8 @@ export class HeightMapCollider implements ICollider {
 		mat.friction = this.options.friction
 		physBox.material = mat
 
-		var sizeX = bufferGeometry.parameters.width + 1
-		var sizeZ = bufferGeometry.parameters.height + 1
+		var sizeX = this.options.width + 1
+		var sizeZ = this.options.height + 1
 
 		var matrix: number[][] = []
 		let inx = 2

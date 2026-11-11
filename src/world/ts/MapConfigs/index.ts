@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+// import * as THREE from 'three'
 
 // import test from '../../../client/models/MapConfigs/test.json'
 // import test2 from '../../../client/models/MapConfigs/test2.json'
@@ -56,7 +56,7 @@ export type MapConfigType = {
 }
 
 function createMapCaller(world: WorldBase, caller: string): any {
-	switch (caller.replace('class:', '')) {
+	switch (caller) {
 		case 'Example':
 			return new Example()
 
@@ -76,204 +76,260 @@ function createMapCaller(world: WorldBase, caller: string): any {
 			return new GridWorldScene(world)
 
 		default:
-			return new TestScene()
+			throw new Error(`Unknown map caller: ${caller}`)
 	}
 }
 
-function MapConfigurator(world: WorldBase, conf: { [id: string]: any }): MapConfigType {
+function resolveCaller(world: WorldBase, caller: unknown): string | BaseScene {
+	if (typeof caller !== 'string') {
+		return caller as BaseScene
+	}
+
+	if (!caller.startsWith('class:')) {
+		return caller
+	}
+
+	return createMapCaller(world, caller.slice('class:'.length))
+}
+
+function MapConfigurator(world: WorldBase, conf: any): MapConfigType {
+	if (!conf || typeof conf !== 'object') {
+		throw new Error('Invalid map config')
+	}
+
 	let config: MapConfigType = {
-		name: conf.name,
-		isCallback: Boolean(conf.isCallback),
-		isLaunched: Boolean(conf.isLaunched),
+		name: conf.name ?? '',
+		isCallback: conf.isCallback === true,
+		isLaunched: conf.isLaunched === true,
 		subMaps: [],
 		characters: [],
 		vehicles: [],
 		trains: [],
 	}
 
-	for (let i = 0; i < conf.subMaps.length; i++) {
+	const subMaps = Array.isArray(conf.subMaps) ? conf.subMaps : []
+	const characters = Array.isArray(conf.characters) ? conf.characters : []
+	const vehicles = Array.isArray(conf.vehicles) ? conf.vehicles : []
+	const trains = Array.isArray(conf.trains) ? conf.trains : []
+
+	for (const subMap of subMaps) {
+		const position = subMap.position ?? { x: 0, y: 0, z: 0 }
+		const rotation = subMap.rotation ?? { x: 0, y: 0, z: 0 }
+
 		let mapInstConf: MapInstanceConfig = {
-			isMain: Boolean(conf.subMaps[i].isMain),
-			subName: conf.subMaps[i].subName,
-			mapCaller: conf.subMaps[i].mapCaller,
-			position: { x: conf.subMaps[i].position.x, y: conf.subMaps[i].position.y, z: conf.subMaps[i].position.z },
-			rotation: { x: conf.subMaps[i].rotation.x, y: conf.subMaps[i].rotation.y, z: conf.subMaps[i].rotation.z },
+			isMain: Boolean(subMap.isMain),
+			subName: subMap.subName,
+			mapCaller: resolveCaller(world, subMap.mapCaller ?? 'class:TestScene'),
+			position: { x: position.x ?? 0, y: position.y ?? 0, z: position.z ?? 0 },
+			rotation: { x: rotation.x ?? 0, y: rotation.y ?? 0, z: rotation.z ?? 0 },
 			portal: [],
 		}
 
-		if (typeof mapInstConf.mapCaller === 'string' && mapInstConf.mapCaller.includes('class:')) {
-			let mapCaller = mapInstConf.mapCaller.replace('class:', '')
-			switch (mapCaller) {
-				case 'Example': {
-					mapInstConf.mapCaller = new Example()
-					break
-				}
-				case 'TestScene': {
-					mapInstConf.mapCaller = new TestScene()
-					break
-				}
-				case 'Test2Scene': {
-					mapInstConf.mapCaller = new Test2Scene()
-					break
-				}
-				case 'Test3Scene': {
-					mapInstConf.mapCaller = new Test3Scene()
-					break
-				}
-				case 'GridCityScene': {
-					mapInstConf.mapCaller = new GridCityScene(world)
-					break
-				}
-				case 'GridWorldScene': {
-					mapInstConf.mapCaller = new GridWorldScene(world)
-					break
-				}
-				default: {
-					mapInstConf.mapCaller = new TestScene()
-					break
-				}
+		// if (typeof mapInstConf.mapCaller === 'string' && mapInstConf.mapCaller.includes('class:')) {
+		// 	/* let mapCaller = mapInstConf.mapCaller.slice('class:'.length)
+		// 	switch (mapCaller) {
+		// 		case 'Example': {
+		// 			mapInstConf.mapCaller = new Example()
+		// 			break
+		// 		}
+		// 		case 'TestScene': {
+		// 			mapInstConf.mapCaller = new TestScene()
+		// 			break
+		// 		}
+		// 		case 'Test2Scene': {
+		// 			mapInstConf.mapCaller = new Test2Scene()
+		// 			break
+		// 		}
+		// 		case 'Test3Scene': {
+		// 			mapInstConf.mapCaller = new Test3Scene()
+		// 			break
+		// 		}
+		// 		case 'GridCityScene': {
+		// 			mapInstConf.mapCaller = new GridCityScene(world)
+		// 			break
+		// 		}
+		// 		case 'GridWorldScene': {
+		// 			mapInstConf.mapCaller = new GridWorldScene(world)
+		// 			break
+		// 		}
+		// 		default: {
+		// 			mapInstConf.mapCaller = new TestScene()
+		// 			break
+		// 		}
+		// 	} */
+		// 	const caller = mapInstConf.mapCaller.slice('class:'.length)
+		// 	mapInstConf.mapCaller = createMapCaller(world, caller)
+		// }
+
+		const portals = Array.isArray(subMap.portal) ? subMap.portal : []
+
+		for (const portal of portals) {
+			const portalPosition = portal.position ?? {
+				x: 0,
+				y: 0,
+				z: 0,
 			}
-		}
 
-		mapInstConf.position = { x: mapInstConf.position.x, y: mapInstConf.position.y, z: mapInstConf.position.z }
-		mapInstConf.rotation = { x: mapInstConf.rotation.x, y: mapInstConf.rotation.y, z: mapInstConf.rotation.z }
-
-		conf.subMaps[i].portal.forEach((portal: any) => {
-			const portal_data = {
-				color: portal.color,
-				name: portal.name,
-				link_name: portal.link_name,
+			const portalRotation = portal.rotation ?? {
+				x: 0,
+				y: 0,
+				z: 0,
+			}
+			mapInstConf.portal.push({
+				color: portal.color ?? 0xffffff,
+				name: portal.name ?? '',
+				link_name: portal.link_name ?? '',
 				position: {
-					x: portal.position.x,
-					y: portal.position.y,
-					z: portal.position.z,
+					x: portal.position.x ?? 0,
+					y: portal.position.y ?? 0,
+					z: portal.position.z ?? 0,
 				},
 				rotation: {
-					x: portal.rotation.x,
-					y: portal.rotation.y,
-					z: portal.rotation.z,
+					x: portal.rotation.x ?? 0,
+					y: portal.rotation.y ?? 0,
+					z: portal.rotation.z ?? 0,
 				},
-			}
-			mapInstConf.portal.push(portal_data)
-		})
+			})
+		}
 
 		config.subMaps.push(mapInstConf)
 	}
 
-	conf.characters.forEach((character: any) => {
-		let charConf: MapConfigFOType = {
-			objCaller: 'boxman.glb',
-			type: 'character',
-			subtype: null,
-		}
-		if (typeof character.objCaller === 'string' && character.objCaller.includes('class:')) {
-			/* let objCaller = character.objCaller.replace('class:', '')
-			switch (objCaller) {
-				default: {
-					charConf.objCaller = new TestScene()
-					break
-				}
-			} */
-		} else charConf.objCaller = character.objCaller
-		charConf.type = character.type
-		charConf.subtype = character.subtype
-		config.characters.push(charConf)
-	})
+	for (const character of characters) {
+		// let charConf: MapConfigFOType = {
+		// 	objCaller: 'boxman.glb',
+		// 	type: 'character',
+		// 	subtype: null,
+		// }
+		// if (typeof character.objCaller === 'string' && character.objCaller.includes('class:')) {
+		// 	/* let objCaller = character.objCaller.slice('class:'.length)
+		// 	switch (objCaller) {
+		// 		default: {
+		// 			charConf.objCaller = new TestScene()
+		// 			break
+		// 		}
+		// 	} */
+		// } else charConf.objCaller = character.objCaller
+		// charConf.type = character.type
+		// charConf.subtype = character.subtype
+		// config.characters.push(charConf)
 
-	conf.vehicles.forEach((vehicles: any) => {
-		let vehiConf: MapConfigFOType = {
-			objCaller: 'car.glb',
-			type: 'car',
-			subtype: null,
-		}
-		if (typeof vehicles.objCaller === 'string' && vehicles.objCaller.includes('class:')) {
-			let objCaller = vehicles.objCaller.replace('class:', '')
-			/* switch (objCaller) {
-				case 'Example': {
-					vehiConf.objCaller = new Example()
-					break
-				}
-				case 'TestScene': {
-					vehiConf.objCaller = new TestScene()
-					break
-				}
-				case 'Test2Scene': {
-					vehiConf.objCaller = new Test2Scene()
-					break
-				}
-				case 'Test3Scene': {
-					vehiConf.objCaller = new Test3Scene()
-					break
-				}
-				case 'GridCityScene': {
-					vehiConf.objCaller = new GridCityScene(world)
-					break
-				}
-				case 'GridWorldScene': {
-					vehiConf.objCaller = new GridWorldScene(world)
-					break
-				}
-				default: {
-					vehiConf.objCaller = new Example()
-					break
-				}
-			} */
-			vehiConf.objCaller = createMapCaller(world, objCaller)
-		} else vehiConf.objCaller = vehicles.objCaller
-		vehiConf.type = vehicles.type
-		vehiConf.subtype = vehicles.subtype
-		config.vehicles.push(vehiConf)
-	})
+		config.characters.push({
+			objCaller: resolveCaller(world, character.objCaller ?? 'boxman.glb'),
 
-	conf.trains.forEach((trains: any) => {
-		let trainConf: MapConfigFOType = {
-			objCaller: 'class:Example',
-			type: 'train',
-			subtype: 'train_test',
-		}
-		if (typeof trains.objCaller === 'string' && trains.objCaller.includes('class:')) {
-			let objCaller = trains.objCaller.replace('class:', '')
-			/* switch (objCaller) {
-				case 'Example': {
-					trainConf.objCaller = new Example()
-					break
-				}
-				case 'TestScene': {
-					trainConf.objCaller = new TestScene()
-					break
-				}
-				case 'Test2Scene': {
-					trainConf.objCaller = new Test2Scene()
-					break
-				}
-				case 'Test3Scene': {
-					trainConf.objCaller = new Test3Scene()
-					break
-				}
-				case 'GridCityScene': {
-					trainConf.objCaller = new GridCityScene()
-					break
-				}
-				case 'GridWorldScene': {
-					trainConf.objCaller = new GridWorldScene()
-					break
-				}
-				default: {
-					trainConf.objCaller = new Example()
-					break
-				}
-			} */
-			trainConf.objCaller = createMapCaller(world, objCaller)
-		} else trainConf.objCaller = trains.objCaller
-		trainConf.type = trains.type
-		trainConf.subtype = trains.subtype
-		config.trains.push(trainConf)
-	})
+			type: character.type ?? 'character',
+			subtype: character.subtype ?? null,
+		})
+	}
+
+	for (const vehicle of vehicles) {
+		// let vehiConf: MapConfigFOType = {
+		// 	objCaller: 'car.glb',
+		// 	type: 'car',
+		// 	subtype: null,
+		// }
+		// if (typeof vehicle.objCaller === 'string' && vehicle.objCaller.includes('class:')) {
+		// 	let objCaller = vehicle.objCaller.slice('class:'.length)
+		// 	/* switch (objCaller) {
+		// 		case 'Example': {
+		// 			vehiConf.objCaller = new Example()
+		// 			break
+		// 		}
+		// 		case 'TestScene': {
+		// 			vehiConf.objCaller = new TestScene()
+		// 			break
+		// 		}
+		// 		case 'Test2Scene': {
+		// 			vehiConf.objCaller = new Test2Scene()
+		// 			break
+		// 		}
+		// 		case 'Test3Scene': {
+		// 			vehiConf.objCaller = new Test3Scene()
+		// 			break
+		// 		}
+		// 		case 'GridCityScene': {
+		// 			vehiConf.objCaller = new GridCityScene(world)
+		// 			break
+		// 		}
+		// 		case 'GridWorldScene': {
+		// 			vehiConf.objCaller = new GridWorldScene(world)
+		// 			break
+		// 		}
+		// 		default: {
+		// 			vehiConf.objCaller = new Example()
+		// 			break
+		// 		}
+		// 	} */
+		// 	vehiConf.objCaller = createMapCaller(world, objCaller)
+		// } else vehiConf.objCaller = vehicle.objCaller
+		// vehiConf.type = vehicle.type
+		// vehiConf.subtype = vehicle.subtype
+		// config.vehicles.push(vehiConf)
+
+		config.vehicles.push({
+			objCaller: resolveCaller(world, vehicle.objCaller ?? 'car.glb'),
+
+			type: vehicle.type ?? 'car',
+			subtype: vehicle.subtype ?? null,
+		})
+	}
+
+	for (const train of trains) {
+		// let trainConf: MapConfigFOType = {
+		// 	objCaller: 'class:Example',
+		// 	type: 'train',
+		// 	subtype: 'train_test',
+		// }
+		// if (typeof train.objCaller === 'string' && train.objCaller.includes('class:')) {
+		// 	let objCaller = train.objCaller.slice('class:'.length)
+		// 	/* switch (objCaller) {
+		// 		case 'Example': {
+		// 			trainConf.objCaller = new Example()
+		// 			break
+		// 		}
+		// 		case 'TestScene': {
+		// 			trainConf.objCaller = new TestScene()
+		// 			break
+		// 		}
+		// 		case 'Test2Scene': {
+		// 			trainConf.objCaller = new Test2Scene()
+		// 			break
+		// 		}
+		// 		case 'Test3Scene': {
+		// 			trainConf.objCaller = new Test3Scene()
+		// 			break
+		// 		}
+		// 		case 'GridCityScene': {
+		// 			trainConf.objCaller = new GridCityScene()
+		// 			break
+		// 		}
+		// 		case 'GridWorldScene': {
+		// 			trainConf.objCaller = new GridWorldScene()
+		// 			break
+		// 		}
+		// 		default: {
+		// 			trainConf.objCaller = new Example()
+		// 			break
+		// 		}
+		// 	} */
+		// 	trainConf.objCaller = createMapCaller(world, objCaller)
+		// } else trainConf.objCaller = train.objCaller
+		// trainConf.type = train.type
+		// trainConf.subtype = train.subtype
+		// config.trains.push(trainConf)
+
+		config.trains.push({
+			objCaller: resolveCaller(world, train.objCaller ?? 'class:Example'),
+
+			type: train.type ?? 'train',
+			subtype: train.subtype ?? 'train_test',
+		})
+	}
 	return config
 }
 
-export function getMapConfig(world: WorldBase, subMaps: MapConfigType[]): { [id: string]: MapConfigType } {
-	var MapConfig: { [id: string]: MapConfigType } = {}
+export function getMapConfig(world: WorldBase, subMaps: MapConfigType[]): Record<string, MapConfigType> {
+	var MapConfig: Record<string, MapConfigType> = {}
 
 	// const allConfigs = [test2, test3, example, sketchbookv3, sketchbookv4, test]
 	/* const allConfigs: MapConfigType[] = [
@@ -315,8 +371,22 @@ export function getMapConfig(world: WorldBase, subMaps: MapConfigType[]): { [id:
 		// MapConfig[key.name] = key
 	}) */
 
-	for (let i = 0; i < subMaps.length; i++) {
-		const config = MapConfigurator(world, subMaps[i])
+	for (const subMap of subMaps) {
+		const config = MapConfigurator(world, subMap)
+		if (!config) {
+			continue
+		}
+
+		if (!config.name) {
+			console.warn('Skipping config without name:', subMap)
+			continue
+		}
+		if (MapConfig[config.name]) {
+			console.warn(`Duplicate map config name "${config.name}"`, {
+				previous: MapConfig[config.name],
+				current: config,
+			})
+		}
 		MapConfig[config.name] = config
 		// MapConfig[key.name] = key
 	}

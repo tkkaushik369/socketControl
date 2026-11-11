@@ -1,0 +1,111 @@
+{
+	"output": "dist/client/models/generated",
+	"maps": [
+		{
+			"name": "test2",
+			"isCallback": true,
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "test_2",
+					"mapCaller": "class:Test2Scene",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
+			"isLaunched": true,
+			"characters": [],
+			"vehicles": [],
+			"trains": []
+		},
+		{
+			"name": "test3",
+			"isCallback": true,
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "test_3",
+					"mapCaller": "class:Test3Scene",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
+			"isLaunched": true,
+			"characters": [],
+			"vehicles": [],
+			"trains": []
+		},
+		{
+			"name": "example",
+			"isCallback": true,
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "example",
+					"mapCaller": "class:Example",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
+			"isLaunched": true,
+			"characters": [],
+			"vehicles": [
+				{
+					"objCaller": "class:Example",
+					"type": "car",
+					"subtype": "car_test"
+				},
+				{
+					"objCaller": "class:Example",
+					"type": "heli",
+					"subtype": "heli_test"
+				},
+				{
+					"objCaller": "class:Example",
+					"type": "airplane",
+					"subtype": "airplane_test"
+				}
+			],
+			"trains": []
+		},
+		{
+			"name": "Grid City",
+			"isCallback": true,
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "grid_city",
+					"mapCaller": "class:GridCityScene",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
+			"isLaunched": true,
+			"characters": [],
+			"vehicles": [],
+			"trains": []
+		},
+		{
+			"name": "Grid World",
+			"isCallback": true,
+			"subMaps": [
+				{
+					"isMain": true,
+					"subName": "grid_world",
+					"mapCaller": "class:GridWorldScene",
+					"position": { "x": 0, "y": 0, "z": 0 },
+					"rotation": { "x": 0, "y": 0, "z": 0 },
+					"portal": []
+				}
+			],
+			"isLaunched": true,
+			"characters": [],
+			"vehicles": [],
+			"trains": []
+		}
+	]
+}

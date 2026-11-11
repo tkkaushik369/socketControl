@@ -41,6 +41,10 @@ jobs:
         run: npm run build:client
       - name: Building:Server
         run: npm run build:server
+      - name: Building:ModelExport
+        run: npm run build:modelexport
+      - name: Generating:Models
+        run: npm run modelexport
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

@@ -79,10 +79,13 @@ npm run start:server
 
 -   **Three.js**: For rendering 3D graphics.
 -   **Cannon-es**: For physics simulation.
--   **Socket.io**: For real-time, bidirectional communication between clients and server.
+-   **Socket.io or WebSocket(default)**: For real-time, bidirectional communication between clients and server.
 -   **Node.js & Express**: Backend server setup.
 
 ### Features
+
+#### 12th November 2026
+- ModelExporter Added, generates models from World created from class files(Example,Test2,Test3,Grid City, Grid World) uses modelexport_config.json file similar to client/models/MapConfig.json, to client/models/generated folder, especially for Grid City and Grid Worlds which take long time to generate buildings.
 
 #### 1th September 2026
 - Sub Maps Added, Combine Multiple maps in single Scene, Global Portals added.

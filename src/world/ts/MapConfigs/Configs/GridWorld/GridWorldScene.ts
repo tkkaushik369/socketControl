@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { WorldBase } from '@World'
 import { BaseScene } from '../../BaseScene'
-import { WorldBuilder } from '../../../Worldentities/GridCity/WorldBuilder'
+import { WorldBuilder, Road, Junction } from '../../../Worldentities/GridCity/WorldBuilder'
 import { Terrain } from '../../../Worldentities/GridCity/Terrain'
 
 export class GridWorldScene extends BaseScene {
@@ -167,7 +167,15 @@ export class GridWorldScene extends BaseScene {
 				const cmesh2 = new THREE.Mesh(geo, mat)
 				cmesh2.rotation.x = -Math.PI / 2
 				// cmesh2.position.x = 20 * scaling
-				if (!is_debug) cmesh2.userData = { data: 'physics', type: 'heightfield', scale: scaling, visible: true }
+				if (!is_debug)
+					cmesh2.userData = {
+						data: 'physics',
+						type: 'heightfield',
+						scale: scaling,
+						visible: true,
+						width: length_max,
+						height: length_max,
+					}
 				const city_ranges: {
 					xMin: number
 					zMin: number
@@ -208,6 +216,80 @@ export class GridWorldScene extends BaseScene {
 				cmesh2.scale.set(scaling, scaling, scaling)
 				terrain.updateColors(geo)
 				self.scene.add(cmesh2)
+
+				// Ensure vertex color attributes are preserved in the JSON export
+				function ensureVertexColorsPreserved(obj: THREE.Mesh, color_update: boolean = false): void {
+					if (obj.isMesh && obj.geometry instanceof THREE.PlaneGeometry) {
+						// Original morphed mesh
+						const sourceGeometry = obj.geometry
+
+						// Create new BufferGeometry
+						const clonedGeometry = new THREE.BufferGeometry()
+
+						// Get current morphed positions
+						const positions = new Float32Array(sourceGeometry.attributes.position.count * 3)
+
+						// Apply morph transformations to cloned vertices
+						const vertex = new THREE.Vector3()
+
+						for (let i = 0; i < sourceGeometry.attributes.position.count; i++) {
+							obj.getVertexPosition(i, vertex)
+
+							positions[i * 3] = vertex.x
+							positions[i * 3 + 1] = vertex.y
+							positions[i * 3 + 2] = vertex.z
+						}
+
+						// Set position attribute
+						clonedGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+
+						// Copy index and UV
+						if (sourceGeometry.index) {
+							clonedGeometry.setIndex(sourceGeometry.index.clone())
+						}
+
+						if (sourceGeometry.attributes.uv) {
+							clonedGeometry.setAttribute('uv', sourceGeometry.attributes.uv.clone())
+						}
+
+						// Recalculate normals
+						clonedGeometry.computeVertexNormals()
+
+						// Create color attribute
+
+						// if (sourceGeometry.attributes.color !== undefined) {
+						if (color_update) {
+							;(sourceGeometry.attributes.color as THREE.BufferAttribute).needsUpdate = true
+							const colors = new Float32Array(positions.length)
+
+							for (let i = 0; i < positions.length / 3; i++) {
+								colors[i * 3] = sourceGeometry.attributes.color.getX(i)
+								colors[i * 3 + 1] = sourceGeometry.attributes.color.getY(i)
+								colors[i * 3 + 2] = sourceGeometry.attributes.color.getZ(i)
+							}
+
+							clonedGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+						}
+
+						geo.dispose()
+						;(obj.geometry as THREE.BufferGeometry) = clonedGeometry as THREE.BufferGeometry
+					}
+				}
+
+				const roads: Road[] = worldBuilder.getAllRoads()
+				for (const roadMeshs of roads) {
+					for (const road of roadMeshs.mesh) {
+						ensureVertexColorsPreserved(road)
+					}
+				}
+				const junctions: Junction[] = worldBuilder.getAllJunctions()
+				for (const junctionMeshs of junctions) {
+					for (const junction of junctionMeshs.mesh) {
+						ensureVertexColorsPreserved(junction)
+					}
+				}
+
+				ensureVertexColorsPreserved(cmesh2, true)
 
 				// chunked ground
 				if (is_debug) {
